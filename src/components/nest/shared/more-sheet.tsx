@@ -16,7 +16,7 @@ import { useI18n, LANGS } from "@/lib/i18n";
 import type { SessionDto } from "@/lib/types";
 import { useOutboxCount } from "@/hooks/use-outbox";
 import { useUIStore } from "@/lib/ui-store";
-import { roleLabelKey } from "@/components/nest/nav";
+import { MORE_TABS, roleLabelKey } from "@/components/nest/nav";
 import { AvatarInitials } from "@/components/nest/shared/avatar-initials";
 import { formatPhone } from "@/components/nest/shared/format";
 import { Badge } from "@/components/ui/badge";
@@ -137,10 +137,17 @@ export function MoreSheetContent({ session }: { session: SessionDto }) {
         cashFlow: { open: false },
         stkRequest: { open: false },
         payFlowOpen: false,
+        ticketViewId: null,
+        reportIssueOpen: false,
+        settleDeposit: { open: false },
       });
     },
     onError: () => toast.error(t("errors.somethingWrong")),
   });
+
+  const setMoreOpen = useUIStore((s) => s.setMoreOpen);
+  const setTab = useUIStore((s) => s.setTab);
+  const overflowTabs = MORE_TABS[session.profile.role] ?? [];
 
   return (
     <div className="space-y-5">
@@ -156,6 +163,29 @@ export function MoreSheetContent({ session }: { session: SessionDto }) {
       </div>
 
       <Separator />
+
+      {/* Overflow tabs that lost their bottom-nav slot (Phase 2) */}
+      {overflowTabs.length > 0 ? (
+        <div className="space-y-1">
+          {overflowTabs.map((def) => {
+            const Icon = def.icon;
+            return (
+              <button
+                key={def.id}
+                type="button"
+                onClick={() => {
+                  setTab(def.id);
+                  setMoreOpen(false);
+                }}
+                className="w-full h-11 px-3 rounded-md flex items-center gap-3 text-body focus-visible:ring-2 focus-visible:ring-ring outline-none hover:bg-secondary/60 transition-colors"
+              >
+                <Icon className="size-4" aria-hidden />
+                <span className="flex-1 text-left">{t(def.labelKey)}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
 
       {/* Language */}
       <div className="space-y-2">

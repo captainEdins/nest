@@ -21,6 +21,10 @@ import type {
   ChargeDto,
   ChargeKind,
   ChargeStatus,
+  ConditionReportDto,
+  DepositDto,
+  DepositMovementKind,
+  DepositStatus,
   NotificationDto,
   PaymentDto,
   PaymentSource,
@@ -29,6 +33,9 @@ import type {
   PropertyDto,
   ReceiptDto,
   Role,
+  TicketDto,
+  TicketPriority,
+  TicketStatus,
   UnitDto,
   UnitStatus,
   UnitType,
@@ -231,5 +238,118 @@ export function toTenancyPickerRow(
     accountRef: tenancy.accountRef,
     monthlyRentMinor: tenancy.monthlyRentMinor,
     balanceMinor,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Maintenance tickets (Phase 2)
+// ---------------------------------------------------------------------------
+
+/** Everything TicketDto needs (unit + property chain, reporter, update authors). */
+export const ticketInclude = {
+  unit: { select: { id: true, label: true, propertyId: true, property: { select: { name: true } } } },
+  reportedBy: { select: { id: true, fullName: true } },
+  updates: {
+    include: { author: { select: { fullName: true } } },
+    orderBy: { createdAt: "asc" as const },
+  },
+} satisfies Prisma.MaintenanceTicketInclude
+
+export type TicketWithRelations = Prisma.MaintenanceTicketGetPayload<{ include: typeof ticketInclude }>
+
+export function toTicketDto(ticket: TicketWithRelations): TicketDto {
+  return {
+    id: ticket.id,
+    propertyId: ticket.propertyId,
+    propertyName: ticket.unit.property.name,
+    unitId: ticket.unitId,
+    unitLabel: ticket.unit.label,
+    tenancyId: ticket.tenancyId,
+    title: ticket.title,
+    description: ticket.description,
+    priority: ticket.priority as TicketPriority,
+    status: ticket.status as TicketStatus,
+    reportedById: ticket.reportedById,
+    reportedByName: ticket.reportedBy.fullName,
+    createdAt: ticket.createdAt.toISOString(),
+    updatedAt: ticket.updatedAt.toISOString(),
+    resolvedAt: ticket.resolvedAt ? ticket.resolvedAt.toISOString() : null,
+    updates: ticket.updates.map((u) => ({
+      id: u.id,
+      note: u.note,
+      authorName: u.author.fullName,
+      statusFrom: (u.statusFrom as TicketStatus | null) ?? null,
+      statusTo: (u.statusTo as TicketStatus | null) ?? null,
+      createdAt: u.createdAt.toISOString(),
+    })),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Deposit ledger + condition reports (Phase 2)
+// ---------------------------------------------------------------------------
+
+/** Everything DepositDto needs (tenancy chain + append-only movements). */
+export const depositInclude = {
+  tenancy: { include: { tenant: true, unit: { include: { property: true } } } },
+  movements: {
+    include: { actor: { select: { fullName: true } } },
+    orderBy: { createdAt: "asc" as const },
+  },
+} satisfies Prisma.DepositInclude
+
+export type DepositWithRelations = Prisma.DepositGetPayload<{ include: typeof depositInclude }>
+
+/** Everything ConditionReportDto needs. */
+export const conditionReportInclude = {
+  recordedBy: { select: { fullName: true } },
+} satisfies Prisma.ConditionReportInclude
+
+export type ConditionReportWithRelations = Prisma.ConditionReportGetPayload<{
+  include: typeof conditionReportInclude
+}>
+
+export function toConditionReportDto(report: ConditionReportWithRelations): ConditionReportDto {
+  let photoUrls: string[] = []
+  try {
+    const parsed = JSON.parse(report.photoUrlsJson) as unknown
+    if (Array.isArray(parsed)) photoUrls = parsed.filter((u): u is string => typeof u === "string")
+  } catch {
+    // Corrupt JSON in the column must never break the read path.
+  }
+  return {
+    id: report.id,
+    tenancyId: report.tenancyId,
+    kind: report.kind as ConditionReportDto["kind"],
+    notes: report.notes,
+    photoUrls,
+    recordedByName: report.recordedBy.fullName,
+    createdAt: report.createdAt.toISOString(),
+  }
+}
+
+/** Deposit + its condition reports → DepositDto. Reports are queried by the caller (scope-checked). */
+export function toDepositDto(
+  deposit: DepositWithRelations,
+  reports: ConditionReportWithRelations[]
+): DepositDto {
+  return {
+    id: deposit.id,
+    tenancyId: deposit.tenancyId,
+    unitLabel: deposit.tenancy.unit.label,
+    propertyName: deposit.tenancy.unit.property.name,
+    tenantName: deposit.tenancy.tenant.fullName,
+    tenantPhone: deposit.tenancy.tenant.phone,
+    heldMinor: deposit.heldMinor,
+    status: deposit.status as DepositStatus,
+    movements: deposit.movements.map((m) => ({
+      id: m.id,
+      kind: m.kind as DepositMovementKind,
+      amountMinor: m.amountMinor,
+      reason: m.reason,
+      actorName: m.actor ? m.actor.fullName : null,
+      createdAt: m.createdAt.toISOString(),
+    })),
+    conditionReports: reports.map(toConditionReportDto),
   }
 }

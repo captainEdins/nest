@@ -237,12 +237,18 @@ export async function getLandlordOverview(profile: Profile): Promise<LandlordOve
   const occupied = units.filter((u) => u.status !== "VACANT").length // NOTICE still tenanted
   const vacant = totalUnits - occupied
 
-  const recentPayments = await db.payment.findMany({
-    where: await paymentScopeWhere(profile),
-    orderBy: { receivedAt: "desc" },
-    take: 5,
-    include: paymentInclude,
-  })
+  const [recentPayments, openTickets] = await Promise.all([
+    db.payment.findMany({
+      where: await paymentScopeWhere(profile),
+      orderBy: { receivedAt: "desc" },
+      take: 5,
+      include: paymentInclude,
+    }),
+    // OPEN + IN_PROGRESS maintenance tickets across owned properties (Phase 2).
+    db.maintenanceTicket.count({
+      where: { status: { in: ["OPEN", "IN_PROGRESS"] }, unit: { property: { landlordId: profile.id } } },
+    }),
+  ])
 
   return {
     properties: properties.map((p) => ({
@@ -260,6 +266,7 @@ export async function getLandlordOverview(profile: Profile): Promise<LandlordOve
       arrearsMinor: rollup.arrearsMinor,
       arrearsTenantCount: rollup.arrearsTenantCount,
       unmatchedPayments: rollup.unmatchedPayments,
+      openTickets,
     },
     arrears: rollup.arrears,
     recentPayments: recentPayments.map(toPaymentDto),
@@ -286,12 +293,18 @@ export async function getCaretakerOverview(profile: Profile): Promise<CaretakerO
   ])
 
   const rollup = await computeMoneyRollup(profile, tenancies, now)
-  const recentPayments = await db.payment.findMany({
-    where: await paymentScopeWhere(profile),
-    orderBy: { receivedAt: "desc" },
-    take: 5,
-    include: paymentInclude,
-  })
+  const [recentPayments, openTickets] = await Promise.all([
+    db.payment.findMany({
+      where: await paymentScopeWhere(profile),
+      orderBy: { receivedAt: "desc" },
+      take: 5,
+      include: paymentInclude,
+    }),
+    // OPEN + IN_PROGRESS maintenance tickets on the caretaker's property (Phase 2).
+    db.maintenanceTicket.count({
+      where: { status: { in: ["OPEN", "IN_PROGRESS"] }, unit: { property: { caretakerId: profile.id } } },
+    }),
+  ])
 
   const occupied = units.filter((u) => u.status !== "VACANT").length
 
@@ -306,6 +319,7 @@ export async function getCaretakerOverview(profile: Profile): Promise<CaretakerO
       arrearsTenantCount: rollup.arrearsTenantCount,
       vacant: units.length - occupied,
       unmatchedPayments: rollup.unmatchedPayments,
+      openTickets,
     },
     arrears: rollup.arrears,
     recentPayments: recentPayments.map(toPaymentDto),
