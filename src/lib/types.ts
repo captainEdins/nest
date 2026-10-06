@@ -176,6 +176,8 @@ export interface LandlordOverviewDto {
     occupancyRatePct: number // 0-100, rounded
     monthExpectedMinor: number
     monthCollectedMinor: number
+    /** Payments received since midnight today (all sources) */
+    todayCollectedMinor: number
     collectionRatePct: number // 0-100 of expected collected
     arrearsMinor: number
     arrearsTenantCount: number
@@ -193,6 +195,8 @@ export interface CaretakerOverviewDto {
   totals: {
     monthExpectedMinor: number
     monthCollectedMinor: number
+    /** Payments received since midnight today (all sources) */
+    todayCollectedMinor: number
     arrearsMinor: number
     arrearsTenantCount: number
     vacant: number

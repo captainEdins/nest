@@ -223,4 +223,106 @@ export const sw: Record<TranslationKey, string> = {
   "misc.language": "Lugha",
   "misc.settings": "Mipangilio",
   "misc.phaseNotice": "Sehemu hii itafika katika {phase}",
+  "misc.nextPhase": "Awamu ifuatayo",
+
+  // ----- Arrears (aging buckets, reminders) [2-b] ---------------------------
+  "arrears.sendReminder": "Tuma kumbusho",
+  "arrears.sent": "Imetumwa",
+  "arrears.reminderSent": "Kumbusho limetumwa kwa {name}",
+  "arrears.monthBehind": "Mwezi 1 nyuma",
+  "arrears.monthsBehind": "Nyuma kwa miezi {count}",
+  "arrears.viewAll": "Ona zote",
+  "arrears.tenantsBehind": "Wapangaji {count} wana deni",
+  "arrears.aging.current": "Mwezi huu",
+  "arrears.aging.1_30": "Siku 1–30",
+  "arrears.aging.31_60": "Siku 31–60",
+  "arrears.aging.61plus": "Siku 61+",
+
+  // ----- Cash collection flow (S-06) ----------------------------------------
+  "cash.confirm": "Thibitisha",
+
+  // ----- M-Pesa flow extras (S-07/S-09) --------------------------------------
+  "mpesa.waiting": "Tunasubiri uthibitisho…",
+  "mpesa.failed": "Ombi la M-Pesa halikufaulu",
+  "mpesa.reason": "Sababu: {reason}",
+  "mpesa.stillWaiting": "Bado tunasubiri — rudi kidogo baadaye",
+  "mpesa.askTenantPin": "Mwombe {name} aingize PIN ya M-Pesa kwenye simu yake.",
+  "mpesa.cancelRequest": "Ghairi ombi",
+
+  // ----- Unmatched queue extras (S-04) ---------------------------------------
+  "unmatched.review": "Kagua",
+  "unmatched.matchPayment": "Unganisha malipo",
+  "unmatched.matchConfirm": "Thibitisha uunganishaji",
+
+  // ----- Tenant extras (S-08/S-09) -------------------------------------------
+  "tenant.openCharges": "Gharama hazijalipwa",
+  "tenant.allPaidUp": "Kodi yote imelipwa",
+  "tenant.confirmPayment": "Thibitisha malipo",
+  "tenant.receiptReady": "Risiti iko tayari",
+
+  // ----- Phase notices (S-12/S-13) -------------------------------------------
+  "phase.agentNotice": "Zana za wakala — orodha za nyumba, usajili wa wapangaji na ripoti — zitafika katika {phase}.",
+  "phase.guardNotice": "Kumbukumbu za wageni na ripoti za matukio zitafika katika {phase}.",
+  "guard.visitorLog": "Kumbukumbu za wageni",
+  "guard.incidents": "Matukio",
+  "guard.visitorLogDesc": "Maingizo ya kila siku",
+  "guard.incidentsDesc": "Ripoti na ufuatiliaji",
+
+  // ----- Offline queue (S-06) ------------------------------------------------
+  "offline.queued": "Imehifadhiwa — itatumwa ukirudi mtandaoni.",
+
+  // ----- Common extras -------------------------------------------------------
+  "common.viewAll": "Ona zote",
+  "common.viewReceipt": "Angalia risiti",
+  "common.continue": "Endelea",
+  "common.stepOf": "Hatua {current} kati ya {total}",
+  "common.searchTenantUnit": "Tafuta mpangaji au chumba…",
+  "common.ofUnits": "Vyumba {occupied} kati ya {total}",
+  "common.filterAll": "Zote",
+
+  // ----- Notifications day groups (S-14) --------------------------------------
+  "notifications.today": "Leo",
+  "notifications.yesterday": "Jana",
+
+  // ----- Receipt extras (S-10) -------------------------------------------------
+  "receipt.linkCopied": "Maelezo ya risiti yamenakiliwa",
+
+  // ----- More / settings sheet (S-15) -----------------------------------------
+  "more.theme": "Muonekano",
+  "more.themeLight": "Mwanga",
+  "more.themeDark": "Giza",
+
+  // ----- Statuses added for lists ----------------------------------------------
+  "status.sent": "Imetumwa",
+  "status.failed": "Imeshindikana",
+  "status.reversed": "Imerekebishwa",
+
+  // ----- Payment source badges -------------------------------------------------
+  "source.mpesa": "M-Pesa",
+  "source.cash": "Pesa taslimu",
+  "source.bank": "Benki",
+
+  // ----- Unit types ------------------------------------------------------------
+  "unitType.BEDSITTER": "Bedsitter",
+  "unitType.SINGLE": "Single",
+  "unitType.ONE_BR": "One bedroom",
+  "unitType.TWO_BR": "Two bedroom",
+  "unitType.THREE_BR": "Three bedroom",
+  "unitType.SHOP": "Duka",
+
+  // ----- Property captions -------------------------------------------------------
+  "property.unitsSummary": "Vyumba {units} · {occupied} vimekaliwa · {vacant} tupu",
+  "property.caretaker": "Msimamizi: {name}",
+
+  // ----- PWA -----------------------------------------------------------------------
+  "pwa.installed": "Imesakinishwa",
+
+  // ----- Extra errors ---------------------------------------------------------------
+  "errors.needOnline": "Unahitaji mtandao kufanya hili",
+
+  // ----- Nav (caretaker collections tab, S-02) ----------------------------------------
+  "nav.collections": "Makusanyo",
+
+  // ----- Empty states ---------------------------------------------------------------
+  "empty.properties": "Hakuna mali bado",
 }
