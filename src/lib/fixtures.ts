@@ -1025,6 +1025,11 @@ function guardOverview(): GuardOverviewDto {
     property: PROPERTY,
     activeShift: SHIFTS[0],
     properties: [PROPERTY],
+    // The fixture property's units (A1..B3), label-sorted — shape-true for
+    // the Log-visitor sheet's unit picker (empty when off duty, like the API).
+    activePropertyUnits: [...UNITS]
+      .sort((a, b) => a.label.localeCompare(b.label))
+      .map((u) => ({ id: u.id, label: u.label })),
     totals: {
       visitorsToday: VISITORS.length,
       onSiteNow: VISITORS.filter((v) => v.exitedAt === null).length,

@@ -5,7 +5,9 @@
  * Phase 3 issue #37). One screen, three segments (ui-store `securitySegment`):
  *
  * - Visitors: the shared gate register — today first, then history grouped
- *   by day (in/out times, on-site badge, unit, purpose chip).
+ *   by day (in/out times, on-site badge, unit, purpose chip). P4-e: the rows
+ *   are the SHARED visitor-row component (same one the guard register
+ *   renders) plus the logging guard's attribution line.
  * - Incidents: severity-coded cards with the Acknowledge action (AlertDialog
  *   confirm → POST /api/incidents/[id]/ack; the confirm states the guard will
  *   be notified). Acked cards flip to "Seen by …" — state-driven, so a
@@ -43,7 +45,7 @@ import {
   useShiftRegister,
   useVisitorRegister,
 } from "@/hooks/use-security";
-import { formatDate, formatTime } from "@/components/nest/shared/format";
+import { formatDate, formatTime, timeAgo } from "@/components/nest/shared/format";
 import { SectionHeader } from "@/components/nest/shared/section-header";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
@@ -89,24 +91,9 @@ const SEVERITY_KEYS: Record<IncidentSeverity, TranslationKey> = {
 };
 
 /**
- * Incident time-ago caption ("Just now", "5 min ago", "3 h ago"); older
- * than 24 h falls back to the absolute date. Keys live under security.* so
- * this screen stays self-contained (format.ts timeAgo is P3-c's in-flight
- * addition — convergence candidate once both land).
+ * (P4-e) time-ago captions run through shared/format `timeAgo` — the one
+ * helper (the local security.time* duplication was removed with it).
  */
-function incidentTimeAgo(iso: string, t: ReturnType<typeof useI18n>["t"]): string {
-  try {
-    const seconds = Math.max(0, Math.floor((Date.now() - parseISO(iso).getTime()) / 1000));
-    if (seconds < 60) return t("security.timeJustNow");
-    const minutes = Math.floor(seconds / 60);
-    if (minutes < 60) return t("security.timeMinsAgo", { count: minutes });
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return t("security.timeHoursAgo", { count: hours });
-  } catch {
-    /* fall through to the absolute date */
-  }
-  return formatDate(iso);
-}
 
 /** Severity chip + left border tones — stone / amber / rose families only. */
 const SEVERITY_STYLES: Record<IncidentSeverity, { chip: string; border: string; pulse?: boolean }> = {
@@ -272,7 +259,7 @@ function VisitorsSegment({ query }: { query: UseQueryResult<VisitorLogDto[]> }) 
             <ScrollArea className="max-h-96">
               <div className="divide-y">
                 {group.items.map((visitor) => (
-                  <VisitorRow key={visitor.id} visitor={visitor} />
+                  <VisitorRow key={visitor.id} visitor={visitor} showGuard />
                 ))}
               </div>
             </ScrollArea>
@@ -341,7 +328,7 @@ function IncidentCard({ incident }: { incident: IncidentReportDto }) {
             {t(CATEGORY_KEYS[incident.category])}
           </p>
           <p className="text-caption text-muted-foreground tabular-nums ml-auto shrink-0">
-            {incidentTimeAgo(incident.createdAt, t)}
+            {timeAgo(incident.createdAt, t)}
           </p>
         </div>
 

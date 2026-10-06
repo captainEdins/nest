@@ -11,10 +11,12 @@
  * shift, never sent; off-duty submits come back 409 with guidance (the sheet
  * also states it up front when there is no active shift).
  *
- * P3-c FINDING: guards have no unit list to pick from — /api/units is
- * LANDLORD/CARETAKER-scoped (403 for guards) and GuardOverviewDto.properties
- * carries only unitCount, not labels. The unit field is therefore omitted
- * (unitId never sent) until a guard-scoped unit source exists. See worklog.
+ * P3-c FINDING (closed in P4-e): guards had no unit list to pick from —
+ * /api/units is LANDLORD/CARETAKER-scoped (403 for guards). The overview
+ * now carries `activePropertyUnits` (the ACTIVE shift's property units), so
+ * this sheet picks a unit from that — never from /api/units. "No specific
+ * unit" (default) keeps the old no-unitId behaviour; a picked unitId is
+ * validated server-side against the shift property (P3-b).
  */
 
 import * as React from "react";
@@ -48,6 +50,7 @@ export function LogVisitorSheet() {
   const [name, setName] = React.useState("");
   const [phone, setPhone] = React.useState("");
   const [purpose, setPurpose] = React.useState<VisitorPurpose>("VISITOR");
+  const [unitId, setUnitId] = React.useState<string | null>(null);
 
   // Reset the form when the sheet closes (after the slide-out animation).
   React.useEffect(() => {
@@ -56,6 +59,7 @@ export function LogVisitorSheet() {
       setName("");
       setPhone("");
       setPurpose("VISITOR");
+      setUnitId(null);
     }, 400);
     return () => window.clearTimeout(timer);
   }, [open]);
@@ -65,6 +69,9 @@ export function LogVisitorSheet() {
   const phoneValid = trimmedPhone.length === 0 || VISITOR_PHONE_RE.test(trimmedPhone);
   const formValid = nameValid && phoneValid;
   const onDuty = overview?.activeShift != null;
+  // The ACTIVE shift's property units (guard-scoped source — P4-e). Off duty
+  // ⇒ [] ⇒ the picker is hidden and submits stay unit-less (409 anyway).
+  const units = overview?.activePropertyUnits ?? [];
 
   function submit() {
     if (logVisitor.isPending || !online || !formValid) return;
@@ -72,6 +79,7 @@ export function LogVisitorSheet() {
       {
         visitorName: name.trim(),
         purpose,
+        ...(unitId ? { unitId } : {}),
         ...(trimmedPhone ? { visitorPhone: trimmedPhone } : {}),
       },
       { onSuccess: () => setOpen(false) },
@@ -165,6 +173,59 @@ export function LogVisitorSheet() {
             })}
           </div>
         </fieldset>
+
+        {/* Unit — optional chip picker from the ACTIVE property (guard-scoped:
+            overview.activePropertyUnits, never /api/units). Default = no unit
+            (unitId absent — same wire behaviour as before). */}
+        {units.length > 0 ? (
+          <fieldset className="space-y-2">
+            <legend className="text-label font-medium">{t("guard.visitors.visitingUnit")}</legend>
+            <div
+              role="radiogroup"
+              aria-label={t("guard.visitors.visitingUnit")}
+              className="space-y-2"
+            >
+              <button
+                type="button"
+                role="radio"
+                aria-checked={unitId == null}
+                onClick={() => setUnitId(null)}
+                className={cn(
+                  "w-full h-11 rounded-lg border text-label font-medium transition-colors outline-none",
+                  "focus-visible:ring-2 focus-visible:ring-ring",
+                  unitId == null
+                    ? "border-transparent bg-secondary text-secondary-foreground"
+                    : "border-border text-muted-foreground",
+                )}
+              >
+                {t("guard.visitors.noUnit")}
+              </button>
+              <div className="grid grid-cols-3 gap-2">
+                {units.map((unit) => {
+                  const selected = unitId === unit.id;
+                  return (
+                    <button
+                      key={unit.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={selected}
+                      onClick={() => setUnitId(unit.id)}
+                      className={cn(
+                        "h-11 rounded-lg border text-label font-medium transition-colors outline-none",
+                        "focus-visible:ring-2 focus-visible:ring-ring",
+                        selected
+                          ? "border-transparent bg-secondary text-secondary-foreground"
+                          : "border-border text-muted-foreground",
+                      )}
+                    >
+                      <span className="tabular-nums">{unit.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </fieldset>
+        ) : null}
 
         {/* Submit */}
         <div className="space-y-1.5">

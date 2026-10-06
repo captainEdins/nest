@@ -34,7 +34,7 @@ import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
 import { HeroSkeleton, ListSkeleton } from "@/components/nest/shared/skeletons";
 import { AvatarInitials } from "@/components/nest/shared/avatar-initials";
-import { OnSiteBadge, PurposeChip } from "@/components/nest/guard/visitors";
+import { OnSiteBadge, PurposeChip } from "@/components/nest/shared/security/visitor-row";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";

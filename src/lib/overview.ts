@@ -575,6 +575,14 @@ export async function getGuardOverview(profile: Profile): Promise<GuardOverviewD
     properties: properties.map((p) =>
       toPropertyDto(p, p.units.length, p.units.filter((u) => u.status !== "VACANT").length)
     ),
+    // Unit picker source for the Log-visitor sheet — the ACTIVE property's
+    // units, label-sorted (the shifts query already includes them; guards
+    // never touch /api/units). Empty when off duty (contract comment).
+    activePropertyUnits: activeProperty
+      ? [...activeProperty.units]
+          .sort((a, b) => a.label.localeCompare(b.label))
+          .map((u) => ({ id: u.id, label: u.label }))
+      : [],
     totals: {
       visitorsToday,
       onSiteNow,

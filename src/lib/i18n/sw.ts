@@ -317,6 +317,7 @@ export const sw: Record<TranslationKey, string> = {
   "guard.visitors.purpose.OTHER": "Nyingine",
   "guard.visitors.visitingUnit": "Anaendea chumba (si lazima)",
   "guard.visitors.noUnit": "Hakuna chumba maalum",
+  "guard.visitors.noPhone": "Hakuna simu",
   "guard.visitors.entry": "Aliingia",
   "guard.visitors.exit": "Alitoka",
   "guard.visitors.onSite": "Yupo ndani",
@@ -389,9 +390,6 @@ export const sw: Record<TranslationKey, string> = {
   "security.todayAt": "Leo, {time}",
   "security.actionTakenLabel": "Hatua iliyochukuliwa: {action}",
   "security.noShifts": "Hakuna zamu zilizorekodiwa bado",
-  "security.timeJustNow": "Sasa hivi",
-  "security.timeMinsAgo": "Dakika {count} zilizopita",
-  "security.timeHoursAgo": "Saa {count} zilizopita",
 
   // ----- Mpangaji — wageni chumbani (Phase 3) --------------------------------
   "tenant.visitors.title": "Wageni chumbani mwako",
