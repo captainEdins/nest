@@ -40,8 +40,10 @@ import { ApiHttpError, paymentScopeWhere, unmatchedVisibleWhere } from "@/lib/au
 import { pct } from "@/lib/money"
 import {
   chargeInclude,
+  listingInclude,
   paymentInclude,
   toChargeDto,
+  toListingDto,
   toNotificationDtoRow,
   toPaymentDto,
   toPropertyDto,
@@ -452,9 +454,47 @@ export async function getTenantOverview(profile: Profile): Promise<TenantOvervie
 // ---------------------------------------------------------------------------
 
 export async function getAgentOverview(profile: Profile): Promise<AgentOverviewDto> {
-  const properties = await db.property.findMany({ where: { agentId: profile.id }, include: { units: true } })
-  const units = properties.flatMap((p) => p.units)
+  const properties = await db.property.findMany({
+    where: { agentId: profile.id },
+    include: { units: { select: { id: true, label: true, status: true, rentAmountMinor: true } } },
+  })
+  const units = properties.flatMap((p) => p.units.map((u) => ({ ...u, propertyName: p.name })))
   const occupied = units.filter((u) => u.status !== "VACANT").length
+  const vacant = units.filter((u) => u.status === "VACANT")
+
+  // Phase 4 funnel: listings on the agent's portfolio (any status) + the
+  // live application pipeline scoped to the same portfolio.
+  const [listings, applications] = await Promise.all([
+    db.listing.findMany({
+      where: { property: { agentId: profile.id } },
+      include: listingInclude,
+      orderBy: { updatedAt: "desc" },
+    }),
+    db.listingApplication.findMany({
+      where: { property: { agentId: profile.id } },
+      select: { status: true },
+    }),
+  ])
+
+  // A vacant unit is "listed" when it has a listing in a live state (anything
+  // but LET — a LET listing means the funnel closed and the unit is taken).
+  const listedUnitIds = new Set(
+    listings.filter((l) => l.status !== "LET").map((l) => l.unitId),
+  )
+  const unlistedVacantUnits = vacant
+    .filter((u) => !listedUnitIds.has(u.id))
+    .map((u) => ({
+      id: u.id,
+      label: u.label,
+      propertyName: u.propertyName,
+      rentAmountMinor: u.rentAmountMinor,
+    }))
+
+  const liveListings = listings.filter((l) => l.status === "PUBLISHED")
+  const newApplications = applications.filter((a) => a.status === "NEW").length
+  const activeApplications = applications.filter(
+    (a) => a.status === "NEW" || a.status === "CONTACTED" || a.status === "VIEWING",
+  ).length
 
   return {
     portfolioProperties: properties.map((p) =>
@@ -464,8 +504,13 @@ export async function getAgentOverview(profile: Profile): Promise<AgentOverviewD
       properties: properties.length,
       units: units.length,
       occupancyRatePct: pct(occupied, units.length),
+      vacantUnits: vacant.length,
+      liveListings: liveListings.length,
+      newApplications,
+      activeApplications,
     },
-    phaseNotice: "Phase 1: agent access is read-only — portfolio occupancy only. Listings and reporting arrive in Phase 4.",
+    unlistedVacantUnits,
+    liveListings: liveListings.map(toListingDto),
   }
 }
 

@@ -78,6 +78,8 @@ async function main(): Promise<void> {
   await db.visitorLog.deleteMany()
   await db.incidentReport.deleteMany()
   await db.guardShift.deleteMany()
+  await db.listingApplicationEvent.deleteMany()
+  await db.listingApplication.deleteMany()
   await db.listing.deleteMany()
   await db.depositMovement.deleteMany()
   await db.deposit.deleteMany()
@@ -809,6 +811,162 @@ async function main(): Promise<void> {
     })
   }
 
+  // --- 10d) Agent module (Phase 4): listing + applicant funnel ---------------
+  // The story: B3 (2-br) has been vacant for weeks. Amina asked Wanjiku (agent)
+  // to market it. Wanjiku listed it 10 days ago and published 8 days ago.
+  // Three leads later, one applicant (Joyce Muthoni) actually came to view the
+  // unit TODAY — the same person the guard logged at the gate (visitor #4,
+  // VIEWING, unit B3, 3.2h ago). The gate register and the application
+  // timeline tell ONE story from two ends: "trust as product".
+  const b3Listing = await db.listing.create({
+    data: {
+      propertyId: property.id,
+      unitId: units["B3"].id,
+      title: "Spacious 2-bedroom — Baraka Court",
+      description:
+        "Freshly painted 2-bedroom in a gated 5-unit court off Thika Road. " +
+        "Borehole water (metered), secure parking, 24/7 guard, 10 min to Kenyatta University. " +
+        "KSh 25,000 monthly, deposit same as one month's rent.",
+      rentAmountMinor: units["B3"].rentAmountMinor,
+      status: "PUBLISHED",
+      createdAt: daysAgo(10),
+      updatedAt: daysAgo(8),
+    },
+  })
+
+  // Applicants recorded by Wanjiku. statuses: VIEWING (Joyce), NEW (Brian),
+  // CONTACTED (Faith) — the funnel's three live stages.
+  const applicantSeeds = [
+    {
+      applicantName: "Joyce Muthoni",
+      applicantPhone: "+254701555666",
+      source: "PHONE",
+      note: "Called after seeing the Facebook post. Works at Kenyatta University library, wants to move in with her sister.",
+      status: "VIEWING",
+      createdAt: daysAgo(2),
+      // Timeline: recorded (NEW) → called back (CONTACTED) → viewed today —
+      // timestamps align with the gate register entry (3.2h ago).
+      events: [
+        { toStatus: "NEW", note: "Phone lead from the Facebook post.", at: daysAgo(2) },
+        { toStatus: "CONTACTED", note: "Called back — very interested, asked about water billing.", at: daysAgo(1.5) },
+        { toStatus: "VIEWING", note: "Viewed the unit with the caretaker. Gate entry logged by Peter.", at: hoursAgo(3.2) },
+      ],
+    },
+    {
+      applicantName: "Brian Ochieng",
+      applicantPhone: "+254733444555",
+      source: "WHATSAPP",
+      note: "WhatsApped the number on the poster. Relocating from Kisumu in January, needs 6+ months.",
+      status: "NEW",
+      createdAt: hoursAgo(5),
+      events: [{ toStatus: "NEW", note: "WhatsApp lead — requested photos first.", at: hoursAgo(5) }],
+    },
+    {
+      applicantName: "Faith Njeri",
+      applicantPhone: "+254799111222",
+      source: "FACEBOOK",
+      note: "Facebook Marketplace enquiry. Family of three, asked if the court is child-friendly.",
+      status: "CONTACTED",
+      createdAt: daysAgo(1),
+      events: [
+        { toStatus: "NEW", note: "Facebook Marketplace enquiry.", at: daysAgo(1) },
+        { toStatus: "CONTACTED", note: "Called — will confirm viewing day by Friday.", at: hoursAgo(20) },
+      ],
+    },
+  ]
+  const applications: Record<string, { id: string }> = {}
+  for (const a of applicantSeeds) {
+    const row = await db.listingApplication.create({
+      data: {
+        listingId: b3Listing.id,
+        propertyId: property.id,
+        applicantName: a.applicantName,
+        applicantPhone: a.applicantPhone,
+        source: a.source,
+        note: a.note,
+        status: a.status,
+        handledById: wanjiku.id,
+        createdAt: a.createdAt,
+        updatedAt: a.events[a.events.length - 1].at,
+      },
+    })
+    applications[a.applicantName] = row
+    for (const ev of a.events) {
+      await db.listingApplicationEvent.create({
+        data: {
+          applicationId: row.id,
+          toStatus: ev.toStatus,
+          actorId: wanjiku.id,
+          note: ev.note,
+          createdAt: ev.at,
+        },
+      })
+    }
+  }
+
+  // Phase 4 notifications: the landlord hears about every new applicant; the
+  // agent hears back only when the landlord decides (APPROVED/REJECTED).
+  await db.notification.create({
+    data: {
+      profileId: amina.id,
+      channel: "IN_APP",
+      templateKey: "APPLICATION_RECORDED",
+      body:
+        `NEST: New applicant for B3 (2-bedroom) — Brian Ochieng, recorded by ` +
+        `Wanjiku Kamau via WhatsApp. 3 applicants on this unit so far.`,
+      status: "QUEUED",
+      createdAt: hoursAgo(5),
+    },
+  })
+  await db.notification.create({
+    data: {
+      profileId: amina.id,
+      channel: "IN_APP",
+      templateKey: "APPLICATION_RECORDED",
+      body:
+        `NEST: New applicant for B3 (2-bedroom) — Faith Njeri, recorded by ` +
+        `Wanjiku Kamau via Facebook.`,
+      status: "SENT",
+      createdAt: daysAgo(1),
+      sentAt: daysAgo(1),
+    },
+  })
+  await db.notification.create({
+    data: {
+      profileId: amina.id,
+      channel: "IN_APP",
+      templateKey: "APPLICATION_RECORDED",
+      body:
+        `NEST: New applicant for B3 (2-bedroom) — Joyce Muthoni, recorded by ` +
+        `Wanjiku Kamau via phone call.`,
+      status: "SENT",
+      createdAt: daysAgo(2),
+      sentAt: daysAgo(2),
+    },
+  })
+
+  // --- 10e) Audit log: Phase 4 agent module evidence -------------------------
+  const agentAuditSeeds = [
+    { action: "LISTING_CREATED", entity: "Listing", id: b3Listing.id, at: daysAgo(10), detail: { unit: "B3", title: b3Listing.title, by: "Wanjiku Kamau" } },
+    { action: "LISTING_PUBLISHED", entity: "Listing", id: b3Listing.id, at: daysAgo(8), detail: { unit: "B3", rent: formatKes(b3Listing.rentAmountMinor), by: "Wanjiku Kamau" } },
+    { action: "APPLICATION_RECORDED", entity: "ListingApplication", id: applications["Joyce Muthoni"].id, at: daysAgo(2), detail: { applicant: "Joyce Muthoni", source: "PHONE", unit: "B3" } },
+    { action: "APPLICATION_STATUS", entity: "ListingApplication", id: applications["Joyce Muthoni"].id, at: hoursAgo(3.2), detail: { from: "CONTACTED", to: "VIEWING", by: "Wanjiku Kamau" } },
+    { action: "APPLICATION_RECORDED", entity: "ListingApplication", id: applications["Faith Njeri"].id, at: daysAgo(1), detail: { applicant: "Faith Njeri", source: "FACEBOOK", unit: "B3" } },
+    { action: "APPLICATION_RECORDED", entity: "ListingApplication", id: applications["Brian Ochieng"].id, at: hoursAgo(5), detail: { applicant: "Brian Ochieng", source: "WHATSAPP", unit: "B3" } },
+  ]
+  for (const a of agentAuditSeeds) {
+    await db.auditLog.create({
+      data: {
+        actorId: wanjiku.id,
+        action: a.action,
+        entity: a.entity,
+        entityId: a.id,
+        detailJson: JSON.stringify(a.detail),
+        createdAt: a.at,
+      },
+    })
+  }
+
   // --- 11) Summary (evidence) ----------------------------------------------
   const counts = {
     profiles: await db.profile.count(),
@@ -826,6 +984,9 @@ async function main(): Promise<void> {
     visitorLogs: await db.visitorLog.count(),
     incidentReports: await db.incidentReport.count(),
     guardShifts: await db.guardShift.count(),
+    listings: await db.listing.count(),
+    applications: await db.listingApplication.count(),
+    applicationEvents: await db.listingApplicationEvent.count(),
     notifications: await db.notification.count(),
     auditLogs: await db.auditLog.count(),
   }

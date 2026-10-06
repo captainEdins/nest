@@ -359,8 +359,16 @@ export interface AgentOverviewDto {
     properties: number
     units: number
     occupancyRatePct: number
+    /** Phase 4 funnel: live pipeline on the agent's portfolio. */
+    vacantUnits: number
+    liveListings: number
+    newApplications: number
+    activeApplications: number
   }
-  phaseNotice: string
+  /** Vacant units with no live listing yet (create-listing candidates). */
+  unlistedVacantUnits: { id: string; label: string; propertyName: string; rentAmountMinor: number }[]
+  /** Live listings preview (PUBLISHED), newest first. */
+  liveListings: ListingDto[]
 }
 
 export interface GuardOverviewDto {
@@ -464,6 +472,95 @@ export interface SecurityDigestDto {
   lastIncidentAt: string | null
   lastIncidentSeverity: IncidentSeverity | null
   onDutyGuardName: string | null
+}
+
+// ---------------------------------------------------------------------------
+// Agent module — listings + applicant pipeline (Phase 4)
+// ---------------------------------------------------------------------------
+
+export const LISTING_STATUSES = ["DRAFT", "PUBLISHED", "PAUSED", "LET"] as const
+export type ListingStatus = (typeof LISTING_STATUSES)[number]
+
+export const APPLICATION_STATUSES = ["NEW", "CONTACTED", "VIEWING", "APPROVED", "REJECTED", "WITHDRAWN"] as const
+export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
+
+export const APPLICATION_SOURCES = ["WALK_IN", "PHONE", "WHATSAPP", "FACEBOOK", "OTHER"] as const
+export type ApplicationSource = (typeof APPLICATION_SOURCES)[number]
+
+export interface ListingDto {
+  id: string
+  propertyId: string
+  propertyName: string
+  unitId: string
+  unitLabel: string
+  title: string
+  description: string
+  rentAmountMinor: number
+  status: ListingStatus
+  createdAt: string
+  updatedAt: string
+  /** Applicant counts by bucket (the funnel at a glance). */
+  applicationCount: number
+  newApplicationCount: number
+}
+
+/** Listing detail with the full applicant list (newest first). */
+export interface ListingDetailDto extends ListingDto {
+  applications: ListingApplicationDto[]
+}
+
+export interface ListingApplicationDto {
+  id: string
+  listingId: string
+  unitLabel: string
+  propertyName: string
+  applicantName: string
+  applicantPhone: string
+  source: ApplicationSource
+  note: string | null
+  status: ApplicationStatus
+  handledById: string
+  handledByName: string
+  decidedById: string | null
+  decidedByName: string | null
+  decidedAt: string | null
+  createdAt: string
+  updatedAt: string
+  /** Append-only timeline (oldest first) — the trust record. */
+  events: ApplicationEventDto[]
+}
+
+export interface ApplicationEventDto {
+  id: string
+  toStatus: ApplicationStatus
+  actorId: string
+  actorName: string
+  note: string | null
+  createdAt: string
+}
+
+export interface CreateListingRequest {
+  unitId: string
+  title: string
+  description: string
+  /** Optional override; defaults to the unit's rent (integer KES minor units). */
+  rentAmountMinor?: number
+}
+
+export interface ListingStatusChangeRequest {
+  status: ListingStatus
+}
+
+export interface RecordApplicationRequest {
+  applicantName: string
+  applicantPhone: string
+  source: ApplicationSource
+  note?: string
+}
+
+export interface ApplicationStatusChangeRequest {
+  status: ApplicationStatus
+  note?: string
 }
 
 // ---------------------------------------------------------------------------
