@@ -28,6 +28,7 @@ export type TabId =
   | "applicants" // Phase 4: agent applicant pipeline
   | "analytics" // Phase 5: landlord analytics dashboard (More tab)
   | "kra" // Phase 5: landlord KRA/MRI tax assistant (More tab)
+  | "statement" // Phase 6: tenant monthly statement (More tab)
 ;
 export type PaymentsFilter = "ALL" | "MPESA" | "CASH" | "UNMATCHED";
 

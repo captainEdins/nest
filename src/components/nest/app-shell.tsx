@@ -43,6 +43,7 @@ import { CaretakerTickets } from "@/components/nest/caretaker/tickets";
 import { TenantHome } from "@/components/nest/tenant/home";
 import { TenantTickets } from "@/components/nest/tenant/tickets";
 import { TenantReceiptsScreen } from "@/components/nest/tenant/receipts";
+import { TenantStatementScreen } from "@/components/nest/tenant/statement";
 import { TenantNotificationsScreen, NotificationsModal } from "@/components/nest/shared/notifications";
 import { AgentHome } from "@/components/nest/agent/home";
 import { AgentListingsScreen } from "@/components/nest/agent/listings-screen";
@@ -370,6 +371,8 @@ function TabContent({ role, tab }: { role: Role; tab: string }) {
       if (tab === "receipts") return <TenantReceiptsScreen />;
       if (tab === "notifications") return <TenantNotificationsScreen />;
       if (tab === "repairs") return <TenantTickets />;
+      // Phase 6 (More tab): the month-by-month portable payment record.
+      if (tab === "statement") return <TenantStatementScreen />;
       return <TenantHome />;
     }
     case "AGENT": {

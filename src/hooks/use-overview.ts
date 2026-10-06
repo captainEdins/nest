@@ -19,7 +19,10 @@ import type {
   NotificationDto,
   PaymentDto,
   ReceiptDto,
+  RentScoreBand,
+  RentScoreDto,
   SessionDto,
+  StatementDto,
   TenantOverviewDto,
 } from "@/lib/types";
 
@@ -88,6 +91,58 @@ export function useKraSummary(year: number): UseQueryResult<KraSummaryDto> {
     queryFn: () => apiGet<KraSummaryDto>(`/api/kra/summary?year=${year}`),
     staleTime: 30_000,
     refetchInterval: 60_000,
+  });
+}
+
+/**
+ * Tenant statement (Phase 6-a, issue #65): the month-by-month portable
+ * payment record. TENANT call is parameterless (server resolves the tenancy);
+ * staff callers pass the tenancy id. Keyed separately from ["overview"] so
+ * payment mutations don't thrash the statement refetch.
+ */
+export function useStatement(tenancyId?: string): UseQueryResult<StatementDto> {
+  return useQuery({
+    queryKey: ["statement", tenancyId ?? "mine"],
+    queryFn: () =>
+      apiGet<StatementDto>(tenancyId ? `/api/statements?tenancyId=${encodeURIComponent(tenancyId)}` : "/api/statements"),
+    staleTime: 30_000,
+  });
+}
+
+/**
+ * Rent Score (Phase 6-b, issue #66): the signed-in tenant's own score card
+ * payload. Tenant shell only — a 403 for other roles would flip this to
+ * error, so the query is enabled just for TENANT.
+ */
+export function useRentScore(enabled: boolean): UseQueryResult<RentScoreDto> {
+  return useQuery({
+    queryKey: ["rent-score", "mine"],
+    queryFn: () => apiGet<RentScoreDto>("/api/rent-score"),
+    enabled,
+    staleTime: 60_000,
+    refetchInterval: 120_000,
+  });
+}
+
+/** One row of the staff score list (GET /api/rent-score/list). */
+export interface RentScoreListRow {
+  tenancyId: string;
+  tenantName: string;
+  score: number;
+  band: RentScoreBand;
+}
+
+/**
+ * Staff arrears-view score list (Phase 6-b): every ACTIVE tenancy in the
+ * caller's scope with {tenancyId, score, band}. LANDLORD/CARETAKER only.
+ */
+export function useRentScoreList(enabled: boolean): UseQueryResult<RentScoreListRow[]> {
+  return useQuery({
+    queryKey: ["rent-score", "list"],
+    queryFn: () => apiGet<RentScoreListRow[]>("/api/rent-score/list"),
+    enabled,
+    staleTime: 60_000,
+    retry: false,
   });
 }
 

@@ -13,6 +13,7 @@ import {
   Landmark,
   Megaphone,
   Receipt,
+  ScrollText,
   Shield,
   ShieldAlert,
   Users,
@@ -62,8 +63,11 @@ export const TABS: Record<Role, TabDef[]> = {
 };
 
 /**
- * Overflow tabs that lost their bottom-nav slot to a higher-priority Phase 2 tab
+ * Overflow tabs that lost their bottom-nav slot to a higher-priority tab
  * (mobile: reached via the More sheet; desktop sidebar appends them after TABS).
+ * Tenant "statement" (Phase 6, issue #65) is the month-by-month portable
+ * payment record — a dispute-ending view, so it sits one tap past the core
+ * four rather than displacing receipts from the bottom bar.
  * Landlord "listings" (Phase 4) is read-only funnel observation — matrix §4.2
  * (the agent runs the listings; the landlord decides on applicants).
  * Landlord "analytics" (Phase 5, issue #57) is the charts dashboard —
@@ -73,6 +77,7 @@ export const TABS: Record<Role, TabDef[]> = {
  * assistance, never tax advice).
  */
 export const MORE_TABS: Partial<Record<Role, TabDef[]>> = {
+  TENANT: [{ id: "statement", labelKey: "nav.statement", icon: ScrollText }],
   LANDLORD: [
     { id: "properties", labelKey: "nav.properties", icon: Building2 },
     { id: "listings", labelKey: "nav.listings", icon: Megaphone },

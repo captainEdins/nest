@@ -151,6 +151,99 @@ export interface NotificationDto {
 }
 
 // ---------------------------------------------------------------------------
+// Tenant statement (Phase 6-a, issue #65)
+// ---------------------------------------------------------------------------
+
+/** One charge raised in a statement month (kind, due date, settled so far). */
+export interface StatementChargeLineDto {
+  chargeId: string
+  kind: ChargeKind
+  dueDate: string
+  amountMinor: number
+  paidMinor: number
+}
+
+/**
+ * One payment that touched a statement month's charges. `amountMinor` is the
+ * whole payment; `allocatedMinor` is the slice that landed on THIS month's
+ * charges (cross-month allocations appear in each month they touched).
+ */
+export interface StatementPaymentLineDto {
+  paymentId: number
+  receiptNo: string | null
+  source: PaymentSource
+  receivedAt: string
+  amountMinor: number
+  allocatedMinor: number
+}
+
+/** One month of the statement: opening balance → billed → settled → closing. */
+export interface StatementMonthDto {
+  periodMonth: string // "YYYY-MM"
+  openingBalanceMinor: number
+  billedLines: StatementChargeLineDto[]
+  billedMinor: number
+  paymentLines: StatementPaymentLineDto[]
+  /** Settled against THIS month's charges (charge.paidMinor basis — the
+   *  waterfall ledger, not the payment's receivedAt month). */
+  settledMinor: number
+  closingBalanceMinor: number
+}
+
+/** Full statement for one tenancy — the tenant's portable payment record. */
+export interface StatementDto {
+  tenancyId: string
+  tenantName: string
+  tenantPhone: string
+  unitLabel: string
+  propertyName: string
+  accountRef: string
+  /** Earliest month with activity (charge or allocation). */
+  startMonth: string
+  /** Chronological, oldest first — UI renders newest first. */
+  months: StatementMonthDto[]
+  totalBilledMinor: number
+  totalSettledMinor: number
+  closingBalanceMinor: number
+  generatedAt: string
+}
+
+// ---------------------------------------------------------------------------
+// Rent Score (Phase 6-b, issue #66)
+// ---------------------------------------------------------------------------
+
+export const RENT_SCORE_FACTOR_KEYS = [
+  "PAYMENT_HISTORY",
+  "ARREARS_DEPTH",
+  "TENURE",
+  "RECENT_TREND",
+] as const
+export type RentScoreFactorKey = (typeof RENT_SCORE_FACTOR_KEYS)[number]
+
+export const RENT_SCORE_BANDS = ["EXCELLENT", "GOOD", "FAIR", "BUILDING"] as const
+export type RentScoreBand = (typeof RENT_SCORE_BANDS)[number]
+
+/** One scoring factor: earned points out of its documented maximum. */
+export interface RentScoreFactorDto {
+  key: RentScoreFactorKey
+  earned: number
+  max: number
+}
+
+/** The score a tenancy's NEST record earns (0–800) + its factor breakdown. */
+export interface RentScoreDto {
+  tenancyId: string
+  tenantName: string
+  unitLabel: string
+  score: number // 0–800
+  band: RentScoreBand
+  factors: RentScoreFactorDto[]
+  /** Billed months feeding the score (0 → "Building" floor). */
+  monthsOfHistory: number
+  asOf: string
+}
+
+// ---------------------------------------------------------------------------
 // Maintenance tickets (Phase 2)
 // ---------------------------------------------------------------------------
 
