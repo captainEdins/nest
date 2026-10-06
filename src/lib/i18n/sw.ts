@@ -292,6 +292,10 @@ export const sw: Record<TranslationKey, string> = {
   "guard.alreadyOnDuty": "Uko kazini tayari",
   "guard.cannotEndShift": "Zamu haiwezi kumalizika",
   "guard.durationHours": "saa {hours} dak {minutes}",
+  "guard.durationLabel": "Muda kazini",
+  "guard.startShiftAt": "Anza zamu {property}",
+  "guard.startingShift": "Inaanza…",
+  "guard.endingShift": "Inamaliza…",
   "guard.guardsOnDuty": "Kazini sasa",
   "guard.nobodyOnDuty": "Hakuna askari kazini kwa sasa",
 
@@ -299,6 +303,8 @@ export const sw: Record<TranslationKey, string> = {
   "guard.visitors.today": "Leo",
   "guard.visitors.yesterday": "Jana",
   "guard.visitors.logVisitor": "Andika mgeni",
+  "guard.visitors.logVisitorDesc": "Nani ameingia langoni? Jina na sababu ya kuja inatosha.",
+  "guard.visitors.logging": "Inaandikwa…",
   "guard.visitors.nameLabel": "Jina la mgeni",
   "guard.visitors.namePlaceholder": "mf. Mary Wanjala",
   "guard.visitors.phoneLabel": "Simu (si lazima)",
@@ -330,6 +336,7 @@ export const sw: Record<TranslationKey, string> = {
 
   // ----- Guard module — matukio (Phase 3) ------------------------------------
   "guard.incidents.report": "Ripoti tukio",
+  "guard.incidents.reportDesc": "Tuma yaliyotokea haraka kabla hayajasahaulika.",
   "guard.incidents.category": "Nini kilitokea?",
   "guard.incidents.category.SECURITY": "Usalama",
   "guard.incidents.category.DAMAGE": "Uharibifu",
@@ -346,6 +353,8 @@ export const sw: Record<TranslationKey, string> = {
   "guard.incidents.actionTaken": "Hatua iliyochukuliwa (si lazima)",
   "guard.incidents.actionTakenPlaceholder": "mf. Nimemwita msimamizi, nimerejekesha nambari ya gari KDA 123X.",
   "guard.incidents.filed": "Ripoti imetumwa — kiwango {severityLabel}",
+  "guard.incidents.filing": "Inatuma…",
+  "guard.incidents.notifyHint": "Ripoti za KUBWA na HATARI SANA zinamwambia mmiliki na msimamizi mara moja.",
   "guard.incidents.myReports": "Ripoti zangu",
   "guard.incidents.empty": "Hakuna matukio yaliyoripotiwa — utulivu ni mema.",
   "guard.incidents.seenBy": "Imeonekana na {name}",
@@ -411,6 +420,11 @@ export const sw: Record<TranslationKey, string> = {
   // ----- Notifications day groups (S-14) --------------------------------------
   "notifications.today": "Leo",
   "notifications.yesterday": "Jana",
+
+  // ----- Loose time-ago captions (guard module, Phase 3) ----------------------
+  "timeAgo.justNow": "Sasa hivi",
+  "timeAgo.minAgo": "Dakika {count} zilizopita",
+  "timeAgo.hourAgo": "Saa {count} zilizopita",
 
   // ----- Receipt extras (S-10) -------------------------------------------------
   "receipt.linkCopied": "Maelezo ya risiti yamenakiliwa",
