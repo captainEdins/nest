@@ -3,6 +3,21 @@
 // Authored by the Principal Engineer as the domain contract; reviewed and
 // operationalised by the Database & Security Architect (Task 1-a).
 //
+// Task 1-a review (defects fixed, no renames — API contract preserved):
+// - ADDED relations for the people-graph FKs that were bare strings
+//   (Property.landlordId/caretakerId/agentId, Tenancy.tenantId,
+//   Payment.recordedById, Deposit.tenancyId, MpesaTransaction.tenancyId/
+//   paymentId). Prisma relations = real SQLite FK constraints + include()
+//   navigation, which the DTO contract (tenant/landlord/recorder joins) and
+//   the role-scope matrix conditions depend on. All additions are purely
+//   additive back-relations; every existing field/model name is untouched.
+// - Financial-history links use onDelete: Restrict (append-only domain:
+//   tenancies/mpesa transactions must never be deleted out from under
+//   payments, and payment rows must never lose their tenancy link).
+// - All @@index/@@unique entries reviewed: plain composite indexes, valid
+//   for SQLite (no partial/expression indexes). No changes needed.
+// - Phase 2/3/4 tables (maintenance, condition reports, guard module,
+//   listings) intentionally left as bare FK scaffold — no consumers yet.
 // Conventions:
 // - Money: integer minor units (KES cents) — never floats.
 // - SQLite has no enums: enum-like values are strings, validated by Zod in
@@ -38,6 +53,13 @@ model Profile {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Back-relations (Task 1-a, additive) — FK integrity + include() joins.
+  propertiesLandlord  Property[] @relation("PropertyLandlord")
+  propertiesCaretaker Property[] @relation("PropertyCaretaker")
+  propertiesAgent     Property[] @relation("PropertyAgent")
+  tenancies           Tenancy[]
+  paymentsRecorded    Payment[]
+
   @@index([role])
 }
 
@@ -55,7 +77,10 @@ model Property {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  units Unit[]
+  landlord  Profile  @relation("PropertyLandlord", fields: [landlordId], references: [id])
+  caretaker Profile? @relation("PropertyCaretaker", fields: [caretakerId], references: [id])
+  agent     Profile? @relation("PropertyAgent", fields: [agentId], references: [id])
+  units     Unit[]
 
   @@index([landlordId])
   @@index([caretakerId])
@@ -95,8 +120,11 @@ model Tenancy {
   updatedAt         DateTime  @updatedAt
 
   unit      Unit         @relation(fields: [unitId], references: [id])
+  tenant    Profile      @relation(fields: [tenantId], references: [id])
   charges   RentCharge[]
   payments  Payment[]
+  deposit   Deposit?
+  mpesaTransactions MpesaTransaction[]
 
   @@index([tenantId])
   @@index([unitId, status])
@@ -145,8 +173,10 @@ model Payment {
   clientRef       String?  @unique
   createdAt       DateTime @default(now())
 
-  tenancy    Tenancy?             @relation(fields: [tenancyId], references: [id])
+  tenancy     Tenancy?             @relation(fields: [tenancyId], references: [id], onDelete: Restrict)
+  recordedBy  Profile?             @relation(fields: [recordedById], references: [id])
   allocations PaymentAllocation[]
+  mpesaTransactions MpesaTransaction[]
 
   @@index([tenancyId, receivedAt])
   @@index([status])
@@ -185,6 +215,9 @@ model MpesaTransaction {
   paymentId          Int?
   createdAt          DateTime  @default(now())
 
+  tenancy Tenancy? @relation(fields: [tenancyId], references: [id], onDelete: Restrict)
+  payment Payment? @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
   @@index([status, createdAt])
 }
 
@@ -199,6 +232,7 @@ model Deposit {
   status     String   @default("HELD") // HELD | RELEASED
   createdAt  DateTime @default(now())
 
+  tenancy  Tenancy          @relation(fields: [tenancyId], references: [id], onDelete: Restrict)
   movements DepositMovement[]
 }
 
