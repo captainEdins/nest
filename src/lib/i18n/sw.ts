@@ -325,4 +325,17 @@ export const sw: Record<TranslationKey, string> = {
 
   // ----- Empty states ---------------------------------------------------------------
   "empty.properties": "Hakuna mali bado",
+
+  // ----- Frontend additions (Task 2-b) ------------------------------------------
+  "mpesa.simulateConfirm": "Onyesha uthibitisho wa M-Pesa (sandbox)",
+  "cash.partialAllowed": "Malipo ya sehemu yanaruhusiwa",
+  "cash.overpaymentCredited": "Kiasi kinachozidi salio kinaekwa kama krediti",
+  "more.signOutConfirm": "Toka kwenye NEST?",
+  "more.signOutDescription": "Unaweza kuingia tena wakati wowote kwa namba yako ya simu.",
+  "channel.sms": "SMS",
+  "channel.whatsapp": "WhatsApp",
+  "channel.inApp": "Ndani ya app",
+  "cash.receiptFollows": "Risiti itatumwa ukirudi mtandaoni",
+  "arrears.monthsBehindShort": "Miezi nyuma",
+  "arrears.bucketTenants": "Wapangaji {count}",
 }

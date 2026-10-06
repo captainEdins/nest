@@ -324,6 +324,19 @@ export const en = {
   "empty.properties": "No properties yet",
 
   // ----- Caretaker extras (S-05) — expectedToday/collectedToday/recentCollections exist above --
+
+  // ----- Frontend additions (Task 2-b) ------------------------------------------
+  "mpesa.simulateConfirm": "Simulate M-Pesa confirmation (sandbox)",
+  "cash.partialAllowed": "Partial payments are allowed",
+  "cash.overpaymentCredited": "Amounts above the balance become credit",
+  "more.signOutConfirm": "Sign out of NEST?",
+  "more.signOutDescription": "You can sign back in any time with your phone number.",
+  "channel.sms": "SMS",
+  "channel.whatsapp": "WhatsApp",
+  "channel.inApp": "In-app",
+  "cash.receiptFollows": "Receipt follows when you're back online",
+  "arrears.monthsBehindShort": "Months behind",
+  "arrears.bucketTenants": "{count} tenants",
 } as const
 
 /** Every dotted key above, as a literal union. sw.ts must cover all of them. */
