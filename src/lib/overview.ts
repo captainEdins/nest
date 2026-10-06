@@ -334,8 +334,12 @@ export async function getCaretakerOverview(profile: Profile): Promise<CaretakerO
 export async function getTenantOverview(profile: Profile): Promise<TenantOverviewDto> {
   const now = new Date()
 
+  // ACTIVE first, NOTICE as the move-out fallback (Phase 2): a tenant on
+  // notice still owns their deposit ledger, receipts and history — their home
+  // must render, not error. ENDED tenancies stay hidden (a new one wins).
   const tenancy = await db.tenancy.findFirst({
-    where: { tenantId: profile.id, status: "ACTIVE" },
+    where: { tenantId: profile.id, status: { in: ["ACTIVE", "NOTICE"] } },
+    orderBy: [{ status: "asc" }, { createdAt: "desc" }], // "ACTIVE" < "NOTICE" alphabetically
     include: { unit: { include: { property: true } } },
   })
   if (!tenancy) {
