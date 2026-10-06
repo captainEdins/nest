@@ -685,6 +685,25 @@ export const en = {
   "analytics.vacant": "Vacant",
   "analytics.emptyTitle": "No analytics yet",
   "analytics.emptyHint": "Add a property and raise charges — the trends will grow here.",
+
+  // ----- KRA/MRI tax assistant (Phase 5 wedge B, issue #59) ------------------
+  "nav.taxAssistant": "Tax assistant",
+  "kra.title": "Monthly rental income (MRI)",
+  "kra.generated": "Updated {date}",
+  "kra.disclaimer": "Record-keeping assistance only — not tax advice. Verify current KRA regulations before filing.",
+  "kra.year": "Year",
+  "kra.monthlyTitle": "Monthly rent summary",
+  "kra.tableCaption": "Rent billed and collected each month of {year}.",
+  "kra.month": "Month",
+  "kra.billed": "Billed",
+  "kra.collected": "Collected",
+  "kra.total": "Total",
+  "kra.mriEstimate": "MRI estimate at 7.5%",
+  "kra.mriBasis": "Applied to collected rent of {collected}",
+  "kra.filingHint": "KRA filing is due by the 20th of the following month.",
+  "kra.downloadCsv": "Download CSV",
+  "kra.emptyTitle": "No records for {year}",
+  "kra.emptyHint": "No rent was billed or collected this year — try another year.",
 } as const
 
 /** Every dotted key above, as a literal union. sw.ts must cover all of them. */
