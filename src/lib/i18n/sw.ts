@@ -222,7 +222,7 @@ export const sw: Record<TranslationKey, string> = {
   "misc.lightMode": "Hali ya mwanga",
   "misc.language": "Lugha",
   "misc.settings": "Mipangilio",
-  "misc.phaseNotice": "Sehemu hii itafika katika {phase}",
+  "misc.phaseNotice": "{phase}",
   "misc.nextPhase": "Awamu ifuatayo",
 
   // ----- Arrears (aging buckets, reminders) [2-b] ---------------------------

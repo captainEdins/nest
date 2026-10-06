@@ -219,7 +219,7 @@ export const en = {
   "misc.lightMode": "Light mode",
   "misc.language": "Language",
   "misc.settings": "Settings",
-  "misc.phaseNotice": "This module arrives in {phase}",
+  "misc.phaseNotice": "{phase}",
   "misc.nextPhase": "Next phase",
 
   // ----- Arrears (aging buckets, reminders) [added by 2-b, screen-specs S-11] --
