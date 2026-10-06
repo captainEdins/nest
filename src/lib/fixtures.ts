@@ -28,6 +28,8 @@ import type {
   ChargeDto,
   ChargeKind,
   GuardOverviewDto,
+  GuardShiftDto,
+  IncidentReportDto,
   LandlordOverviewDto,
   NotificationDto,
   PaymentAllocationDto,
@@ -37,10 +39,12 @@ import type {
   PropertyDto,
   ReceiptDto,
   Role,
+  SecurityDigestDto,
   SessionDto,
   StkPushResponseDto,
   TenantOverviewDto,
   UnitDto,
+  VisitorLogDto,
 } from "./types";
 
 /** Build gate — read once at module load (Next inlines it at build time). */
@@ -173,9 +177,9 @@ const UNITS: FxUnit[] = [
 ]
 
 const TENANCY_META = [
-  { tenancyId: "t-a1", tenantId: "p-david", unitLabel: "A1", accountRef: "NEST-A1-1001", monthlyRentMinor: 1_500_000, depositHeldMinor: 1_500_000, tenantName: "David Otieno", tenantPhone: "+254711000004" },
-  { tenancyId: "t-a2", tenantId: "p-sarah", unitLabel: "A2", accountRef: "NEST-A2-1002", monthlyRentMinor: 1_200_000, depositHeldMinor: 1_200_000, tenantName: "Sarah Achieng", tenantPhone: "+254711000005" },
-  { tenancyId: "t-b2", tenantId: "p-grace", unitLabel: "B2", accountRef: "NEST-B2-1003", monthlyRentMinor: 850_000, depositHeldMinor: 850_000, tenantName: "Grace Wanjiku", tenantPhone: "+254711000003" },
+  { tenancyId: "t-a1", tenantId: "p-david", unitId: "u-a1", unitLabel: "A1", accountRef: "NEST-A1-1001", monthlyRentMinor: 1_500_000, depositHeldMinor: 1_500_000, tenantName: "David Otieno", tenantPhone: "+254711000004" },
+  { tenancyId: "t-a2", tenantId: "p-sarah", unitId: "u-a2", unitLabel: "A2", accountRef: "NEST-A2-1002", monthlyRentMinor: 1_200_000, depositHeldMinor: 1_200_000, tenantName: "Sarah Achieng", tenantPhone: "+254711000005" },
+  { tenancyId: "t-b2", tenantId: "p-grace", unitId: "u-b2", unitLabel: "B2", accountRef: "NEST-B2-1003", monthlyRentMinor: 850_000, depositHeldMinor: 850_000, tenantName: "Grace Wanjiku", tenantPhone: "+254711000003" },
 ]
 
 const CHARGE_KINDS: ChargeKind[] = ["RENT", "WATER", "GARBAGE"]
@@ -697,6 +701,7 @@ function landlordOverview(): LandlordOverviewDto {
       .sort((a, b) => (a.receivedAt < b.receivedAt ? 1 : -1))
       .slice(0, 5),
     vacancies: UNITS.filter((u) => u.status === "VACANT").map((u) => ({ ...u, tenancy: null })),
+    security: securityDigest(),
     month: CUR,
   }
 }
@@ -720,6 +725,7 @@ function caretakerOverview(): CaretakerOverviewDto {
     recentPayments: PAYMENTS.filter((p) => p.status === "COMPLETED")
       .sort((a, b) => (a.receivedAt < b.receivedAt ? 1 : -1))
       .slice(0, 5),
+    security: securityDigest(),
     month: CUR,
   }
 }
@@ -752,6 +758,7 @@ function tenantOverview(profileId: string): TenantOverviewDto | { status: 404 } 
     charges,
     receipts: receiptsOf(own.tenancyId),
     notifications: notificationsOf(profileId),
+    recentVisitors: VISITORS.filter((v) => v.unitId === own.unitId).slice(0, 3),
   }
 }
 
@@ -771,10 +778,156 @@ function agentOverview(): AgentOverviewDto {
   }
 }
 
+// ----- Phase 3: guard module fixtures -------------------------------------
+
+const GUARD = { id: "p-peter", fullName: "Peter Njoroge" }
+const ACTIVE_SHIFT_ID = "s-active"
+const VISITORS: VisitorLogDto[] = [
+  {
+    id: "v-1",
+    propertyId: PROPERTY.id,
+    propertyName: PROPERTY.name,
+    unitId: "u-b2",
+    unitLabel: "B2",
+    visitorName: "Mary Wanjala",
+    visitorPhone: "+254722111222",
+    purpose: "VISITOR",
+    guardId: GUARD.id,
+    guardName: GUARD.fullName,
+    enteredAt: hoursAgoIso(3),
+    exitedAt: null,
+  },
+  {
+    id: "v-2",
+    propertyId: PROPERTY.id,
+    propertyName: PROPERTY.name,
+    unitId: "u-a1",
+    unitLabel: "A1",
+    visitorName: "Daniel Kimani",
+    visitorPhone: null,
+    purpose: "DELIVERY",
+    guardId: GUARD.id,
+    guardName: GUARD.fullName,
+    enteredAt: hoursAgoIso(5),
+    exitedAt: hoursAgoIso(4),
+  },
+  {
+    id: "v-3",
+    propertyId: PROPERTY.id,
+    propertyName: PROPERTY.name,
+    unitId: null,
+    unitLabel: null,
+    visitorName: "Erick Otieno",
+    visitorPhone: "+254733444555",
+    purpose: "CONTRACTOR",
+    guardId: GUARD.id,
+    guardName: GUARD.fullName,
+    enteredAt: hoursAgoIso(6),
+    exitedAt: null,
+  },
+  {
+    id: "v-4",
+    propertyId: PROPERTY.id,
+    propertyName: PROPERTY.name,
+    unitId: "u-b2",
+    unitLabel: "B2",
+    visitorName: "Joseph Mwangi",
+    visitorPhone: null,
+    purpose: "VIEWING",
+    guardId: GUARD.id,
+    guardName: GUARD.fullName,
+    enteredAt: hoursAgoIso(8),
+    exitedAt: hoursAgoIso(7),
+  },
+]
+
+const INCIDENTS: IncidentReportDto[] = [
+  {
+    id: "i-1",
+    propertyId: PROPERTY.id,
+    propertyName: PROPERTY.name,
+    guardId: GUARD.id,
+    guardName: GUARD.fullName,
+    category: "SECURITY",
+    severity: "HIGH",
+    description: "Two men tried to force the gate lock at the parking area late in the evening.",
+    actionTaken: "Called the caretaker; recorded the motorcycle plate KDA 123X.",
+    acknowledgedById: null,
+    acknowledgedByName: null,
+    acknowledgedAt: null,
+    createdAt: hoursAgoIso(2),
+  },
+  {
+    id: "i-2",
+    propertyId: PROPERTY.id,
+    propertyName: PROPERTY.name,
+    guardId: GUARD.id,
+    guardName: GUARD.fullName,
+    category: "DISPUTE",
+    severity: "MEDIUM",
+    description: "Water point dispute between unit A2 and B1 tenants.",
+    actionTaken: "Separated both parties; caretaker informed.",
+    acknowledgedById: "p-amina",
+    acknowledgedByName: "Amina Barasa",
+    acknowledgedAt: hoursAgoIso(26),
+    createdAt: hoursAgoIso(30),
+  },
+]
+
+const SHIFTS: GuardShiftDto[] = [
+  {
+    id: ACTIVE_SHIFT_ID,
+    propertyId: PROPERTY.id,
+    propertyName: PROPERTY.name,
+    guardId: GUARD.id,
+    guardName: GUARD.fullName,
+    startedAt: hoursAgoIso(9),
+    endedAt: null,
+    notes: null,
+  },
+  {
+    id: "s-prev",
+    propertyId: PROPERTY.id,
+    propertyName: PROPERTY.name,
+    guardId: GUARD.id,
+    guardName: GUARD.fullName,
+    startedAt: hoursAgoIso(33),
+    endedAt: hoursAgoIso(24),
+    notes: "Gate keys handed over. B3 water leak reported to caretaker.",
+  },
+]
+
+function hoursAgoIso(h: number): string {
+  return new Date(Date.now() - h * 3_600_000).toISOString()
+}
+
+function securityDigest(): SecurityDigestDto {
+  return {
+    visitorsToday: VISITORS.length,
+    onSiteNow: VISITORS.filter((v) => v.exitedAt === null).length,
+    unacknowledgedIncidents: INCIDENTS.filter((i) => i.acknowledgedById === null).length,
+    highSeverityUnacked: INCIDENTS.filter(
+      (i) => i.acknowledgedById === null && (i.severity === "HIGH" || i.severity === "CRITICAL")
+    ).length,
+    lastIncidentAt: INCIDENTS[0].createdAt,
+    lastIncidentSeverity: INCIDENTS[0].severity,
+    onDutyGuardName: GUARD.fullName,
+  }
+}
+
 function guardOverview(): GuardOverviewDto {
   return {
     property: PROPERTY,
-    phaseNotice: "Visitor log and incident reports arrive in Phase 3.",
+    activeShift: SHIFTS[0],
+    properties: [PROPERTY],
+    totals: {
+      visitorsToday: VISITORS.length,
+      onSiteNow: VISITORS.filter((v) => v.exitedAt === null).length,
+      unacknowledgedIncidents: INCIDENTS.filter(
+        (i) => i.acknowledgedById === null && i.guardId === GUARD.id
+      ).length,
+    },
+    recentVisitors: VISITORS.slice(0, 3),
   }
 }
 
@@ -918,6 +1071,114 @@ export function fixtureRespond(method: "GET" | "POST", path: string, body?: unkn
   if (method === "POST" && pathname === "/api/notifications/reminders") {
     if (role !== "LANDLORD" && role !== "CARETAKER") return { status: 403, data: { error: "Forbidden", code: "FORBIDDEN" } }
     return { status: 200, data: fixtureReminder(body as { tenancyId: string }) }
+  }
+
+  // ----- Phase 3: guard module ---------------------------------------------------
+  if (method === "GET" && pathname === "/api/visitors") {
+    if (role === "GUARD") return { status: 200, data: VISITORS }
+    if (role === "LANDLORD" || role === "CARETAKER") return { status: 200, data: VISITORS }
+    if (role === "TENANT" && profile) {
+      const own = TENANCY_BY_TENANT[profile.id]
+      const unitId = own ? TENANCY_META.find((m) => m.tenancyId === own)?.unitId : null
+      return { status: 200, data: unitId ? VISITORS.filter((v) => v.unitId === unitId) : [] }
+    }
+    return { status: 403, data: { error: "Forbidden", code: "FORBIDDEN" } }
+  }
+  if (method === "POST" && pathname === "/api/visitors") {
+    if (role !== "GUARD") return { status: 403, data: { error: "Forbidden", code: "FORBIDDEN" } }
+    const b = body as { visitorName: string; visitorPhone?: string; purpose: string; unitId?: string }
+    const unit = b.unitId ? UNITS.find((u) => u.id === b.unitId) : null
+    const dto: VisitorLogDto = {
+      id: `v-${Date.now()}`,
+      propertyId: PROPERTY.id,
+      propertyName: PROPERTY.name,
+      unitId: unit?.id ?? null,
+      unitLabel: unit?.label ?? null,
+      visitorName: b.visitorName,
+      visitorPhone: b.visitorPhone ?? null,
+      purpose: b.purpose as VisitorLogDto["purpose"],
+      guardId: GUARD.id,
+      guardName: GUARD.fullName,
+      enteredAt: new Date().toISOString(),
+      exitedAt: null,
+    }
+    VISITORS.unshift(dto)
+    return { status: 200, data: dto }
+  }
+  if (method === "POST" && /^\/api\/visitors\/[^/]+\/exit$/.test(pathname)) {
+    if (role !== "GUARD") return { status: 403, data: { error: "Forbidden", code: "FORBIDDEN" } }
+    const id = pathname.split("/")[3]
+    const v = VISITORS.find((x) => x.id === id)
+    if (!v) return { status: 404, data: { error: "Not found", code: "NOT_FOUND" } }
+    if (v.exitedAt) return { status: 409, data: { error: "Already exited", code: "CONFLICT" } }
+    v.exitedAt = new Date().toISOString()
+    return { status: 200, data: v }
+  }
+  if (method === "GET" && pathname === "/api/incidents") {
+    if (role === "GUARD" || role === "LANDLORD" || role === "CARETAKER") return { status: 200, data: INCIDENTS }
+    return { status: 403, data: { error: "Forbidden", code: "FORBIDDEN" } }
+  }
+  if (method === "POST" && pathname === "/api/incidents") {
+    if (role !== "GUARD") return { status: 403, data: { error: "Forbidden", code: "FORBIDDEN" } }
+    const b = body as { category: string; severity: string; description: string; actionTaken?: string }
+    const dto: IncidentReportDto = {
+      id: `i-${Date.now()}`,
+      propertyId: PROPERTY.id,
+      propertyName: PROPERTY.name,
+      guardId: GUARD.id,
+      guardName: GUARD.fullName,
+      category: b.category as IncidentReportDto["category"],
+      severity: b.severity as IncidentReportDto["severity"],
+      description: b.description,
+      actionTaken: b.actionTaken ?? null,
+      acknowledgedById: null,
+      acknowledgedByName: null,
+      acknowledgedAt: null,
+      createdAt: new Date().toISOString(),
+    }
+    INCIDENTS.unshift(dto)
+    return { status: 200, data: dto }
+  }
+  if (method === "POST" && /^\/api\/incidents\/[^/]+\/ack$/.test(pathname)) {
+    if (role !== "LANDLORD" && role !== "CARETAKER") return { status: 403, data: { error: "Forbidden", code: "FORBIDDEN" } }
+    const id = pathname.split("/")[3]
+    const i = INCIDENTS.find((x) => x.id === id)
+    if (!i) return { status: 404, data: { error: "Not found", code: "NOT_FOUND" } }
+    if (i.acknowledgedById) return { status: 409, data: { error: "Already acknowledged", code: "CONFLICT" } }
+    i.acknowledgedById = "p-amina"
+    i.acknowledgedByName = "Amina Barasa"
+    i.acknowledgedAt = new Date().toISOString()
+    return { status: 200, data: i }
+  }
+  if (method === "GET" && pathname === "/api/shifts") {
+    if (role === "GUARD" || role === "LANDLORD" || role === "CARETAKER") return { status: 200, data: SHIFTS }
+    return { status: 403, data: { error: "Forbidden", code: "FORBIDDEN" } }
+  }
+  if (method === "POST" && pathname === "/api/shifts") {
+    if (role !== "GUARD") return { status: 403, data: { error: "Forbidden", code: "FORBIDDEN" } }
+    if (SHIFTS[0].endedAt === null) return { status: 409, data: { error: "Already on duty", code: "CONFLICT" } }
+    const dto: GuardShiftDto = {
+      id: `s-${Date.now()}`,
+      propertyId: PROPERTY.id,
+      propertyName: PROPERTY.name,
+      guardId: GUARD.id,
+      guardName: GUARD.fullName,
+      startedAt: new Date().toISOString(),
+      endedAt: null,
+      notes: null,
+    }
+    SHIFTS.unshift(dto)
+    return { status: 200, data: dto }
+  }
+  if (method === "POST" && /^\/api\/shifts\/[^/]+\/end$/.test(pathname)) {
+    if (role !== "GUARD") return { status: 403, data: { error: "Forbidden", code: "FORBIDDEN" } }
+    const id = pathname.split("/")[3]
+    const s = SHIFTS.find((x) => x.id === id)
+    if (!s) return { status: 404, data: { error: "Not found", code: "NOT_FOUND" } }
+    if (s.endedAt) return { status: 409, data: { error: "Shift already ended", code: "CONFLICT" } }
+    s.endedAt = new Date().toISOString()
+    s.notes = ((body as { notes?: string }).notes) ?? null
+    return { status: 200, data: s }
   }
 
   return null

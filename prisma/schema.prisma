@@ -63,6 +63,11 @@ model Profile {
   ticketUpdates       TicketUpdate[]
   conditionReportsRecorded ConditionReport[]
   depositMovementsActor    DepositMovement[]
+  // Guard module (Phase 3)
+  guardShifts        GuardShift[]     @relation("GuardShifts")
+  guardVisitors      VisitorLog[]     @relation("GuardVisitors")
+  guardIncidents     IncidentReport[] @relation("GuardIncidents")
+  guardIncidentAcks  IncidentReport[] @relation("GuardIncidentAcks")
 
   @@index([role])
 }
@@ -86,6 +91,10 @@ model Property {
   agent     Profile? @relation("PropertyAgent", fields: [agentId], references: [id])
   units     Unit[]
   tickets   MaintenanceTicket[]
+  // Guard module (Phase 3)
+  visitorLogs   VisitorLog[]
+  incidents     IncidentReport[]
+  guardShifts   GuardShift[]
 
   @@index([landlordId])
   @@index([caretakerId])
@@ -106,6 +115,7 @@ model Unit {
   property  Property   @relation(fields: [propertyId], references: [id])
   tenancies Tenancy[]
   tickets   MaintenanceTicket[]
+  visitorLogs VisitorLog[]
 
   @@unique([propertyId, label])
   @@index([propertyId, status])
@@ -335,18 +345,29 @@ model VisitorLog {
   enteredAt    DateTime  @default(now())
   exitedAt     DateTime?
 
+  property Property @relation(fields: [propertyId], references: [id])
+  unit     Unit?    @relation(fields: [unitId], references: [id])
+  guard    Profile  @relation("GuardVisitors", fields: [guardId], references: [id])
+
   @@index([propertyId, enteredAt])
 }
 
 model IncidentReport {
-  id          String   @id @default(cuid())
-  propertyId  String
-  guardId     String
-  category    String // SECURITY | DAMAGE | DISPUTE | THEFT | OTHER
-  description String
-  actionTaken String?
-  severity    String   @default("LOW") // LOW | MEDIUM | HIGH | CRITICAL
-  createdAt   DateTime @default(now())
+  id              String    @id @default(cuid())
+  propertyId      String
+  guardId         String
+  category        String // SECURITY | DAMAGE | DISPUTE | THEFT | OTHER
+  description     String
+  actionTaken     String?
+  severity        String    @default("LOW") // LOW | MEDIUM | HIGH | CRITICAL
+  /// Set when LANDLORD/CARETAKER marks the report seen — the trust loop closer.
+  acknowledgedById String?
+  acknowledgedAt   DateTime?
+  createdAt       DateTime  @default(now())
+
+  property       Property @relation(fields: [propertyId], references: [id])
+  guard          Profile  @relation("GuardIncidents", fields: [guardId], references: [id])
+  acknowledgedBy Profile? @relation("GuardIncidentAcks", fields: [acknowledgedById], references: [id])
 
   @@index([propertyId, createdAt])
 }
@@ -357,7 +378,11 @@ model GuardShift {
   guardId    String
   startedAt  DateTime  @default(now())
   endedAt    DateTime?
+  /// Handover note written when the shift ends (the relay record).
   notes      String?
+
+  property Property @relation(fields: [propertyId], references: [id])
+  guard    Profile  @relation("GuardShifts", fields: [guardId], references: [id])
 
   @@index([guardId, startedAt])
 }

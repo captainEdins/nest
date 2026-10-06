@@ -43,6 +43,14 @@ import { TenantReceiptsScreen } from "@/components/nest/tenant/receipts";
 import { TenantNotificationsScreen, NotificationsModal } from "@/components/nest/shared/notifications";
 import { AgentHome } from "@/components/nest/agent/home";
 import { GuardHome } from "@/components/nest/guard/home";
+import { GuardVisitors } from "@/components/nest/guard/visitors";
+import { GuardIncidents } from "@/components/nest/guard/incidents";
+import { GuardShiftLog } from "@/components/nest/guard/shift-log";
+import { LogVisitorSheet } from "@/components/nest/guard/log-visitor-sheet";
+import { ReportIncidentSheet } from "@/components/nest/guard/report-incident-sheet";
+import { StartShiftSheet } from "@/components/nest/guard/start-shift-sheet";
+import { EndShiftSheet } from "@/components/nest/guard/end-shift-sheet";
+import { SecurityScreen } from "@/components/nest/shared/security/security-screen";
 import { MatchModal } from "@/components/nest/landlord/match-modal";
 import { CashFlowModal } from "@/components/nest/caretaker/cash-collection";
 import { StkRequestModal } from "@/components/nest/caretaker/stk-request";
@@ -102,6 +110,11 @@ function useUnauthorizedHandler() {
         ticketViewId: null,
         reportIssueOpen: false,
         settleDeposit: { open: false },
+        logVisitorOpen: false,
+        reportIncidentOpen: false,
+        startShiftOpen: false,
+        endShiftOpen: false,
+        securitySegment: "visitors",
       });
       if (hadSession) {
         // Neutral toast outside React — read the persisted language directly.
@@ -224,6 +237,16 @@ function Shell({ session }: { session: SessionDto }) {
               </div>
               <DepositDetailScreen />
             </section>
+          ) : pushedScreen === "shift" && role === "GUARD" ? (
+            <section aria-label={t("guard.shiftLog")}>
+              <div className="flex items-center gap-2 mb-4">
+                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={popScreen} aria-label={t("common.back")}>
+                  <ArrowLeft aria-hidden />
+                </Button>
+                <h1 className="text-h2 font-semibold">{t("guard.shiftLog")}</h1>
+              </div>
+              <GuardShiftLog />
+            </section>
           ) : (
             <TabContent role={role} tab={tab} />
           )}
@@ -246,6 +269,15 @@ function Shell({ session }: { session: SessionDto }) {
       {role === "TENANT" || role === "CARETAKER" ? <ReportIssueSheet /> : null}
       {/* Phase 2: deposit settlement (landlord only) */}
       {role === "LANDLORD" ? <SettleDepositModal /> : null}
+      {/* Phase 3: guard flow sheets (guard only) */}
+      {role === "GUARD" ? (
+        <>
+          <LogVisitorSheet />
+          <ReportIncidentSheet />
+          <StartShiftSheet />
+          <EndShiftSheet />
+        </>
+      ) : null}
 
       {/* Mobile "More" drawer (S-15) */}
       <Drawer open={moreOpen} onOpenChange={setMoreOpen}>
@@ -270,12 +302,14 @@ function TabContent({ role, tab }: { role: Role; tab: string }) {
       if (tab === "payments") return <PaymentsLedger variant="landlord" />;
       if (tab === "properties") return <PropertiesScreen />;
       if (tab === "repairs") return <LandlordTickets />;
+      if (tab === "security") return <SecurityScreen />;
       return <LandlordHome />;
     }
     case "CARETAKER": {
       if (tab === "units") return <CaretakerUnits />;
       if (tab === "collections") return <PaymentsLedger variant="caretaker" />;
       if (tab === "repairs") return <CaretakerTickets />;
+      if (tab === "security") return <SecurityScreen />;
       return <CaretakerHome />;
     }
     case "TENANT": {
@@ -286,8 +320,11 @@ function TabContent({ role, tab }: { role: Role; tab: string }) {
     }
     case "AGENT":
       return <AgentHome />;
-    case "GUARD":
+    case "GUARD": {
+      if (tab === "visitors") return <GuardVisitors />;
+      if (tab === "incidents") return <GuardIncidents />;
       return <GuardHome />;
+    }
   }
 }
 

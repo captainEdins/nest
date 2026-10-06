@@ -9,6 +9,10 @@
  * (RENT / WATER / GARBAGE, due on the 5th), 2 completed M-Pesa payments with
  * append-only PaymentAllocation rows, 1 unmatched payment, a deposit ledger
  * per tenancy, notifications, and audit entries for the completed payments.
+ * Phase 2 adds the repairs story (tickets + condition reports) and the
+ * move-out deposit settlement; Phase 3 adds the guard story: Peter's shift
+ * history + ACTIVE shift, a 2-day gate register (10 visitor entries), and
+ * 3 incident reports (1 HIGH unacknowledged — the demo hook).
  *
  * Invariants honoured (mirrors src/lib/reconciliation.ts semantics):
  * - Money is ALWAYS integer KES minor units (cents) — no floats anywhere.
@@ -119,7 +123,7 @@ async function main(): Promise<void> {
   const kevin = await db.profile.create({
     data: { phone: "+254711000008", fullName: "Kevin Mutua", role: "TENANT" },
   })
-  void peter // Peter (GUARD) has no Phase 1 data — guard module starts in Phase 3.
+  void peter // Peter (GUARD) carries the Phase 3 story: shifts, gate register, incidents (section 8c).
 
   // --- 3) Property + units -------------------------------------------------
   const property = await db.property.create({
@@ -489,6 +493,103 @@ async function main(): Promise<void> {
 
   void graceTicket // referenced by the notification + audit seeds below
 
+  // --- 8c) Guard module (Phase 3): shifts, visitors, incidents --------------
+  const hoursAgo = (h: number) => new Date(now.getTime() - h * 3_600_000)
+
+  // Peter's shift history: two completed day shifts + the ACTIVE one.
+  const activeShift = await db.guardShift.create({
+    data: { propertyId: property.id, guardId: peter.id, startedAt: hoursAgo(6) },
+  })
+  const prevShift = await db.guardShift.create({
+    data: {
+      propertyId: property.id,
+      guardId: peter.id,
+      startedAt: hoursAgo(28),
+      endedAt: hoursAgo(18),
+      notes: "Gate keys handed over. Water point dispute between A2 and B1 settled by caretaker.",
+    },
+  })
+  const oldShift = await db.guardShift.create({
+    data: {
+      propertyId: property.id,
+      guardId: peter.id,
+      startedAt: hoursAgo(52),
+      endedAt: hoursAgo(42),
+      notes: "Quiet night. B3 viewing scheduled for the morning team.",
+    },
+  })
+
+  // Today's gate register (enteredAt relative to now — never future-dated).
+  const visitorSeeds = [
+    // today
+    { name: "Mary Wanjala", phone: "+254722111222", purpose: "VISITOR", unit: "B2", entered: 5.5, exited: null as number | null },
+    { name: "Daniel Kimani", phone: null, purpose: "DELIVERY", unit: "A1", entered: 4.8, exited: 4.5 },
+    { name: "Erick Otieno", phone: "+254733444555", purpose: "CONTRACTOR", unit: null, entered: 4, exited: null },
+    { name: "Joyce Muthoni", phone: "+254701555666", purpose: "VIEWING", unit: "B3", entered: 3.2, exited: 2.6 },
+    { name: "Brian Kariuki", phone: null, purpose: "VISITOR", unit: "A2", entered: 2.2, exited: null },
+    { name: "Naivas Delivery", phone: null, purpose: "DELIVERY", unit: "B2", entered: 1.8, exited: 1.5 },
+    { name: "Samwel Ochieng", phone: "+254712999888", purpose: "VISITOR", unit: "B2", entered: 1.2, exited: 0.7 },
+    // yesterday
+    { name: "Alice Wanja", phone: null, purpose: "VISITOR", unit: "A1", entered: 25, exited: 23.5 },
+    { name: "Kelvin Mutiso", phone: "+254745123456", purpose: "VISITOR", unit: "B1", entered: 26, exited: 24 },
+    { name: "Cynthia Auma", phone: "+254759777888", purpose: "VIEWING", unit: "B3", entered: 27, exited: 26.2 },
+  ]
+  for (const v of visitorSeeds) {
+    await db.visitorLog.create({
+      data: {
+        propertyId: property.id,
+        unitId: v.unit ? units[v.unit].id : null,
+        visitorName: v.name,
+        visitorPhone: v.phone,
+        purpose: v.purpose,
+        guardId: peter.id,
+        enteredAt: hoursAgo(v.entered),
+        exitedAt: v.exited === null ? null : hoursAgo(v.exited),
+      },
+    })
+  }
+
+  // Incident reports: 1 HIGH unseen (the demo hook), 2 acknowledged.
+  const gateIncident = await db.incidentReport.create({
+    data: {
+      propertyId: property.id,
+      guardId: peter.id,
+      category: "SECURITY",
+      severity: "HIGH",
+      description:
+        "Two men tried to force the gate lock at the parking area early this morning. They fled on a black motorcycle.",
+      actionTaken:
+        "Confronted them from the gatehouse; they left. Motorcycle plate KDA 123X recorded and shared with the caretaker.",
+      createdAt: hoursAgo(6.1),
+    },
+  })
+  const disputeIncident = await db.incidentReport.create({
+    data: {
+      propertyId: property.id,
+      guardId: peter.id,
+      category: "DISPUTE",
+      severity: "MEDIUM",
+      description: "Water point dispute between unit A2 and B1 tenants — buckets and raised voices.",
+      actionTaken: "Separated both parties and called the caretaker, who resolved it.",
+      acknowledgedById: amina.id,
+      acknowledgedAt: hoursAgo(24.5),
+      createdAt: hoursAgo(26),
+    },
+  })
+  const hingeIncident = await db.incidentReport.create({
+    data: {
+      propertyId: property.id,
+      guardId: peter.id,
+      category: "DAMAGE",
+      severity: "LOW",
+      description: "Gate hinge came loose after the garbage truck reversed into it.",
+      actionTaken: "Tied the gate shut; caretaker scheduled welding for the morning.",
+      acknowledgedById: amina.id,
+      acknowledgedAt: hoursAgo(41),
+      createdAt: hoursAgo(50),
+    },
+  })
+
   // --- 9) Notifications ----------------------------------------------------
   // Grace's outstanding after her payment (previous month still owed).
   const graceCharges = await db.rentCharge.findMany({ where: { tenancyId: tenancies["NEST-B2-1003"].id } })
@@ -578,6 +679,49 @@ async function main(): Promise<void> {
     },
   })
 
+  // Phase 3 incident notifications: HIGH severity → landlord + caretaker hear
+  // immediately; the guard hears when a report is acknowledged (the loop closes).
+  for (const recipient of [amina, mwangi]) {
+    await db.notification.create({
+      data: {
+        profileId: recipient.id,
+        channel: "IN_APP",
+        templateKey: "INCIDENT_FILED",
+        body:
+          `NEST: High-severity incident at Baraka Court filed by Peter Njoroge (Security): ` +
+          `"Two men tried to force the gate lock at the parking area early this morning."`,
+        status: "QUEUED",
+        createdAt: hoursAgo(6.1),
+      },
+    })
+  }
+  await db.notification.create({
+    data: {
+      profileId: peter.id,
+      channel: "IN_APP",
+      templateKey: "INCIDENT_ACKED",
+      body:
+        `NEST: Amina Barasa acknowledged your incident report (Dispute): ` +
+        `"Water point dispute between unit A2 and B1 tenants."`,
+      status: "SENT",
+      createdAt: hoursAgo(24.5),
+      sentAt: hoursAgo(24.5),
+    },
+  })
+  await db.notification.create({
+    data: {
+      profileId: peter.id,
+      channel: "IN_APP",
+      templateKey: "INCIDENT_ACKED",
+      body:
+        `NEST: Amina Barasa acknowledged your incident report (Damage): ` +
+        `"Gate hinge came loose after the garbage truck reversed into it."`,
+      status: "SENT",
+      createdAt: hoursAgo(41),
+      sentAt: hoursAgo(41),
+    },
+  })
+
   // --- 10) Audit log: one MPESA_CALLBACK entry per completed payment -------
   const auditSeeds = [
     { payment: gracePayment, checkoutRequestId: "ws_CO_SEED_0001" },
@@ -631,6 +775,40 @@ async function main(): Promise<void> {
     })
   }
 
+  // --- 10c) Audit log: Phase 3 guard module evidence ------------------------
+  const guardAuditSeeds = [
+    { action: "SHIFT_START", entity: "GuardShift", id: activeShift.id, at: hoursAgo(6), detail: { property: property.name, guard: "Peter Njoroge" } },
+    { action: "SHIFT_END", entity: "GuardShift", id: prevShift.id, at: hoursAgo(18), detail: { property: property.name, guard: "Peter Njoroge", notes: prevShift.notes } },
+    { action: "SHIFT_START", entity: "GuardShift", id: prevShift.id, at: hoursAgo(28), detail: { property: property.name, guard: "Peter Njoroge" } },
+    { action: "SHIFT_END", entity: "GuardShift", id: oldShift.id, at: hoursAgo(42), detail: { property: property.name, guard: "Peter Njoroge", notes: oldShift.notes } },
+    { action: "SHIFT_START", entity: "GuardShift", id: oldShift.id, at: hoursAgo(52), detail: { property: property.name, guard: "Peter Njoroge" } },
+    { action: "VISITOR_LOGGED", entity: "VisitorLog", id: "seed:mary", at: hoursAgo(5.5), detail: { visitorName: "Mary Wanjala", purpose: "VISITOR", unit: "B2" } },
+    { action: "VISITOR_LOGGED", entity: "VisitorLog", id: "seed:daniel", at: hoursAgo(4.8), detail: { visitorName: "Daniel Kimani", purpose: "DELIVERY", unit: "A1" } },
+    { action: "VISITOR_EXIT", entity: "VisitorLog", id: "seed:daniel", at: hoursAgo(4.5), detail: { visitorName: "Daniel Kimani" } },
+    { action: "VISITOR_LOGGED", entity: "VisitorLog", id: "seed:erick", at: hoursAgo(4), detail: { visitorName: "Erick Otieno", purpose: "CONTRACTOR" } },
+    { action: "VISITOR_LOGGED", entity: "VisitorLog", id: "seed:joyce", at: hoursAgo(3.2), detail: { visitorName: "Joyce Muthoni", purpose: "VIEWING", unit: "B3" } },
+    { action: "VISITOR_EXIT", entity: "VisitorLog", id: "seed:joyce", at: hoursAgo(2.6), detail: { visitorName: "Joyce Muthoni" } },
+    { action: "VISITOR_LOGGED", entity: "VisitorLog", id: "seed:naivas", at: hoursAgo(1.8), detail: { visitorName: "Naivas Delivery", purpose: "DELIVERY", unit: "B2" } },
+    { action: "VISITOR_EXIT", entity: "VisitorLog", id: "seed:naivas", at: hoursAgo(1.5), detail: { visitorName: "Naivas Delivery" } },
+    { action: "INCIDENT_FILED", entity: "IncidentReport", id: gateIncident.id, at: hoursAgo(6.1), detail: { category: "SECURITY", severity: "HIGH", property: property.name } },
+    { action: "INCIDENT_FILED", entity: "IncidentReport", id: disputeIncident.id, at: hoursAgo(26), detail: { category: "DISPUTE", severity: "MEDIUM", property: property.name } },
+    { action: "INCIDENT_ACKED", entity: "IncidentReport", id: disputeIncident.id, at: hoursAgo(24.5), detail: { by: "Amina Barasa" } },
+    { action: "INCIDENT_FILED", entity: "IncidentReport", id: hingeIncident.id, at: hoursAgo(50), detail: { category: "DAMAGE", severity: "LOW", property: property.name } },
+    { action: "INCIDENT_ACKED", entity: "IncidentReport", id: hingeIncident.id, at: hoursAgo(41), detail: { by: "Amina Barasa" } },
+  ]
+  for (const a of guardAuditSeeds) {
+    await db.auditLog.create({
+      data: {
+        actorId: a.action === "INCIDENT_ACKED" ? amina.id : peter.id,
+        action: a.action,
+        entity: a.entity,
+        entityId: a.id,
+        detailJson: JSON.stringify(a.detail),
+        createdAt: a.at,
+      },
+    })
+  }
+
   // --- 11) Summary (evidence) ----------------------------------------------
   const counts = {
     profiles: await db.profile.count(),
@@ -645,6 +823,9 @@ async function main(): Promise<void> {
     tickets: await db.maintenanceTicket.count(),
     ticketUpdates: await db.ticketUpdate.count(),
     conditionReports: await db.conditionReport.count(),
+    visitorLogs: await db.visitorLog.count(),
+    incidentReports: await db.incidentReport.count(),
+    guardShifts: await db.guardShift.count(),
     notifications: await db.notification.count(),
     auditLogs: await db.auditLog.count(),
   }

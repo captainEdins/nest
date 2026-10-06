@@ -5,10 +5,13 @@
 import {
   AlertTriangle,
   Bell,
+  BookOpen,
   Building2,
   DoorOpen,
   Home,
   Receipt,
+  Shield,
+  ShieldAlert,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
@@ -43,7 +46,11 @@ export const TABS: Record<Role, TabDef[]> = {
     { id: "notifications", labelKey: "nav.notifications", icon: Bell },
   ],
   AGENT: [{ id: "home", labelKey: "nav.home", icon: Home }],
-  GUARD: [{ id: "home", labelKey: "nav.home", icon: Home }],
+  GUARD: [
+    { id: "home", labelKey: "nav.home", icon: Home },
+    { id: "visitors", labelKey: "nav.visitors", icon: BookOpen },
+    { id: "incidents", labelKey: "nav.incidents", icon: ShieldAlert },
+  ],
 };
 
 /**
@@ -51,7 +58,11 @@ export const TABS: Record<Role, TabDef[]> = {
  * (mobile: reached via the More sheet; desktop sidebar appends them after TABS).
  */
 export const MORE_TABS: Partial<Record<Role, TabDef[]>> = {
-  LANDLORD: [{ id: "properties", labelKey: "nav.properties", icon: Building2 }],
+  LANDLORD: [
+    { id: "properties", labelKey: "nav.properties", icon: Building2 },
+    { id: "security", labelKey: "nav.security", icon: Shield },
+  ],
+  CARETAKER: [{ id: "security", labelKey: "nav.security", icon: Shield }],
 };
 
 export function roleLabelKey(role: Role): TranslationKey {

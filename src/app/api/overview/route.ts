@@ -38,7 +38,7 @@ export async function GET() {
       case "AGENT":
         return ok(await getAgentOverview(profile))
       case "GUARD":
-        return ok(await getGuardOverview())
+        return ok(await getGuardOverview(profile))
       default:
         // Unknown role string in the DB — deny by default.
         throw forbidden()

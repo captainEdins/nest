@@ -68,7 +68,7 @@ function PhaseNoticeCard() {
   return (
     <div className="rounded-xl border border-warning/40 bg-warning/15 dark:bg-warning/10 p-4 flex items-start gap-3">
       <ShieldAlert className="size-5 text-attention shrink-0 mt-0.5" aria-hidden />
-      <p className="text-body text-attention">{t("phase.guardNotice", { phase: "Phase 3" })}</p>
+      <p className="text-body text-attention">{t("phase.guardNotice", { phase: "3" })}</p>
     </div>
   );
 }

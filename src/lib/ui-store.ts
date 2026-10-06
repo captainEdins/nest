@@ -20,7 +20,10 @@ export type TabId =
   | "collections"
   | "receipts"
   | "notifications"
-  | "repairs";
+  | "repairs"
+  | "visitors" // Phase 3: guard gate register
+  | "incidents" // Phase 3: guard incident queue
+  | "security" // Phase 3: landlord/caretaker security digest (More tab);
 
 export type PaymentsFilter = "ALL" | "MPESA" | "CASH" | "UNMATCHED";
 
@@ -34,10 +37,11 @@ interface UIState {
   /** Active bottom-nav / sidebar tab. */
   tab: TabId;
   setTab: (tab: TabId) => void;
-  /** Secondary screen pushed over the tab content (caretaker arrears; Phase 2: ticket + deposit detail). */
-  pushedScreen: "arrears" | "ticket" | "deposit" | null;
+  /** Secondary screen pushed over the tab content (caretaker arrears; Phase 2: ticket + deposit detail; Phase 3: guard shift log). */
+  pushedScreen: "arrears" | "ticket" | "deposit" | "shift" | null;
   pushArrears: () => void;
   pushDeposit: () => void;
+  pushShiftLog: () => void;
   popScreen: () => void;
   /** Payments ledger filter (S-17a); the unmatched alert card presets it. */
   paymentsFilter: PaymentsFilter;
@@ -77,6 +81,21 @@ interface UIState {
   settleDeposit: { open: boolean; tenancyId?: string };
   openSettleDeposit: (tenancyId: string) => void;
   closeSettleDeposit: () => void;
+  /** Log-visitor sheet (Phase 3), guard. */
+  logVisitorOpen: boolean;
+  setLogVisitorOpen: (open: boolean) => void;
+  /** Report-incident sheet (Phase 3), guard. */
+  reportIncidentOpen: boolean;
+  setReportIncidentOpen: (open: boolean) => void;
+  /** Start-shift sheet (Phase 3), guard. */
+  startShiftOpen: boolean;
+  setStartShiftOpen: (open: boolean) => void;
+  /** End-shift sheet (Phase 3), guard. */
+  endShiftOpen: boolean;
+  setEndShiftOpen: (open: boolean) => void;
+  /** Security screen segment (Phase 3), landlord/caretaker. */
+  securitySegment: "visitors" | "incidents" | "shifts";
+  setSecuritySegment: (segment: "visitors" | "incidents" | "shifts") => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -85,6 +104,7 @@ export const useUIStore = create<UIState>((set) => ({
   pushedScreen: null,
   pushArrears: () => set({ pushedScreen: "arrears" }),
   pushDeposit: () => set({ pushedScreen: "deposit" }),
+  pushShiftLog: () => set({ pushedScreen: "shift" }),
   popScreen: () => set({ pushedScreen: null }),
   paymentsFilter: "ALL",
   setPaymentsFilter: (paymentsFilter) => set({ paymentsFilter }),
@@ -113,4 +133,14 @@ export const useUIStore = create<UIState>((set) => ({
   settleDeposit: { open: false },
   openSettleDeposit: (tenancyId) => set({ settleDeposit: { open: true, tenancyId } }),
   closeSettleDeposit: () => set({ settleDeposit: { open: false } }),
+  logVisitorOpen: false,
+  setLogVisitorOpen: (logVisitorOpen) => set({ logVisitorOpen }),
+  reportIncidentOpen: false,
+  setReportIncidentOpen: (reportIncidentOpen) => set({ reportIncidentOpen }),
+  startShiftOpen: false,
+  setStartShiftOpen: (startShiftOpen) => set({ startShiftOpen }),
+  endShiftOpen: false,
+  setEndShiftOpen: (endShiftOpen) => set({ endShiftOpen }),
+  securitySegment: "visitors",
+  setSecuritySegment: (securitySegment) => set({ securitySegment }),
 }));

@@ -140,6 +140,11 @@ export function MoreSheetContent({ session }: { session: SessionDto }) {
         ticketViewId: null,
         reportIssueOpen: false,
         settleDeposit: { open: false },
+        logVisitorOpen: false,
+        reportIncidentOpen: false,
+        startShiftOpen: false,
+        endShiftOpen: false,
+        securitySegment: "visitors",
       });
     },
     onError: () => toast.error(t("errors.somethingWrong")),

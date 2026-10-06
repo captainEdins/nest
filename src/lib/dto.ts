@@ -25,6 +25,10 @@ import type {
   DepositDto,
   DepositMovementKind,
   DepositStatus,
+  GuardShiftDto,
+  IncidentCategory,
+  IncidentReportDto,
+  IncidentSeverity,
   NotificationDto,
   PaymentDto,
   PaymentSource,
@@ -38,6 +42,8 @@ import type {
   TicketStatus,
   UnitDto,
   UnitStatus,
+  VisitorLogDto,
+  VisitorPurpose,
   UnitType,
 } from "@/lib/types"
 
@@ -351,5 +357,83 @@ export function toDepositDto(
       createdAt: m.createdAt.toISOString(),
     })),
     conditionReports: reports.map(toConditionReportDto),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Guard module — visitor log, incident reports, shifts (Phase 3)
+// ---------------------------------------------------------------------------
+
+/** Everything VisitorLogDto needs (unit + property names, logging guard). */
+export const visitorLogInclude = {
+  unit: { select: { id: true, label: true } },
+  property: { select: { id: true, name: true } },
+  guard: { select: { id: true, fullName: true } },
+} satisfies Prisma.VisitorLogInclude
+
+export type VisitorLogWithRelations = Prisma.VisitorLogGetPayload<{ include: typeof visitorLogInclude }>
+
+export function toVisitorLogDto(row: VisitorLogWithRelations): VisitorLogDto {
+  return {
+    id: row.id,
+    propertyId: row.propertyId,
+    propertyName: row.property.name,
+    unitId: row.unitId,
+    unitLabel: row.unit ? row.unit.label : null,
+    visitorName: row.visitorName,
+    visitorPhone: row.visitorPhone,
+    purpose: row.purpose as VisitorPurpose,
+    guardId: row.guardId,
+    guardName: row.guard.fullName,
+    enteredAt: row.enteredAt.toISOString(),
+    exitedAt: row.exitedAt ? row.exitedAt.toISOString() : null,
+  }
+}
+
+/** Everything IncidentReportDto needs (property, filing guard, acker). */
+export const incidentInclude = {
+  property: { select: { id: true, name: true } },
+  guard: { select: { id: true, fullName: true } },
+  acknowledgedBy: { select: { id: true, fullName: true } },
+} satisfies Prisma.IncidentReportInclude
+
+export type IncidentWithRelations = Prisma.IncidentReportGetPayload<{ include: typeof incidentInclude }>
+
+export function toIncidentDto(row: IncidentWithRelations): IncidentReportDto {
+  return {
+    id: row.id,
+    propertyId: row.propertyId,
+    propertyName: row.property.name,
+    guardId: row.guardId,
+    guardName: row.guard.fullName,
+    category: row.category as IncidentCategory,
+    severity: row.severity as IncidentSeverity,
+    description: row.description,
+    actionTaken: row.actionTaken,
+    acknowledgedById: row.acknowledgedById,
+    acknowledgedByName: row.acknowledgedBy ? row.acknowledgedBy.fullName : null,
+    acknowledgedAt: row.acknowledgedAt ? row.acknowledgedAt.toISOString() : null,
+    createdAt: row.createdAt.toISOString(),
+  }
+}
+
+/** Everything GuardShiftDto needs (property, guard). */
+export const guardShiftInclude = {
+  property: { select: { id: true, name: true } },
+  guard: { select: { id: true, fullName: true } },
+} satisfies Prisma.GuardShiftInclude
+
+export type GuardShiftWithRelations = Prisma.GuardShiftGetPayload<{ include: typeof guardShiftInclude }>
+
+export function toGuardShiftDto(row: GuardShiftWithRelations): GuardShiftDto {
+  return {
+    id: row.id,
+    propertyId: row.propertyId,
+    propertyName: row.property.name,
+    guardId: row.guardId,
+    guardName: row.guard.fullName,
+    startedAt: row.startedAt.toISOString(),
+    endedAt: row.endedAt ? row.endedAt.toISOString() : null,
+    notes: row.notes,
   }
 }
