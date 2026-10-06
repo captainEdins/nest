@@ -86,9 +86,20 @@ Recorded by the Principal Engineer. Every entry: context, decision, trade-offs, 
 
 ---
 
+## D-018 — Phase 5 wedge decisions (analytics + KRA/MRI)
+- **Context**: Post-Phase-4 gate, the Phase 5 wedge round shipped landlord analytics (issue #57/PR #58), the KRA/MRI tax assistant promised since Phase 2 (issue #59/PR #60), and close-out polish (issue #61/PR #62).
+- **Decisions**:
+  - Analytics charts are **hand-rolled inline SVG with zero new dependencies** — chart libraries cost bundle weight the low-end-Android persona cannot afford.
+  - The KRA/MRI assistant is **record-keeping assistance only, never tax advice** (disclaimer ships as the first UI element); the 7.5% MRI estimate is integer minor units with documented `Math.round(base × 75 / 1000)` rounding.
+  - Analytics + KRA routes are **read-only** — no AuditLog rows (audit trails track financial mutations, not reads).
+  - A shared `kra.ts` rollup seam means the screen and CSV export can never disagree, and all three landlord money views (home arrears, analytics, KRA) use one balance math.
+  - README's shipped table + roadmap are synced at every phase gate (was stale since Phase 2 — caught in this round's audit).
+
+---
+
 ## Open assumptions awaiting user input
 1. Supabase service-role key or DB password — to run migrations, RLS, and phone OTP.
 2. Daraja sandbox credentials — for live M-Pesa testing (sim mode until then).
 3. SMS/WhatsApp provider credentials — to send real notifications.
 4. Brand clearance for "NEST" (vs existing fintech "nesti") before public marketing.
-5. Phase 2–5 scope confirmation after Phase 1 gate approval.
+5. Phase 5-tail scope confirmation: rent score API, financing/insurance partners, load/security/a11y hardening, pilot readiness.
