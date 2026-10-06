@@ -11,7 +11,7 @@ jobs:
     name: Lint · Type-check · Prisma
     runs-on: ubuntu-latest
     env:
-      DATABASE_URL: file:./db/ci.db
+      DATABASE_URL: file:./ci.db
       SESSION_SECRET: ci-only-secret
       DEMO_MODE: "1"
       MPESA_MODE: sim

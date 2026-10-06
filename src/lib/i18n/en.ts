@@ -220,6 +220,123 @@ export const en = {
   "misc.language": "Language",
   "misc.settings": "Settings",
   "misc.phaseNotice": "This module arrives in {phase}",
+  "misc.nextPhase": "Next phase",
+
+  // ----- Arrears (aging buckets, reminders) [added by 2-b, screen-specs S-11] --
+  "arrears.sendReminder": "Send reminder",
+  "arrears.sent": "Sent",
+  "arrears.reminderSent": "Reminder sent to {name}",
+  "arrears.monthBehind": "1 month behind",
+  "arrears.monthsBehind": "{count} months behind",
+  "arrears.viewAll": "View all",
+  "arrears.tenantsBehind": "{count} tenants in arrears",
+  "arrears.aging.current": "Current",
+  "arrears.aging.1_30": "1–30 days",
+  "arrears.aging.31_60": "31–60 days",
+  "arrears.aging.61plus": "61+ days",
+
+  // ----- Cash collection flow (S-06) ----------------------------------------
+  "cash.confirm": "Confirm",
+
+  // ----- M-Pesa flow extras (S-07/S-09) --------------------------------------
+  "mpesa.waiting": "Waiting for confirmation…",
+  "mpesa.failed": "M-Pesa request failed",
+  "mpesa.reason": "Reason: {reason}",
+  "mpesa.stillWaiting": "Still waiting — check back shortly",
+  "mpesa.askTenantPin": "Ask {name} to enter the M-Pesa PIN on their phone.",
+  "mpesa.cancelRequest": "Cancel request",
+
+  // ----- Unmatched queue extras (S-04) ---------------------------------------
+  "unmatched.review": "Review",
+  "unmatched.matchPayment": "Match payment",
+  "unmatched.matchConfirm": "Confirm match",
+
+  // ----- Tenant extras (S-08/S-09) -------------------------------------------
+  "tenant.openCharges": "Open charges",
+  "tenant.allPaidUp": "All paid up",
+  "tenant.confirmPayment": "Confirm payment",
+  "tenant.receiptReady": "Receipt ready",
+
+  // ----- Phase notices (S-12/S-13) -------------------------------------------
+  "phase.agentNotice": "Agent tools — listings, onboarding and reports — arrive in Phase {phase}.",
+  "phase.guardNotice": "Visitor log and incident reports arrive in Phase {phase}.",
+  "guard.visitorLog": "Visitor log",
+  "guard.incidents": "Incidents",
+  "guard.visitorLogDesc": "Daily entries",
+  "guard.incidentsDesc": "Report & track",
+
+  // ----- Offline queue (S-06) ------------------------------------------------
+  "offline.queued": "Saved offline — it will send when you're back on.",
+
+  // ----- Common extras -------------------------------------------------------
+  "common.viewAll": "View all",
+  "common.viewReceipt": "View receipt",
+  "common.continue": "Continue",
+  "common.stepOf": "Step {current} of {total}",
+  "common.searchTenantUnit": "Search tenant or unit…",
+  "common.ofUnits": "{occupied} of {total} units",
+  "common.filterAll": "All",
+
+  // ----- Notifications day groups (S-14) --------------------------------------
+  "notifications.today": "Today",
+  "notifications.yesterday": "Yesterday",
+
+  // ----- Receipt extras (S-10) -------------------------------------------------
+  "receipt.linkCopied": "Receipt copied to clipboard",
+
+  // ----- More / settings sheet (S-15) -----------------------------------------
+  "more.theme": "Theme",
+  "more.themeLight": "Light",
+  "more.themeDark": "Dark",
+
+  // ----- Statuses added for lists ----------------------------------------------
+  "status.sent": "Sent",
+  "status.failed": "Failed",
+  "status.reversed": "Reversed",
+
+  // ----- Payment source badges -------------------------------------------------
+  "source.mpesa": "M-Pesa",
+  "source.cash": "Cash",
+  "source.bank": "Bank",
+
+  // ----- Unit types ------------------------------------------------------------
+  "unitType.BEDSITTER": "Bedsitter",
+  "unitType.SINGLE": "Single",
+  "unitType.ONE_BR": "One bedroom",
+  "unitType.TWO_BR": "Two bedroom",
+  "unitType.THREE_BR": "Three bedroom",
+  "unitType.SHOP": "Shop",
+
+  // ----- Property captions -------------------------------------------------------
+  "property.unitsSummary": "{units} units · {occupied} occupied · {vacant} vacant",
+  "property.caretaker": "Caretaker: {name}",
+
+  // ----- PWA -----------------------------------------------------------------------
+  "pwa.installed": "Installed",
+
+  // ----- Extra errors ---------------------------------------------------------------
+  "errors.needOnline": "You need to be online for this",
+
+  // ----- Nav (caretaker collections tab, S-02) ----------------------------------------
+  "nav.collections": "Collections",
+
+  // ----- Empty states ---------------------------------------------------------------
+  "empty.properties": "No properties yet",
+
+  // ----- Caretaker extras (S-05) — expectedToday/collectedToday/recentCollections exist above --
+
+  // ----- Frontend additions (Task 2-b) ------------------------------------------
+  "mpesa.simulateConfirm": "Simulate M-Pesa confirmation (sandbox)",
+  "cash.partialAllowed": "Partial payments are allowed",
+  "cash.overpaymentCredited": "Amounts above the balance become credit",
+  "more.signOutConfirm": "Sign out of NEST?",
+  "more.signOutDescription": "You can sign back in any time with your phone number.",
+  "channel.sms": "SMS",
+  "channel.whatsapp": "WhatsApp",
+  "channel.inApp": "In-app",
+  "cash.receiptFollows": "Receipt follows when you're back online",
+  "arrears.monthsBehindShort": "Months behind",
+  "arrears.bucketTenants": "{count} tenants",
 } as const
 
 /** Every dotted key above, as a literal union. sw.ts must cover all of them. */

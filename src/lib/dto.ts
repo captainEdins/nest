@@ -1,0 +1,235 @@
+/**
+ * NEST — Prisma row → wire DTO mappers (Task 2-a).
+ *
+ * Every route returns EXACTLY the shapes in src/lib/types.ts; these mappers
+ * are the single conversion point, so a DTO change is a one-file change.
+ * The `*Include` constants define the Prisma relations each mapper needs —
+ * routes/overview pass them straight into `include`.
+ *
+ * Conversions worth noting:
+ * - Payment.id is an Int autoincrement in the DB but a string on the wire
+ *   (PaymentDto.id) — receipt numbers are derived from it (NEST-R-######).
+ * - Dates serialize as ISO strings.
+ * - Enum-ish strings (SQLite has no enums) are narrowed with `as` after
+ *   Zod/seed discipline guarantees the value set.
+ * - matchedLabel: the payer's human label — tenant name when matched,
+ *   the payer phone while UNMATCHED.
+ */
+
+import type { Prisma, Profile, Property } from "@prisma/client"
+import type {
+  ChargeDto,
+  ChargeKind,
+  ChargeStatus,
+  NotificationDto,
+  PaymentDto,
+  PaymentSource,
+  PaymentStatus,
+  ProfileDto,
+  PropertyDto,
+  ReceiptDto,
+  Role,
+  UnitDto,
+  UnitStatus,
+  UnitType,
+} from "@/lib/types"
+
+// ---------------------------------------------------------------------------
+// Includes
+// ---------------------------------------------------------------------------
+
+/** Everything PaymentDto + ReceiptDto need (tenancy chain, recorder, allocations). */
+export const paymentInclude = {
+  tenancy: { include: { tenant: true, unit: { include: { property: true } } } },
+  recordedBy: { select: { id: true, fullName: true } },
+  allocations: { include: { charge: true } },
+} satisfies Prisma.PaymentInclude
+
+export type PaymentWithRelations = Prisma.PaymentGetPayload<{ include: typeof paymentInclude }>
+
+/** Everything ChargeDto needs (unit label + tenant name). */
+export const chargeInclude = {
+  tenancy: { include: { unit: true, tenant: true } },
+} satisfies Prisma.RentChargeInclude
+
+export type ChargeWithRelations = Prisma.RentChargeGetPayload<{ include: typeof chargeInclude }>
+
+/** Everything UnitDto needs, incl. the ACTIVE tenancy for occupied units. */
+export const unitInclude = {
+  property: { select: { id: true, name: true } },
+  tenancies: { where: { status: "ACTIVE" }, include: { tenant: true } },
+} satisfies Prisma.UnitInclude
+
+export type UnitWithRelations = Prisma.UnitGetPayload<{ include: typeof unitInclude }>
+
+// ---------------------------------------------------------------------------
+// Mappers
+// ---------------------------------------------------------------------------
+
+export function toProfileDto(profile: Profile): ProfileDto {
+  return {
+    id: profile.id,
+    phone: profile.phone,
+    fullName: profile.fullName,
+    role: profile.role as Role,
+    language: profile.language === "sw" ? "sw" : "en",
+  }
+}
+
+export function toPaymentDto(payment: PaymentWithRelations): PaymentDto {
+  return {
+    id: String(payment.id),
+    receiptNo: payment.receiptNo,
+    amountMinor: payment.amountMinor,
+    source: payment.source as PaymentSource,
+    status: payment.status as PaymentStatus,
+    receivedAt: payment.receivedAt.toISOString(),
+    tenancyId: payment.tenancyId,
+    accountReference: payment.accountReference,
+    phone: payment.phone,
+    matchedLabel: payment.tenancy?.tenant.fullName ?? payment.phone ?? null,
+    recordedByName: payment.recordedBy?.fullName ?? null,
+    allocations: payment.allocations.map((allocation) => ({
+      chargeId: allocation.chargeId,
+      chargeKind: allocation.charge.kind as ChargeKind,
+      chargePeriod: allocation.charge.periodMonth,
+      amountMinor: allocation.amountMinor,
+    })),
+  }
+}
+
+/** Payment → ReceiptDto. Only call for matched payments (receiptNo + tenancy set). */
+export function toReceiptDto(payment: PaymentWithRelations): ReceiptDto {
+  if (!payment.receiptNo || !payment.tenancy) {
+    throw new Error(`toReceiptDto called on payment ${payment.id} without receiptNo/tenancy`)
+  }
+  return {
+    receiptNo: payment.receiptNo,
+    paymentId: String(payment.id),
+    amountMinor: payment.amountMinor,
+    source: payment.source as PaymentSource,
+    receivedAt: payment.receivedAt.toISOString(),
+    tenancyId: payment.tenancyId!,
+    tenantName: payment.tenancy.tenant.fullName,
+    tenantPhone: payment.tenancy.tenant.phone,
+    unitLabel: payment.tenancy.unit.label,
+    propertyName: payment.tenancy.unit.property.name,
+    accountRef: payment.tenancy.accountRef,
+    allocations: payment.allocations.map((allocation) => ({
+      chargeId: allocation.chargeId,
+      chargeKind: allocation.charge.kind as ChargeKind,
+      chargePeriod: allocation.charge.periodMonth,
+      amountMinor: allocation.amountMinor,
+    })),
+  }
+}
+
+export function toChargeDto(charge: ChargeWithRelations): ChargeDto {
+  return {
+    id: charge.id,
+    tenancyId: charge.tenancyId,
+    kind: charge.kind as ChargeKind,
+    periodMonth: charge.periodMonth,
+    dueDate: charge.dueDate.toISOString(),
+    amountMinor: charge.amountMinor,
+    paidMinor: charge.paidMinor,
+    status: charge.status as ChargeStatus,
+    unitLabel: charge.tenancy.unit.label,
+    tenantName: charge.tenancy.tenant.fullName,
+  }
+}
+
+/**
+ * Unit → UnitDto. `balances` maps tenancyId → outstanding balance (KES minor)
+ * so callers can embed tenancy balances without N+1 charge queries. When the
+ * unit is VACANT (no ACTIVE tenancy) `tenancy` is null.
+ */
+export function toUnitDto(
+  unit: UnitWithRelations,
+  balances: Map<string, number>
+): UnitDto {
+  const activeTenancy = unit.tenancies[0] ?? null
+  return {
+    id: unit.id,
+    propertyId: unit.propertyId,
+    propertyName: unit.property.name,
+    label: unit.label,
+    type: unit.type as UnitType,
+    status: unit.status as UnitStatus,
+    rentAmountMinor: unit.rentAmountMinor,
+    depositAmountMinor: unit.depositAmountMinor,
+    tenancy: activeTenancy
+      ? {
+          id: activeTenancy.id,
+          tenantId: activeTenancy.tenantId,
+          tenantName: activeTenancy.tenant.fullName,
+          tenantPhone: activeTenancy.tenant.phone,
+          accountRef: activeTenancy.accountRef,
+          monthlyRentMinor: activeTenancy.monthlyRentMinor,
+          startDate: activeTenancy.startDate.toISOString(),
+          // Outstanding balance (negative = tenant credit from over-payment).
+          balanceMinor: balances.get(activeTenancy.id) ?? 0,
+        }
+      : null,
+  }
+}
+
+export function toPropertyDto(property: Property, unitCount: number, occupiedCount: number): PropertyDto {
+  return {
+    id: property.id,
+    name: property.name,
+    location: property.location,
+    landlordId: property.landlordId,
+    caretakerId: property.caretakerId,
+    unitCount,
+    occupiedCount,
+  }
+}
+
+export function toNotificationDtoRow(n: {
+  id: string
+  channel: string
+  templateKey: string
+  body: string
+  status: string
+  createdAt: Date
+  sentAt: Date | null
+}): NotificationDto {
+  return {
+    id: n.id,
+    channel: n.channel as NotificationDto["channel"],
+    templateKey: n.templateKey,
+    body: n.body,
+    status: n.status as NotificationDto["status"],
+    createdAt: n.createdAt.toISOString(),
+    sentAt: n.sentAt ? n.sentAt.toISOString() : null,
+  }
+}
+
+/** Tenancy picker row (route-local DTO for GET /api/tenancies). */
+export interface TenancyPickerRow {
+  id: string
+  tenantName: string
+  tenantPhone: string
+  unitLabel: string
+  propertyName: string
+  accountRef: string
+  monthlyRentMinor: number
+  balanceMinor: number
+}
+
+export function toTenancyPickerRow(
+  tenancy: Prisma.TenancyGetPayload<{ include: { tenant: true; unit: { include: { property: true } } } }>,
+  balanceMinor: number
+): TenancyPickerRow {
+  return {
+    id: tenancy.id,
+    tenantName: tenancy.tenant.fullName,
+    tenantPhone: tenancy.tenant.phone,
+    unitLabel: tenancy.unit.label,
+    propertyName: tenancy.unit.property.name,
+    accountRef: tenancy.accountRef,
+    monthlyRentMinor: tenancy.monthlyRentMinor,
+    balanceMinor,
+  }
+}
