@@ -378,6 +378,11 @@ export const sw: Record<TranslationKey, string> = {
   "security.highSeverityFlag": "Ripoti {count} za kiwango kubwa hazijaonekana",
   "security.loadError": "Taarifa za usalama hazikuweza kupakiwa",
   "security.todayAt": "Leo, {time}",
+  "security.actionTakenLabel": "Hatua iliyochukuliwa: {action}",
+  "security.noShifts": "Hakuna zamu zilizorekodiwa bado",
+  "security.timeJustNow": "Sasa hivi",
+  "security.timeMinsAgo": "Dakika {count} zilizopita",
+  "security.timeHoursAgo": "Saa {count} zilizopita",
 
   // ----- Mpangaji — wageni chumbani (Phase 3) --------------------------------
   "tenant.visitors.title": "Wageni chumbani mwako",

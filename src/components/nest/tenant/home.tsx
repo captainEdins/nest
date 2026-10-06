@@ -3,10 +3,11 @@
 /**
  * S-08 · Tenant home — ONE call (TenantOverviewDto). Balance hero, Pay now,
  * stats row (deposit cell → deposit ledger), receipts preview, repairs preview
- * (Phase 2), charges accordion, notifications preview.
+ * (Phase 2), visitors to your unit (Phase 3), charges accordion,
+ * notifications preview.
  */
 
-import { Bell, ChevronRight, Receipt, Wrench } from "lucide-react";
+import { Bell, ChevronRight, Receipt, Users, Wrench } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { ChargeDto, ChargeKind } from "@/lib/types";
 import { formatKes } from "@/lib/money";
@@ -15,6 +16,8 @@ import { useSession, useTenantOverview } from "@/hooks/use-overview";
 import { useTickets } from "@/hooks/use-tickets";
 import { useOnline } from "@/components/nest/offline-banner";
 import { formatDate, formatMonthKey, formatTime } from "@/components/nest/shared/format";
+import { AvatarInitials } from "@/components/nest/shared/avatar-initials";
+import { visitorPurposeLabel } from "@/components/nest/shared/security/visitor-row";
 import { SectionHeader } from "@/components/nest/shared/section-header";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
@@ -136,7 +139,7 @@ export function TenantHome() {
           <div className="grid grid-cols-3 gap-3">
             <button
               type="button"
-              onClick={pushDeposit}
+              onClick={() => pushDeposit()}
               aria-label={`${t("money.deposit")}: ${formatKes(tenancy.depositHeldMinor)}`}
               className="rounded-lg border p-3 min-w-0 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition active:scale-[0.99] hover:bg-muted/40"
             >
@@ -219,6 +222,54 @@ export function TenantHome() {
               )}
             </section>
           ) : null}
+
+          {/* Visitors to your unit (Phase 3) — what the guard logged at the gate */}
+          <section aria-label={t("tenant.visitors.title")}>
+            <SectionHeader
+              title={t("tenant.visitors.title")}
+              count={data.recentVisitors.length}
+              className="mb-3"
+            />
+            {data.recentVisitors.length === 0 ? (
+              <EmptyState icon={Users} title={t("tenant.visitors.empty")} />
+            ) : (
+              <Card className="divide-y">
+                {data.recentVisitors.slice(0, 3).map((visitor) => (
+                  <div key={visitor.id} className="p-4 min-h-14 flex items-center gap-3">
+                    <AvatarInitials fullName={visitor.visitorName} size="sm" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-body font-medium truncate">
+                        {t("tenant.visitors.visitorOf", {
+                          name: visitor.visitorName,
+                          purpose: visitorPurposeLabel(visitor.purpose, t),
+                        })}
+                      </p>
+                      <p className="text-caption text-muted-foreground tabular-nums mt-0.5 flex items-center gap-1.5 flex-wrap">
+                        {visitor.exitedAt == null ? (
+                          <>
+                            <span>
+                              {t("tenant.visitors.stillOnSite", { in: formatTime(visitor.enteredAt) })}
+                            </span>
+                            <span
+                              aria-hidden
+                              className="size-1.5 rounded-full bg-success animate-pulse"
+                            />
+                          </>
+                        ) : (
+                          <span>
+                            {t("tenant.visitors.inOut", {
+                              in: formatTime(visitor.enteredAt),
+                              out: formatTime(visitor.exitedAt),
+                            })}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </Card>
+            )}
+          </section>
 
           {/* Charges accordion (latest open) */}
           <section aria-label={t("tenant.chargesBreakdown")}>
