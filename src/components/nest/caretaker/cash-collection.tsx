@@ -94,11 +94,18 @@ export function CashFlowModal() {
   }, [step, closeCashFlow]);
 
   const recordCash = useMutation({
-    mutationFn: (input: { tenancyId: string; amountMinor: number; note?: string; clientRef: string }) =>
-      apiPost<{ payment: PaymentDto; receiptNo: string; replay: boolean }>(
+    mutationFn: (input: { tenancyId: string; amountMinor: number; note?: string; clientRef: string }) => {
+      // The browser already knows it is offline — queue instantly instead of
+      // waiting for the fetch to fail (D-012; silent-dead networks are still
+      // caught by the 30s request timeout in api.ts).
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        return Promise.reject(new ApiError("Network request failed", "NETWORK", 0))
+      }
+      return apiPost<{ payment: PaymentDto; receiptNo: string; replay: boolean }>(
         "/api/payments/cash",
         input,
-      ),
+      )
+    },
     onSuccess: (response, variables) => {
       const tenancy = selected;
       setResult({
