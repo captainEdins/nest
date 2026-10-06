@@ -9,9 +9,11 @@ import {
   Building2,
   DoorOpen,
   Home,
+  Megaphone,
   Receipt,
   Shield,
   ShieldAlert,
+  Users,
   Wrench,
   type LucideIcon,
 } from "lucide-react";
@@ -45,7 +47,11 @@ export const TABS: Record<Role, TabDef[]> = {
     { id: "receipts", labelKey: "nav.receipts", icon: Receipt },
     { id: "notifications", labelKey: "nav.notifications", icon: Bell },
   ],
-  AGENT: [{ id: "home", labelKey: "nav.home", icon: Home }],
+  AGENT: [
+    { id: "home", labelKey: "nav.home", icon: Home },
+    { id: "listings", labelKey: "nav.listings", icon: Megaphone },
+    { id: "applicants", labelKey: "nav.applicants", icon: Users },
+  ],
   GUARD: [
     { id: "home", labelKey: "nav.home", icon: Home },
     { id: "visitors", labelKey: "nav.visitors", icon: BookOpen },

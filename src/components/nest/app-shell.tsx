@@ -42,6 +42,12 @@ import { TenantTickets } from "@/components/nest/tenant/tickets";
 import { TenantReceiptsScreen } from "@/components/nest/tenant/receipts";
 import { TenantNotificationsScreen, NotificationsModal } from "@/components/nest/shared/notifications";
 import { AgentHome } from "@/components/nest/agent/home";
+import { AgentListingsScreen } from "@/components/nest/agent/listings-screen";
+import { AgentApplicantsScreen } from "@/components/nest/agent/applicants-screen";
+import { CreateListingSheet } from "@/components/nest/agent/create-listing-sheet";
+import { RecordApplicantSheet } from "@/components/nest/agent/record-applicant-sheet";
+import { ListingDetailScreen } from "@/components/nest/shared/listing-detail-screen";
+import { ApplicationDetailScreen } from "@/components/nest/shared/application-detail-screen";
 import { GuardHome } from "@/components/nest/guard/home";
 import { GuardVisitors } from "@/components/nest/guard/visitors";
 import { GuardIncidents } from "@/components/nest/guard/incidents";
@@ -115,6 +121,11 @@ function useUnauthorizedHandler() {
         startShiftOpen: false,
         endShiftOpen: false,
         securitySegment: "visitors",
+        createListingOpen: false,
+        recordApplicantOpen: false,
+        recordApplicantListingId: null,
+        listingViewId: null,
+        applicationViewId: null,
       });
       if (hadSession) {
         // Neutral toast outside React — read the persisted language directly.
@@ -161,6 +172,8 @@ function Shell({ session }: { session: SessionDto }) {
   const depositTenancyId = useUIStore((s) => s.depositTenancyId);
   const popScreen = useUIStore((s) => s.popScreen);
   const ticketViewId = useUIStore((s) => s.ticketViewId);
+  const listingViewId = useUIStore((s) => s.listingViewId);
+  const applicationViewId = useUIStore((s) => s.applicationViewId);
   const moreOpen = useUIStore((s) => s.moreOpen);
   const setMoreOpen = useUIStore((s) => s.setMoreOpen);
   const role: Role = session.profile.role;
@@ -249,6 +262,26 @@ function Shell({ session }: { session: SessionDto }) {
               </div>
               <GuardShiftLog />
             </section>
+          ) : pushedScreen === "listing" && listingViewId != null && (role === "AGENT" || role === "LANDLORD") ? (
+            <section aria-label={t("nav.listings")}>
+              <div className="flex items-center gap-2 mb-4">
+                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={popScreen} aria-label={t("common.back")}>
+                  <ArrowLeft aria-hidden />
+                </Button>
+                <h1 className="text-h2 font-semibold">{t("nav.listings")}</h1>
+              </div>
+              <ListingDetailScreen listingId={listingViewId} />
+            </section>
+          ) : pushedScreen === "application" && applicationViewId != null && (role === "AGENT" || role === "LANDLORD") ? (
+            <section aria-label={t("nav.applicants")}>
+              <div className="flex items-center gap-2 mb-4">
+                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={popScreen} aria-label={t("common.back")}>
+                  <ArrowLeft aria-hidden />
+                </Button>
+                <h1 className="text-h2 font-semibold">{t("nav.applicants")}</h1>
+              </div>
+              <ApplicationDetailScreen applicationId={applicationViewId} />
+            </section>
           ) : (
             <TabContent role={role} tab={tab} />
           )}
@@ -278,6 +311,13 @@ function Shell({ session }: { session: SessionDto }) {
           <ReportIncidentSheet />
           <StartShiftSheet />
           <EndShiftSheet />
+        </>
+      ) : null}
+      {/* Phase 4: agent funnel sheets (agent only) */}
+      {role === "AGENT" ? (
+        <>
+          <CreateListingSheet />
+          <RecordApplicantSheet />
         </>
       ) : null}
 
@@ -320,8 +360,11 @@ function TabContent({ role, tab }: { role: Role; tab: string }) {
       if (tab === "repairs") return <TenantTickets />;
       return <TenantHome />;
     }
-    case "AGENT":
+    case "AGENT": {
+      if (tab === "listings") return <AgentListingsScreen />;
+      if (tab === "applicants") return <AgentApplicantsScreen />;
       return <AgentHome />;
+    }
     case "GUARD": {
       if (tab === "visitors") return <GuardVisitors />;
       if (tab === "incidents") return <GuardIncidents />;

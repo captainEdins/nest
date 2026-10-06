@@ -23,8 +23,10 @@ export type TabId =
   | "repairs"
   | "visitors" // Phase 3: guard gate register
   | "incidents" // Phase 3: guard incident queue
-  | "security" // Phase 3: landlord/caretaker security digest (More tab);
-
+  | "security" // Phase 3: landlord/caretaker security digest (More tab)
+  | "listings" // Phase 4: agent listings (the marketing funnel)
+  | "applicants" // Phase 4: agent applicant pipeline
+;
 export type PaymentsFilter = "ALL" | "MPESA" | "CASH" | "UNMATCHED";
 
 /** Receipt detail opened from a payment row (payment = fallback data). */
@@ -37,13 +39,19 @@ interface UIState {
   /** Active bottom-nav / sidebar tab. */
   tab: TabId;
   setTab: (tab: TabId) => void;
-  /** Secondary screen pushed over the tab content (caretaker arrears; Phase 2: ticket + deposit detail; Phase 3: guard shift log). */
-  pushedScreen: "arrears" | "ticket" | "deposit" | "shift" | null;
+  /** Secondary screen pushed over the tab content (caretaker arrears; Phase 2: ticket + deposit detail; Phase 3: guard shift log; Phase 4: listing + application detail). */
+  pushedScreen: "arrears" | "ticket" | "deposit" | "shift" | "listing" | "application" | null;
   /** Tenancy whose deposit the pushed screen shows (caretaker, Phase 3); tenants use /api/deposits/mine. */
   depositTenancyId: string | null;
+  /** Listing whose detail the pushed screen shows (Phase 4, agent + landlord). */
+  listingViewId: string | null;
+  /** Application whose detail the pushed screen shows (Phase 4, agent + landlord). */
+  applicationViewId: string | null;
   pushArrears: () => void;
   pushDeposit: (tenancyId?: string) => void;
   pushShiftLog: () => void;
+  openListing: (id: string) => void;
+  openApplication: (id: string) => void;
   popScreen: () => void;
   /** Payments ledger filter (S-17a); the unmatched alert card presets it. */
   paymentsFilter: PaymentsFilter;
@@ -98,6 +106,14 @@ interface UIState {
   /** Security screen segment (Phase 3), landlord/caretaker. */
   securitySegment: "visitors" | "incidents" | "shifts";
   setSecuritySegment: (segment: "visitors" | "incidents" | "shifts") => void;
+  /** Create-listing sheet (Phase 4), agent. */
+  createListingOpen: boolean;
+  setCreateListingOpen: (open: boolean) => void;
+  /** Record-applicant sheet (Phase 4), agent — optionally anchored to a listing. */
+  recordApplicantOpen: boolean;
+  recordApplicantListingId: string | null;
+  openRecordApplicant: (listingId?: string) => void;
+  closeRecordApplicant: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -105,10 +121,15 @@ export const useUIStore = create<UIState>((set) => ({
   setTab: (tab) => set({ tab, pushedScreen: null }),
   pushedScreen: null,
   depositTenancyId: null,
+  listingViewId: null,
+  applicationViewId: null,
   pushArrears: () => set({ pushedScreen: "arrears" }),
   pushDeposit: (tenancyId) => set({ pushedScreen: "deposit", depositTenancyId: tenancyId ?? null }),
   pushShiftLog: () => set({ pushedScreen: "shift" }),
-  popScreen: () => set({ pushedScreen: null, depositTenancyId: null }),
+  openListing: (id) => set({ pushedScreen: "listing", listingViewId: id }),
+  openApplication: (id) => set({ pushedScreen: "application", applicationViewId: id }),
+  popScreen: () =>
+    set({ pushedScreen: null, depositTenancyId: null, listingViewId: null, applicationViewId: null }),
   paymentsFilter: "ALL",
   setPaymentsFilter: (paymentsFilter) => set({ paymentsFilter }),
   moreOpen: false,
@@ -146,4 +167,12 @@ export const useUIStore = create<UIState>((set) => ({
   setEndShiftOpen: (endShiftOpen) => set({ endShiftOpen }),
   securitySegment: "visitors",
   setSecuritySegment: (securitySegment) => set({ securitySegment }),
+  createListingOpen: false,
+  setCreateListingOpen: (createListingOpen) => set({ createListingOpen }),
+  recordApplicantOpen: false,
+  recordApplicantListingId: null,
+  openRecordApplicant: (listingId) =>
+    set({ recordApplicantOpen: true, recordApplicantListingId: listingId ?? null }),
+  closeRecordApplicant: () =>
+    set({ recordApplicantOpen: false, recordApplicantListingId: null }),
 }));
