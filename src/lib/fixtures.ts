@@ -65,11 +65,13 @@ export interface TenancySummaryDto {
 }
 
 /** M-Pesa STK status polling response. */
+/** Wire contract of GET /api/mpesa/status (mirrors the engine's StkStatus). */
 export interface MpesaStatusDto {
-  checkoutRequestId: string
-  status: "PENDING" | "CONFIRMED" | "FAILED"
+  status: "INITIATED" | "PUSHED" | "SUCCESS" | "FAILED"
+  resultCode: string | null
+  resultDesc: string | null
+  paymentId: string | null
   receiptNo: string | null
-  reason: string | null
 }
 
 // ---------------------------------------------------------------------------
@@ -321,7 +323,10 @@ const NOTIFICATION_OWNER: Record<string, string> = {
 let receiptSeq = 3
 let notifSeq = 4
 let paymentSeq = 4
-const MPESA_TX = new Map<string, { status: MpesaStatusDto["status"]; receiptNo: string | null; reason: string | null }>()
+const MPESA_TX = new Map<
+  string,
+  { status: MpesaStatusDto["status"]; resultCode: string | null; resultDesc: string | null; paymentId: string | null; receiptNo: string | null }
+>()
 const SEEN_CLIENT_REFS = new Set<string>()
 
 function sessionPhone(): string | null {
@@ -542,7 +547,7 @@ function fixtureCash(req: CashCollectionRequest): PaymentDto {
 function fixtureStkPush(body: { tenancyId: string; amountMinor: number; phone?: string }): StkPushResponseDto {
   const t = tenancyOf(body.tenancyId)!
   const checkoutRequestId = `ws_CO_SIM_${Math.random().toString(36).slice(2, 10).toUpperCase()}`
-  MPESA_TX.set(checkoutRequestId, { status: "PENDING", receiptNo: null, reason: null })
+  MPESA_TX.set(checkoutRequestId, { status: "PUSHED", resultCode: null, resultDesc: null, paymentId: null, receiptNo: null })
   return {
     checkoutRequestId,
     merchantRequestId: `${Math.random().toString(36).slice(2, 10).toUpperCase()}-api-0000000`,
@@ -556,10 +561,17 @@ function fixtureStkPush(body: { tenancyId: string; amountMinor: number; phone?: 
 
 function fixtureSimulate(body: { checkoutRequestId: string; outcome: string }): MpesaStatusDto {
   const tx = MPESA_TX.get(body.checkoutRequestId)
-  if (!tx) return { checkoutRequestId: body.checkoutRequestId, status: "FAILED", receiptNo: null, reason: "Unknown request" }
-  if (tx.status === "PENDING" && body.outcome === "SUCCESS") {
-    // Attribute to the most recent PENDING-received money: the flow knows the
-    // tenancy; the simulator stores it at push time via the body tenancyId.
+  if (!tx)
+    return {
+      status: "FAILED",
+      resultCode: "1",
+      resultDesc: "Unknown request",
+      paymentId: null,
+      receiptNo: null,
+    }
+  if (tx.status === "PUSHED" && body.outcome === "SUCCESS") {
+    // Attribute to the most recent pending money: the flow knows the tenancy;
+    // the simulator stores it at push time via the body tenancyId.
     const pushBody = SIM_PUSH_BODIES.get(body.checkoutRequestId)
     if (pushBody) {
       const p = recordCompletedPayment({
@@ -570,15 +582,21 @@ function fixtureSimulate(body: { checkoutRequestId: string; outcome: string }): 
         phone: pushBody.phone ?? null,
         accountReference: tenancyOf(pushBody.tenancyId)!.accountRef,
       })
-      tx.status = "CONFIRMED"
+      tx.status = "SUCCESS"
+      tx.resultCode = "0"
+      tx.resultDesc = "The service request is processed successfully."
+      tx.paymentId = String(p.id)
       tx.receiptNo = p.receiptNo
     } else {
       tx.status = "FAILED"
-      tx.reason = "No pending request"
+      tx.resultCode = "1"
+      tx.resultDesc = "No pending request"
     }
-  } else if (body.outcome === "FAILED" || body.outcome === "CANCELLED") {
+  } else if (body.outcome === "FAILED" || body.outcome === "CANCELLED" || body.outcome === "TIMEOUT" || body.outcome === "INSUFFICIENT") {
     tx.status = "FAILED"
-    tx.reason = "Request cancelled by user"
+    tx.resultCode = body.outcome === "TIMEOUT" ? "1037" : "1032"
+    tx.resultDesc =
+      body.outcome === "TIMEOUT" ? "The service request has timed out" : "Request cancelled by user"
   }
   return fixtureStatus(body.checkoutRequestId)
 }
@@ -588,8 +606,9 @@ const SIM_PUSH_BODIES = new Map<string, { tenancyId: string; amountMinor: number
 
 function fixtureStatus(checkoutRequestId: string): MpesaStatusDto {
   const tx = MPESA_TX.get(checkoutRequestId)
-  if (!tx) return { checkoutRequestId, status: "FAILED", receiptNo: null, reason: "Unknown request" }
-  return { checkoutRequestId, ...tx }
+  if (!tx)
+    return { status: "FAILED", resultCode: "1", resultDesc: "Unknown request", paymentId: null, receiptNo: null }
+  return { ...tx }
 }
 
 function fixtureMatch(body: { paymentId: string; tenancyId: string }): PaymentDto {
