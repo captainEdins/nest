@@ -612,6 +612,7 @@ export const en = {
   "applicant.approved": "Approved",
   "applicant.rejected": "Rejected",
   "applicant.withdrawn": "Withdrawn",
+  "applicant.decided": "Decided",
   "applicant.moveTo": "Move to",
   "applicant.markViewing": "Mark viewing done",
   "applicant.withdraw": "Withdraw",
@@ -655,6 +656,7 @@ export const en = {
   "agent.applicantNameShort": "Name needs at least 2 characters",
   "agent.titleShort": "Title needs at least 5 characters",
   "agent.descShort": "Description needs at least 20 characters",
+  "agent.perMonth": "per month",
 } as const
 
 /** Every dotted key above, as a literal union. sw.ts must cover all of them. */

@@ -613,6 +613,7 @@ export const sw: Record<TranslationKey, string> = {
   "applicant.approved": "Amekubaliwa",
   "applicant.rejected": "Amekataliwa",
   "applicant.withdrawn": "Amelijitoa",
+  "applicant.decided": "Amuliwa",
   "applicant.moveTo": "Badilisha hali",
   "applicant.markViewing": "Weka aliangalia",
   "applicant.withdraw": "Jitoa",
@@ -656,4 +657,5 @@ export const sw: Record<TranslationKey, string> = {
   "agent.applicantNameShort": "Jina linahitaji herufi angalau 2",
   "agent.titleShort": "Kichwa kinahitaji herufi angalau 5",
   "agent.descShort": "Maelezo yanahitaji herufi angalau 20",
+  "agent.perMonth": "kwa mwezi",
 }
