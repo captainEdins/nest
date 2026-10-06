@@ -289,6 +289,10 @@ export const en = {
   "guard.alreadyOnDuty": "You're already on duty",
   "guard.cannotEndShift": "Could not end shift",
   "guard.durationHours": "{hours}h {minutes}m",
+  "guard.durationLabel": "Time on duty",
+  "guard.startShiftAt": "Start shift at {property}",
+  "guard.startingShift": "Starting…",
+  "guard.endingShift": "Ending…",
   "guard.guardsOnDuty": "On duty now",
   "guard.nobodyOnDuty": "No guard on duty right now",
 
@@ -296,6 +300,8 @@ export const en = {
   "guard.visitors.today": "Today",
   "guard.visitors.yesterday": "Yesterday",
   "guard.visitors.logVisitor": "Log visitor",
+  "guard.visitors.logVisitorDesc": "Who came through the gate? Name and purpose are enough.",
+  "guard.visitors.logging": "Logging…",
   "guard.visitors.nameLabel": "Visitor name",
   "guard.visitors.namePlaceholder": "e.g. Mary Wanjala",
   "guard.visitors.phoneLabel": "Phone (optional)",
@@ -327,6 +333,7 @@ export const en = {
 
   // ----- Guard module — incidents (Phase 3) ----------------------------------
   "guard.incidents.report": "Report incident",
+  "guard.incidents.reportDesc": "Report what happened while it's still fresh.",
   "guard.incidents.category": "What happened?",
   "guard.incidents.category.SECURITY": "Security",
   "guard.incidents.category.DAMAGE": "Damage",
@@ -343,6 +350,8 @@ export const en = {
   "guard.incidents.actionTaken": "Action taken (optional)",
   "guard.incidents.actionTakenPlaceholder": "e.g. Called the caretaker, recorded plate KDA 123X.",
   "guard.incidents.filed": "Incident reported — {severityLabel} severity",
+  "guard.incidents.filing": "Filing…",
+  "guard.incidents.notifyHint": "HIGH and CRITICAL reports notify the landlord and caretaker immediately.",
   "guard.incidents.myReports": "My reports",
   "guard.incidents.empty": "No incidents reported — a quiet plot is a good plot.",
   "guard.incidents.seenBy": "Seen by {name}",
@@ -408,6 +417,11 @@ export const en = {
   // ----- Notifications day groups (S-14) --------------------------------------
   "notifications.today": "Today",
   "notifications.yesterday": "Yesterday",
+
+  // ----- Loose time-ago captions (guard module, Phase 3) ----------------------
+  "timeAgo.justNow": "Just now",
+  "timeAgo.minAgo": "{count} min ago",
+  "timeAgo.hourAgo": "{count} h ago",
 
   // ----- Receipt extras (S-10) -------------------------------------------------
   "receipt.linkCopied": "Receipt copied to clipboard",

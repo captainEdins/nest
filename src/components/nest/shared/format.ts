@@ -5,7 +5,10 @@
  * Money comes from src/lib/money.ts (formatKes); dates from date-fns.
  */
 
-import { format, parseISO } from "date-fns";
+import { format, parseISO } from "date-fns"
+import type { TranslationKey } from "@/lib/i18n/en"
+
+type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
 /** +254711000001 → "+254 711 000 001" (display only; stored E.164). */
 export function formatPhone(e164: string): string {
@@ -68,4 +71,23 @@ export function daysSincePeriodDue(period: string, dayOfMonth = 5): number {
   const today = new Date()
   const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate())
   return Math.floor((startOfToday.getTime() - due.getTime()) / 86_400_000)
+}
+
+/**
+ * Loose time-ago caption for lists ("Just now", "5 min ago", "3 h ago");
+ * anything older than 24h falls back to the absolute date. Translations are
+ * the caller's job (timeAgo.* keys) so the helper stays locale-safe.
+ */
+export function timeAgo(iso: string, t: Translate, now: Date = new Date()): string {
+  try {
+    const seconds = Math.max(0, Math.floor((now.getTime() - parseISO(iso).getTime()) / 1000))
+    if (seconds < 60) return t("timeAgo.justNow")
+    const minutes = Math.floor(seconds / 60)
+    if (minutes < 60) return t("timeAgo.minAgo", { count: minutes })
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return t("timeAgo.hourAgo", { count: hours })
+  } catch {
+    /* fall through to the absolute date */
+  }
+  return formatDate(iso)
 }
