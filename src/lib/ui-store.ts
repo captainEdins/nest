@@ -106,6 +106,11 @@ interface UIState {
   /** Security screen segment (Phase 3), landlord/caretaker. */
   securitySegment: "visitors" | "incidents" | "shifts";
   setSecuritySegment: (segment: "visitors" | "incidents" | "shifts") => void;
+  /** Landlord listings screen segment (Phase 4) — Listings | Applicants; the home
+   *  attention card presets "applicants" (the decision queue), like the security
+   *  card presets the incident queue. */
+  listingsSegment: "listings" | "applicants";
+  setListingsSegment: (segment: "listings" | "applicants") => void;
   /** Create-listing sheet (Phase 4), agent. */
   createListingOpen: boolean;
   setCreateListingOpen: (open: boolean) => void;
@@ -167,6 +172,8 @@ export const useUIStore = create<UIState>((set) => ({
   setEndShiftOpen: (endShiftOpen) => set({ endShiftOpen }),
   securitySegment: "visitors",
   setSecuritySegment: (securitySegment) => set({ securitySegment }),
+  listingsSegment: "listings",
+  setListingsSegment: (listingsSegment) => set({ listingsSegment }),
   createListingOpen: false,
   setCreateListingOpen: (createListingOpen) => set({ createListingOpen }),
   recordApplicantOpen: false,

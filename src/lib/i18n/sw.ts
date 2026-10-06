@@ -658,4 +658,10 @@ export const sw: Record<TranslationKey, string> = {
   "agent.titleShort": "Kichwa kinahitaji herufi angalau 5",
   "agent.descShort": "Maelezo yanahitaji herufi angalau 20",
   "agent.perMonth": "kwa mwezi",
+
+  // ----- Landlord approvals (Phase 4, issue #48) — funnel card + listings tab
+  "landlord.awaitingDecision": "Inangoja uamuzi wako",
+  "landlord.funnelNoNew": "Hakuna wagombeaji wapya",
+  "landlord.emptyListings": "Hakuna matangazo bado — wakala wako huanzisha kutoka chumba wazi",
+  "landlord.funnelAllLet": "Matangazo yote yamefungwa — vyumba vimewekwa",
 }
