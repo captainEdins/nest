@@ -13,6 +13,7 @@ import type {
   AgentOverviewDto,
   CaretakerOverviewDto,
   GuardOverviewDto,
+  KraSummaryDto,
   LandlordAnalyticsDto,
   LandlordOverviewDto,
   NotificationDto,
@@ -71,6 +72,20 @@ export function useLandlordAnalytics(): UseQueryResult<LandlordAnalyticsDto> {
   return useQuery({
     queryKey: ["analytics"],
     queryFn: () => apiGet<LandlordAnalyticsDto>("/api/analytics"),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
+}
+
+/**
+ * KRA/MRI tax assistant (Phase 5 wedge B): one payload per TAX YEAR — the
+ * year is part of the query key so switching years refetches instead of
+ * serving the cached year. LANDLORD-only endpoint (landlord shell only).
+ */
+export function useKraSummary(year: number): UseQueryResult<KraSummaryDto> {
+  return useQuery({
+    queryKey: ["kra", year],
+    queryFn: () => apiGet<KraSummaryDto>(`/api/kra/summary?year=${year}`),
     staleTime: 30_000,
     refetchInterval: 60_000,
   });

@@ -10,6 +10,7 @@ import {
   ChartColumn,
   DoorOpen,
   Home,
+  Landmark,
   Megaphone,
   Receipt,
   Shield,
@@ -67,6 +68,9 @@ export const TABS: Record<Role, TabDef[]> = {
  * (the agent runs the listings; the landlord decides on applicants).
  * Landlord "analytics" (Phase 5, issue #57) is the charts dashboard —
  * collection trend, arrears aging, occupancy.
+ * Landlord "kra" (Phase 5, issue #59) is the Tax assistant — the MRI
+ * monthly rent summary, 7.5% estimate and CSV export (record-keeping
+ * assistance, never tax advice).
  */
 export const MORE_TABS: Partial<Record<Role, TabDef[]>> = {
   LANDLORD: [
@@ -74,6 +78,7 @@ export const MORE_TABS: Partial<Record<Role, TabDef[]>> = {
     { id: "listings", labelKey: "nav.listings", icon: Megaphone },
     { id: "security", labelKey: "nav.security", icon: Shield },
     { id: "analytics", labelKey: "nav.analytics", icon: ChartColumn },
+    { id: "kra", labelKey: "nav.taxAssistant", icon: Landmark },
   ],
   CARETAKER: [{ id: "security", labelKey: "nav.security", icon: Shield }],
 };

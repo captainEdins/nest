@@ -27,6 +27,7 @@ export type TabId =
   | "listings" // Phase 4: agent listings (the marketing funnel)
   | "applicants" // Phase 4: agent applicant pipeline
   | "analytics" // Phase 5: landlord analytics dashboard (More tab)
+  | "kra" // Phase 5: landlord KRA/MRI tax assistant (More tab)
 ;
 export type PaymentsFilter = "ALL" | "MPESA" | "CASH" | "UNMATCHED";
 

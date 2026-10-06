@@ -625,6 +625,46 @@ export interface LandlordAnalyticsDto {
 }
 
 // ---------------------------------------------------------------------------
+// KRA/MRI tax assistant (Phase 5 wedge B, issue #59)
+// ---------------------------------------------------------------------------
+
+/**
+ * One calendar month of the tax year (Jan–Dec, always 12 rows in calendar
+ * order, zeros included — CSV parity). Money is integer KES minor units with
+ * the same definitions as the analytics trend: billed = RentCharge.amountMinor
+ * (ACTIVE tenancies in landlord scope, dueDate in the month); collected =
+ * PaymentAllocation.amountMinor through COMPLETED payments received in the
+ * month.
+ */
+export interface KraMonthRowDto {
+  /** 1..12 */
+  month: number
+  /** Short month label, e.g. "Jan". */
+  label: string
+  billedMinor: number
+  collectedMinor: number
+}
+
+/**
+ * GET /api/kra/summary?year=YYYY — LANDLORD only (read-only, no audit rows).
+ * Record-keeping assistance for Kenya's Monthly Rental Income (MRI) regime;
+ * NEVER tax advice (the UI carries a persistent disclaimer).
+ */
+export interface KraSummaryDto {
+  year: number
+  /** Jan–Dec, 12 rows, calendar order, zero months included. */
+  months: KraMonthRowDto[]
+  totals: {
+    billedMinor: number
+    collectedMinor: number
+  }
+  /** 7.5% MRI estimate on collected rent (integer minor units). */
+  mriEstimateMinor: number
+  /** ISO timestamp of the server computation. */
+  generatedAt: string
+}
+
+// ---------------------------------------------------------------------------
 // M-Pesa / payments API payloads
 // ---------------------------------------------------------------------------
 

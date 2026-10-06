@@ -30,6 +30,7 @@ import { FullShellSkeleton } from "@/components/nest/shared/skeletons";
 import { ErrorState } from "@/components/nest/shared/error-state";
 import { LandlordHome } from "@/components/nest/landlord/home";
 import { LandlordAnalyticsScreen } from "@/components/nest/landlord/analytics";
+import { LandlordKraScreen } from "@/components/nest/landlord/kra";
 import { ArrearsScreen } from "@/components/nest/shared/arrears-screen";
 import { PaymentsLedger } from "@/components/nest/landlord/payments-ledger";
 import { PropertiesScreen } from "@/components/nest/landlord/properties";
@@ -353,6 +354,9 @@ function TabContent({ role, tab }: { role: Role; tab: string }) {
       if (tab === "listings") return <LandlordListingsScreen />;
       // Phase 5 (More tab): analytics — collection trend, arrears aging, occupancy.
       if (tab === "analytics") return <LandlordAnalyticsScreen />;
+      // Phase 5 (More tab): KRA/MRI tax assistant — monthly rent summary,
+      // 7.5% estimate, CSV export (record-keeping assistance, not advice).
+      if (tab === "kra") return <LandlordKraScreen />;
       return <LandlordHome />;
     }
     case "CARETAKER": {

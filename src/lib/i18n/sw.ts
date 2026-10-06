@@ -686,4 +686,23 @@ export const sw: Record<TranslationKey, string> = {
   "analytics.vacant": "Tupu",
   "analytics.emptyTitle": "Hakuna uchambuzi bado",
   "analytics.emptyHint": "Ongeza mali na anza kodi — mwelekeo utaonekana hapa.",
+
+  // ----- KRA/MRI tax assistant (Phase 5 wedge B, issue #59) ------------------
+  "nav.taxAssistant": "Msaidizi wa kodi",
+  "kra.title": "Kodi ya mapato ya kila mwezi (MRI)",
+  "kra.generated": "Imesasishwa {date}",
+  "kra.disclaimer": "Hu ni msaada wa kuhifadhi rekodi tu — si ushauri wa kodi. Hakikisha kanuni za sasa za KRA kabla ya kuwasilisha.",
+  "kra.year": "Mwaka",
+  "kra.monthlyTitle": "Muhtasari wa ada ya kila mwezi",
+  "kra.tableCaption": "Ada iliyotolewa na iliyoikusanywa kila mwezi wa {year}.",
+  "kra.month": "Mwezi",
+  "kra.billed": "Imetolewa",
+  "kra.collected": "Imekusanywa",
+  "kra.total": "Jumla",
+  "kra.mriEstimate": "Kadirio la MRI kwa 7.5%",
+  "kra.mriBasis": "Imetumika kwa ada iliyokusanywa ya {collected}",
+  "kra.filingHint": "Ripoti ya KRA inapaswa kuwasilishwa kabla ya tarehe 20 ya mwezi unaofuata.",
+  "kra.downloadCsv": "Pakua CSV",
+  "kra.emptyTitle": "Hakuna rekodi za {year}",
+  "kra.emptyHint": "Hakuna ada iliyotolewa au kukusanywa mwaka huu — jaribu mwaka mwingine.",
 }
