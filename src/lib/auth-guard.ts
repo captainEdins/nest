@@ -221,3 +221,47 @@ export async function paymentScopeWhere(profile: Profile): Promise<Prisma.Paymen
 export function isMoneyRole(profile: Profile): boolean {
   return profile.role === "LANDLORD" || profile.role === "AGENT" || profile.role === "CARETAKER"
 }
+
+// ---------------------------------------------------------------------------
+// Phase 2 — maintenance tickets, deposit ledger, condition reports
+// ---------------------------------------------------------------------------
+
+/**
+ * Prisma `where` for MaintenanceTicket rows visible to `profile` (Phase 2 matrix):
+ * - TENANT: tickets attached to their own tenancies (any status — history stays visible),
+ * - LANDLORD/CARETAKER/AGENT: tickets on their property chain (AGENT read-only),
+ * - GUARD: nothing (deny by default).
+ */
+export function ticketScopeWhere(profile: Profile): Prisma.MaintenanceTicketWhereInput {
+  switch (profile.role) {
+    case "LANDLORD":
+      return { unit: { property: { landlordId: profile.id } } }
+    case "CARETAKER":
+      return { unit: { property: { caretakerId: profile.id } } }
+    case "AGENT":
+      return { unit: { property: { agentId: profile.id } } }
+    case "TENANT":
+      return { tenancy: { tenantId: profile.id } }
+    default: // GUARD and anything unknown — deny by default.
+      return { id: "__never__" }
+  }
+}
+
+/**
+ * Prisma `where` for Tenancy rows whose deposit/condition data `profile` may READ
+ * (Phase 2 matrix). Deposits are money: AGENT and GUARD get nothing. TENANT sees
+ * their own ACTIVE **or** NOTICE tenancy (the deposit matters while it is held,
+ * including through a move-out settlement).
+ */
+export function depositTenancyScopeWhere(profile: Profile): Prisma.TenancyWhereInput {
+  switch (profile.role) {
+    case "LANDLORD":
+      return { unit: { property: { landlordId: profile.id } } }
+    case "CARETAKER":
+      return { unit: { property: { caretakerId: profile.id } } }
+    case "TENANT":
+      return { tenantId: profile.id, status: { in: ["ACTIVE", "NOTICE"] } }
+    default: // AGENT + GUARD — deny by default (deposits are money data).
+      return { id: "__never__" }
+  }
+}

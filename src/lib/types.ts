@@ -151,6 +151,121 @@ export interface NotificationDto {
 }
 
 // ---------------------------------------------------------------------------
+// Maintenance tickets (Phase 2)
+// ---------------------------------------------------------------------------
+
+export const TICKET_PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"] as const
+export type TicketPriority = (typeof TICKET_PRIORITIES)[number]
+
+export const TICKET_STATUSES = ["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"] as const
+export type TicketStatus = (typeof TICKET_STATUSES)[number]
+
+export interface TicketUpdateDto {
+  id: string
+  note: string
+  authorName: string
+  statusFrom: TicketStatus | null
+  statusTo: TicketStatus | null
+  createdAt: string
+}
+
+export interface TicketDto {
+  id: string
+  propertyId: string
+  propertyName: string
+  unitId: string
+  unitLabel: string
+  tenancyId: string | null
+  title: string
+  description: string
+  priority: TicketPriority
+  status: TicketStatus
+  reportedById: string
+  reportedByName: string
+  createdAt: string
+  updatedAt: string
+  resolvedAt: string | null
+  /** Full history, oldest first. */
+  updates: TicketUpdateDto[]
+}
+
+export interface CreateTicketRequest {
+  /** Required for CARETAKER (unit picker); derived from the ACTIVE tenancy for TENANT. */
+  unitId?: string
+  title: string
+  description: string
+  priority?: TicketPriority
+}
+
+export interface AddTicketUpdateRequest {
+  note: string
+  /** Optional status transition — omitted means a pure comment. */
+  statusTo?: TicketStatus
+}
+
+// ---------------------------------------------------------------------------
+// Deposit ledger + condition reports (Phase 2)
+// ---------------------------------------------------------------------------
+
+export const DEPOSIT_MOVEMENT_KINDS = ["HOLD", "DEDUCT", "REFUND", "ADJUST"] as const
+export type DepositMovementKind = (typeof DEPOSIT_MOVEMENT_KINDS)[number]
+
+export const DEPOSIT_STATUSES = ["HELD", "RELEASED"] as const
+export type DepositStatus = (typeof DEPOSIT_STATUSES)[number]
+
+export const CONDITION_REPORT_KINDS = ["MOVE_IN", "MOVE_OUT"] as const
+export type ConditionReportKind = (typeof CONDITION_REPORT_KINDS)[number]
+
+export interface DepositMovementDto {
+  id: string
+  kind: DepositMovementKind
+  amountMinor: number
+  reason: string | null
+  actorName: string | null
+  createdAt: string
+}
+
+export interface ConditionReportDto {
+  id: string
+  tenancyId: string
+  kind: ConditionReportKind
+  notes: string
+  photoUrls: string[]
+  recordedByName: string
+  createdAt: string
+}
+
+export interface DepositDto {
+  id: string
+  tenancyId: string
+  unitLabel: string
+  propertyName: string
+  tenantName: string
+  tenantPhone: string
+  heldMinor: number
+  status: DepositStatus
+  /** Oldest first — the append-only ledger. */
+  movements: DepositMovementDto[]
+  conditionReports: ConditionReportDto[]
+}
+
+export interface DepositSettlementLine {
+  reason: string
+  amountMinor: number
+}
+
+export interface DepositSettleRequest {
+  deductions: DepositSettlementLine[]
+}
+
+export interface CreateConditionReportRequest {
+  tenancyId: string
+  kind: ConditionReportKind
+  notes: string
+  photoUrls?: string[]
+}
+
+// ---------------------------------------------------------------------------
 // Dashboards — one small payload per role home screen (low-end phones)
 // ---------------------------------------------------------------------------
 
@@ -182,6 +297,8 @@ export interface LandlordOverviewDto {
     arrearsMinor: number
     arrearsTenantCount: number
     unmatchedPayments: number
+    /** OPEN + IN_PROGRESS maintenance tickets across owned properties. */
+    openTickets: number
   }
   arrears: ArrearsRowDto[]
   recentPayments: PaymentDto[]
@@ -201,6 +318,8 @@ export interface CaretakerOverviewDto {
     arrearsTenantCount: number
     vacant: number
     unmatchedPayments: number
+    /** OPEN + IN_PROGRESS maintenance tickets on the caretaker's property. */
+    openTickets: number
   }
   arrears: ArrearsRowDto[]
   recentPayments: PaymentDto[]

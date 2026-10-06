@@ -59,6 +59,10 @@ model Profile {
   propertiesAgent     Property[] @relation("PropertyAgent")
   tenancies           Tenancy[]
   paymentsRecorded    Payment[]
+  ticketsReported     MaintenanceTicket[]
+  ticketUpdates       TicketUpdate[]
+  conditionReportsRecorded ConditionReport[]
+  depositMovementsActor    DepositMovement[]
 
   @@index([role])
 }
@@ -81,6 +85,7 @@ model Property {
   caretaker Profile? @relation("PropertyCaretaker", fields: [caretakerId], references: [id])
   agent     Profile? @relation("PropertyAgent", fields: [agentId], references: [id])
   units     Unit[]
+  tickets   MaintenanceTicket[]
 
   @@index([landlordId])
   @@index([caretakerId])
@@ -100,6 +105,7 @@ model Unit {
 
   property  Property   @relation(fields: [propertyId], references: [id])
   tenancies Tenancy[]
+  tickets   MaintenanceTicket[]
 
   @@unique([propertyId, label])
   @@index([propertyId, status])
@@ -125,6 +131,8 @@ model Tenancy {
   payments  Payment[]
   deposit   Deposit?
   mpesaTransactions MpesaTransaction[]
+  tickets   MaintenanceTicket[]
+  conditionReports ConditionReport[]
 
   @@index([tenantId])
   @@index([unitId, status])
@@ -246,7 +254,8 @@ model DepositMovement {
   actorId     String?
   createdAt   DateTime @default(now())
 
-  deposit Deposit @relation(fields: [depositId], references: [id])
+  deposit Deposit  @relation(fields: [depositId], references: [id], onDelete: Cascade)
+  actor   Profile? @relation(fields: [actorId], references: [id])
 
   @@index([depositId, createdAt])
 }
@@ -269,7 +278,11 @@ model MaintenanceTicket {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  updates TicketUpdate[]
+  property   Property           @relation(fields: [propertyId], references: [id])
+  unit       Unit               @relation(fields: [unitId], references: [id])
+  tenancy   Tenancy?           @relation(fields: [tenancyId], references: [id], onDelete: SetNull)
+  reportedBy Profile           @relation(fields: [reportedById], references: [id])
+  updates   TicketUpdate[]
 
   @@index([propertyId, status])
   @@index([unitId])
@@ -284,7 +297,8 @@ model TicketUpdate {
   statusTo   String?
   createdAt  DateTime @default(now())
 
-  ticket MaintenanceTicket @relation(fields: [ticketId], references: [id])
+  ticket MaintenanceTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  author Profile          @relation(fields: [authorId], references: [id])
 
   @@index([ticketId, createdAt])
 }
@@ -298,6 +312,9 @@ model ConditionReport {
   photoUrlsJson String   @default("[]")
   recordedById String
   createdAt    DateTime @default(now())
+
+  tenancy    Tenancy @relation(fields: [tenancyId], references: [id], onDelete: Cascade)
+  recordedBy Profile @relation(fields: [recordedById], references: [id])
 
   @@index([tenancyId, kind])
 }

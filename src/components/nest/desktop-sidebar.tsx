@@ -6,7 +6,7 @@ import * as React from "react";
 import { useI18n } from "@/lib/i18n";
 import type { SessionDto } from "@/lib/types";
 import { useUIStore } from "@/lib/ui-store";
-import { roleLabelKey, TABS } from "@/components/nest/nav";
+import { roleLabelKey, TABS, MORE_TABS } from "@/components/nest/nav";
 import { MoreSheetContent } from "@/components/nest/shared/more-sheet";
 import { AvatarInitials } from "@/components/nest/shared/avatar-initials";
 import { useTenantOverview } from "@/hooks/use-overview";
@@ -19,7 +19,10 @@ export function DesktopSidebar({ session }: { session: SessionDto }) {
   const { t } = useI18n();
   const tab = useUIStore((s) => s.tab);
   const setTab = useUIStore((s) => s.setTab);
-  const tabs = TABS[session.profile.role];
+  const tabs = React.useMemo(
+    () => [...TABS[session.profile.role], ...(MORE_TABS[session.profile.role] ?? [])],
+    [session.profile.role]
+  );
 
   // Unread chip on the tenant's Notifications nav item (cached overview data).
   const { data: tenantOverview } = useTenantOverview();

@@ -690,6 +690,7 @@ function landlordOverview(): LandlordOverviewDto {
       arrearsMinor: t.arrearsMinor,
       arrearsTenantCount: t.arrearsTenantCount,
       unmatchedPayments: t.unmatched,
+      openTickets: 2,
     },
     arrears: arrearsRows(),
     recentPayments: PAYMENTS.filter((p) => p.status === "COMPLETED")
@@ -713,6 +714,7 @@ function caretakerOverview(): CaretakerOverviewDto {
       arrearsTenantCount: t.arrearsTenantCount,
       vacant: t.vacant,
       unmatchedPayments: t.unmatched,
+      openTickets: 2,
     },
     arrears: arrearsRows(),
     recentPayments: PAYMENTS.filter((p) => p.status === "COMPLETED")

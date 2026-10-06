@@ -32,9 +32,13 @@ import { LandlordHome } from "@/components/nest/landlord/home";
 import { ArrearsScreen } from "@/components/nest/shared/arrears-screen";
 import { PaymentsLedger } from "@/components/nest/landlord/payments-ledger";
 import { PropertiesScreen } from "@/components/nest/landlord/properties";
+import { LandlordTickets } from "@/components/nest/landlord/tickets";
+import { SettleDepositModal } from "@/components/nest/landlord/settle-deposit";
 import { CaretakerHome } from "@/components/nest/caretaker/home";
 import { CaretakerUnits } from "@/components/nest/caretaker/units";
+import { CaretakerTickets } from "@/components/nest/caretaker/tickets";
 import { TenantHome } from "@/components/nest/tenant/home";
+import { TenantTickets } from "@/components/nest/tenant/tickets";
 import { TenantReceiptsScreen } from "@/components/nest/tenant/receipts";
 import { TenantNotificationsScreen, NotificationsModal } from "@/components/nest/shared/notifications";
 import { AgentHome } from "@/components/nest/agent/home";
@@ -44,6 +48,9 @@ import { CashFlowModal } from "@/components/nest/caretaker/cash-collection";
 import { StkRequestModal } from "@/components/nest/caretaker/stk-request";
 import { PayFlowModal } from "@/components/nest/tenant/pay-flow";
 import { ReceiptDetailModal } from "@/components/nest/shared/receipt-detail";
+import { TicketDetailScreen } from "@/components/nest/shared/ticket-detail";
+import { ReportIssueSheet } from "@/components/nest/shared/report-issue-sheet";
+import { DepositDetailScreen } from "@/components/nest/shared/deposit-detail";
 import { MoreSheetContent } from "@/components/nest/shared/more-sheet";
 import { Button } from "@/components/ui/button";
 import {
@@ -92,6 +99,9 @@ function useUnauthorizedHandler() {
         cashFlow: { open: false },
         stkRequest: { open: false },
         payFlowOpen: false,
+        ticketViewId: null,
+        reportIssueOpen: false,
+        settleDeposit: { open: false },
       });
       if (hadSession) {
         // Neutral toast outside React — read the persisted language directly.
@@ -136,6 +146,7 @@ function Shell({ session }: { session: SessionDto }) {
   const tab = useUIStore((s) => s.tab);
   const pushedScreen = useUIStore((s) => s.pushedScreen);
   const popScreen = useUIStore((s) => s.popScreen);
+  const ticketViewId = useUIStore((s) => s.ticketViewId);
   const moreOpen = useUIStore((s) => s.moreOpen);
   const setMoreOpen = useUIStore((s) => s.setMoreOpen);
   const role: Role = session.profile.role;
@@ -193,6 +204,26 @@ function Shell({ session }: { session: SessionDto }) {
               </div>
               <CaretakerArrears />
             </section>
+          ) : pushedScreen === "ticket" && ticketViewId != null ? (
+            <section aria-label={t("repairs.title")}>
+              <div className="flex items-center gap-2 mb-4">
+                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={popScreen} aria-label={t("common.back")}>
+                  <ArrowLeft aria-hidden />
+                </Button>
+                <h1 className="text-h2 font-semibold">{t("repairs.title")}</h1>
+              </div>
+              <TicketDetailScreen ticketId={ticketViewId} />
+            </section>
+          ) : pushedScreen === "deposit" && role === "TENANT" ? (
+            <section aria-label={t("deposit.title")}>
+              <div className="flex items-center gap-2 mb-4">
+                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={popScreen} aria-label={t("common.back")}>
+                  <ArrowLeft aria-hidden />
+                </Button>
+                <h1 className="text-h2 font-semibold">{t("deposit.title")}</h1>
+              </div>
+              <DepositDetailScreen />
+            </section>
           ) : (
             <TabContent role={role} tab={tab} />
           )}
@@ -211,6 +242,10 @@ function Shell({ session }: { session: SessionDto }) {
       {role !== "TENANT" ? (
         <NotificationsModal matchTab={role === "LANDLORD" ? "payments" : role === "CARETAKER" ? "collections" : null} />
       ) : null}
+      {/* Phase 2: report-an-issue sheet (tenant + caretaker) */}
+      {role === "TENANT" || role === "CARETAKER" ? <ReportIssueSheet /> : null}
+      {/* Phase 2: deposit settlement (landlord only) */}
+      {role === "LANDLORD" ? <SettleDepositModal /> : null}
 
       {/* Mobile "More" drawer (S-15) */}
       <Drawer open={moreOpen} onOpenChange={setMoreOpen}>
@@ -234,16 +269,19 @@ function TabContent({ role, tab }: { role: Role; tab: string }) {
       if (tab === "arrears") return <LandlordArrears />;
       if (tab === "payments") return <PaymentsLedger variant="landlord" />;
       if (tab === "properties") return <PropertiesScreen />;
+      if (tab === "repairs") return <LandlordTickets />;
       return <LandlordHome />;
     }
     case "CARETAKER": {
       if (tab === "units") return <CaretakerUnits />;
       if (tab === "collections") return <PaymentsLedger variant="caretaker" />;
+      if (tab === "repairs") return <CaretakerTickets />;
       return <CaretakerHome />;
     }
     case "TENANT": {
       if (tab === "receipts") return <TenantReceiptsScreen />;
       if (tab === "notifications") return <TenantNotificationsScreen />;
+      if (tab === "repairs") return <TenantTickets />;
       return <TenantHome />;
     }
     case "AGENT":

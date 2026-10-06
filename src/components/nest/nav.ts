@@ -9,6 +9,7 @@ import {
   DoorOpen,
   Home,
   Receipt,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 import type { TranslationKey } from "@/lib/i18n/en";
@@ -27,20 +28,30 @@ export const TABS: Record<Role, TabDef[]> = {
     { id: "home", labelKey: "nav.home", icon: Home },
     { id: "arrears", labelKey: "nav.arrears", icon: AlertTriangle },
     { id: "payments", labelKey: "nav.payments", icon: Receipt },
-    { id: "properties", labelKey: "nav.properties", icon: Building2 },
+    { id: "repairs", labelKey: "nav.repairs", icon: Wrench },
   ],
   CARETAKER: [
     { id: "home", labelKey: "nav.home", icon: Home },
     { id: "units", labelKey: "nav.units", icon: DoorOpen },
     { id: "collections", labelKey: "nav.collections", icon: Receipt },
+    { id: "repairs", labelKey: "nav.repairs", icon: Wrench },
   ],
   TENANT: [
     { id: "home", labelKey: "nav.home", icon: Home },
+    { id: "repairs", labelKey: "nav.repairs", icon: Wrench },
     { id: "receipts", labelKey: "nav.receipts", icon: Receipt },
     { id: "notifications", labelKey: "nav.notifications", icon: Bell },
   ],
   AGENT: [{ id: "home", labelKey: "nav.home", icon: Home }],
   GUARD: [{ id: "home", labelKey: "nav.home", icon: Home }],
+};
+
+/**
+ * Overflow tabs that lost their bottom-nav slot to a higher-priority Phase 2 tab
+ * (mobile: reached via the More sheet; desktop sidebar appends them after TABS).
+ */
+export const MORE_TABS: Partial<Record<Role, TabDef[]>> = {
+  LANDLORD: [{ id: "properties", labelKey: "nav.properties", icon: Building2 }],
 };
 
 export function roleLabelKey(role: Role): TranslationKey {

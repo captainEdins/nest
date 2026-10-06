@@ -115,6 +115,10 @@ async function main(): Promise<void> {
   const wanjiku = await db.profile.create({
     data: { phone: "+254711000007", fullName: "Wanjiku Kamau", role: "AGENT" },
   })
+  // Kevin — the Phase 2 move-out story: NOTICE tenancy, deposit settlement demo.
+  const kevin = await db.profile.create({
+    data: { phone: "+254711000008", fullName: "Kevin Mutua", role: "TENANT" },
+  })
   void peter // Peter (GUARD) has no Phase 1 data — guard module starts in Phase 3.
 
   // --- 3) Property + units -------------------------------------------------
@@ -131,7 +135,7 @@ async function main(): Promise<void> {
   const unitSeeds = [
     { label: "A1", type: "ONE_BR", rentAmountMinor: 1_500_000, depositAmountMinor: 1_500_000, status: "OCCUPIED" },
     { label: "A2", type: "SHOP", rentAmountMinor: 1_200_000, depositAmountMinor: 1_200_000, status: "OCCUPIED" },
-    { label: "B1", type: "BEDSITTER", rentAmountMinor: 850_000, depositAmountMinor: 850_000, status: "VACANT" },
+    { label: "B1", type: "BEDSITTER", rentAmountMinor: 850_000, depositAmountMinor: 850_000, status: "NOTICE" },
     { label: "B2", type: "BEDSITTER", rentAmountMinor: 850_000, depositAmountMinor: 850_000, status: "OCCUPIED" },
     { label: "B3", type: "TWO_BR", rentAmountMinor: 2_500_000, depositAmountMinor: 2_500_000, status: "VACANT" },
   ]
@@ -160,6 +164,20 @@ async function main(): Promise<void> {
       },
     })
   }
+
+  // Kevin's NOTICE tenancy (Phase 2 move-out story): all settled, ending —
+  // no open charges, deposit still held pending settlement at move-out.
+  const kevinTenancy = await db.tenancy.create({
+    data: {
+      unitId: units["B1"].id,
+      tenantId: kevin.id,
+      startDate: tenancyStart,
+      monthlyRentMinor: 850_000,
+      depositHeldMinor: 850_000,
+      status: "NOTICE",
+      accountRef: "NEST-B1-1004",
+    },
+  })
 
   // --- 5) Charges: previous + current month, per tenancy -------------------
   // key: `${accountRef}:${kind}:${periodMonth}` -> row
@@ -283,6 +301,194 @@ async function main(): Promise<void> {
     })
   }
 
+  // Kevin's deposit (HELD — settlement flow demo, Phase 2).
+  const kevinDeposit = await db.deposit.create({
+    data: { tenancyId: kevinTenancy.id, heldMinor: 850_000, status: "HELD", createdAt: tenancyStart },
+  })
+  await db.depositMovement.create({
+    data: {
+      depositId: kevinDeposit.id,
+      kind: "HOLD",
+      amountMinor: 850_000,
+      reason: "Security deposit collected at tenancy start",
+      actorId: amina.id,
+      createdAt: tenancyStart,
+    },
+  })
+
+  // --- 8b) Condition reports (Phase 2) --------------------------------------
+  const conditionReportSeeds = [
+    {
+      tenancyId: tenancies["NEST-A1-1001"].id,
+      kind: "MOVE_IN" as const,
+      notes:
+        "Unit inspected with tenant present. Walls clean, windows intact, plumbing working, meter reading 04123.",
+      recordedById: amina.id,
+      createdAt: tenancyStart,
+    },
+    {
+      tenancyId: tenancies["NEST-A2-1002"].id,
+      kind: "MOVE_IN" as const,
+      notes: "Shop inspected with tenant. Floor tiled, door lock new, water connection verified.",
+      recordedById: amina.id,
+      createdAt: tenancyStart,
+    },
+    {
+      tenancyId: tenancies["NEST-B2-1003"].id,
+      kind: "MOVE_IN" as const,
+      notes: "Bedsitter inspected. Paint fresh, shower drains well, sink sealed.",
+      recordedById: mwangi.id,
+      createdAt: tenancyStart,
+    },
+    {
+      tenancyId: kevinTenancy.id,
+      kind: "MOVE_IN" as const,
+      notes: "Bedsitter inspected with tenant. All fixtures working, walls newly painted, no damage noted.",
+      recordedById: amina.id,
+      createdAt: tenancyStart,
+    },
+    {
+      tenancyId: kevinTenancy.id,
+      kind: "MOVE_OUT" as const,
+      notes:
+        "Move-out inspection with tenant present. One wall panel damaged (burn mark), window latch loose. Rest of unit in good condition.",
+      recordedById: mwangi.id,
+      createdAt: daysAgo(3),
+    },
+  ]
+  for (const report of conditionReportSeeds) {
+    await db.conditionReport.create({ data: { ...report, photoUrlsJson: "[]" } })
+  }
+
+  // --- 8c) Maintenance tickets (Phase 2) -------------------------------------
+  // Grace — OPEN (reported yesterday).
+  const graceTicket = await db.maintenanceTicket.create({
+    data: {
+      propertyId: property.id,
+      unitId: units["B2"].id,
+      tenancyId: tenancies["NEST-B2-1003"].id,
+      title: "Leaking kitchen sink",
+      description:
+        "The sink drain leaks onto the floor whenever I wash dishes. Started three days ago and is getting worse.",
+      priority: "NORMAL",
+      status: "OPEN",
+      reportedById: grace.id,
+      createdAt: daysAgo(1),
+    },
+  })
+
+  // David — IN_PROGRESS (started 2 days ago).
+  const davidTicket = await db.maintenanceTicket.create({
+    data: {
+      propertyId: property.id,
+      unitId: units["A1"].id,
+      tenancyId: tenancies["NEST-A1-1001"].id,
+      title: "Broken window latch",
+      description: "The bedroom window latch is broken so the window won't lock at night.",
+      priority: "HIGH",
+      status: "IN_PROGRESS",
+      reportedById: david.id,
+      createdAt: daysAgo(4),
+      updatedAt: daysAgo(2),
+    },
+  })
+  await db.ticketUpdate.create({
+    data: {
+      ticketId: davidTicket.id,
+      authorId: mwangi.id,
+      note: "Carpenter scheduled for tomorrow morning.",
+      statusFrom: "OPEN",
+      statusTo: "IN_PROGRESS",
+      createdAt: daysAgo(2),
+    },
+  })
+
+  // Sarah — RESOLVED (awaiting landlord review).
+  const sarahTicket = await db.maintenanceTicket.create({
+    data: {
+      propertyId: property.id,
+      unitId: units["A2"].id,
+      tenancyId: tenancies["NEST-A2-1002"].id,
+      title: "Shop door lock sticking",
+      description: "The main shop door lock sticks — needs two hands to turn the key every morning.",
+      priority: "NORMAL",
+      status: "RESOLVED",
+      reportedById: sarah.id,
+      createdAt: daysAgo(10),
+      updatedAt: daysAgo(8),
+      resolvedAt: daysAgo(8),
+    },
+  })
+  await db.ticketUpdate.create({
+    data: {
+      ticketId: sarahTicket.id,
+      authorId: mwangi.id,
+      note: "Looking at it today.",
+      statusFrom: "OPEN",
+      statusTo: "IN_PROGRESS",
+      createdAt: daysAgo(9),
+    },
+  })
+  await db.ticketUpdate.create({
+    data: {
+      ticketId: sarahTicket.id,
+      authorId: mwangi.id,
+      note: "Lock oiled and realigned — turning smoothly now.",
+      statusFrom: "IN_PROGRESS",
+      statusTo: "RESOLVED",
+      createdAt: daysAgo(8),
+    },
+  })
+
+  // Kevin — CLOSED (the full lifecycle, matched to the move-out story).
+  const kevinTicket = await db.maintenanceTicket.create({
+    data: {
+      propertyId: property.id,
+      unitId: units["B1"].id,
+      tenancyId: kevinTenancy.id,
+      title: "Wall repaint before move-out",
+      description: "Repaint needed on the wall I damaged — agreed to deduct the cost from my deposit.",
+      priority: "NORMAL",
+      status: "CLOSED",
+      reportedById: kevin.id,
+      createdAt: daysAgo(12),
+      updatedAt: daysAgo(5),
+      resolvedAt: daysAgo(6),
+    },
+  })
+  await db.ticketUpdate.create({
+    data: {
+      ticketId: kevinTicket.id,
+      authorId: mwangi.id,
+      note: "Painter quoted the job.",
+      statusFrom: "OPEN",
+      statusTo: "IN_PROGRESS",
+      createdAt: daysAgo(11),
+    },
+  })
+  await db.ticketUpdate.create({
+    data: {
+      ticketId: kevinTicket.id,
+      authorId: mwangi.id,
+      note: "Repaint done — wall restored.",
+      statusFrom: "IN_PROGRESS",
+      statusTo: "RESOLVED",
+      createdAt: daysAgo(6),
+    },
+  })
+  await db.ticketUpdate.create({
+    data: {
+      ticketId: kevinTicket.id,
+      authorId: amina.id,
+      note: "Reviewed and closed — deduction will be recorded against the deposit at move-out.",
+      statusFrom: "RESOLVED",
+      statusTo: "CLOSED",
+      createdAt: daysAgo(5),
+    },
+  })
+
+  void graceTicket // referenced by the notification + audit seeds below
+
   // --- 9) Notifications ----------------------------------------------------
   // Grace's outstanding after her payment (previous month still owed).
   const graceCharges = await db.rentCharge.findMany({ where: { tenancyId: tenancies["NEST-B2-1003"].id } })
@@ -335,6 +541,43 @@ async function main(): Promise<void> {
     },
   })
 
+  // Phase 2 ticket notifications: caretaker + landlord hear about a new tenant
+  // report; the reporter hears about progress on theirs.
+  await db.notification.create({
+    data: {
+      profileId: mwangi.id,
+      channel: "IN_APP",
+      templateKey: "TICKET_CREATED",
+      body:
+        `NEST: Grace Wanjiku reported a repair in unit B2 (Baraka Court): "Leaking kitchen sink" (Normal priority).`,
+      status: "QUEUED",
+      createdAt: daysAgo(1),
+    },
+  })
+  await db.notification.create({
+    data: {
+      profileId: amina.id,
+      channel: "IN_APP",
+      templateKey: "TICKET_CREATED",
+      body:
+        `NEST: Grace Wanjiku reported a repair in unit B2 (Baraka Court): "Leaking kitchen sink" (Normal priority).`,
+      status: "QUEUED",
+      createdAt: daysAgo(1),
+    },
+  })
+  await db.notification.create({
+    data: {
+      profileId: david.id,
+      channel: "IN_APP",
+      templateKey: "TICKET_UPDATED",
+      body:
+        `NEST: Your repair "Broken window latch" (unit A1) is now In progress. John Mwangi: "Carpenter scheduled for tomorrow morning."`,
+      status: "SENT",
+      createdAt: daysAgo(2),
+      sentAt: daysAgo(2),
+    },
+  })
+
   // --- 10) Audit log: one MPESA_CALLBACK entry per completed payment -------
   const auditSeeds = [
     { payment: gracePayment, checkoutRequestId: "ws_CO_SEED_0001" },
@@ -360,6 +603,34 @@ async function main(): Promise<void> {
     })
   }
 
+  // --- 10b) Audit log: Phase 2 ticket lifecycle evidence --------------------
+  const ticketAuditSeeds = [
+    { ticket: graceTicket, actorId: grace.id, action: "TICKET_CREATED", at: daysAgo(1) },
+    { ticket: davidTicket, actorId: david.id, action: "TICKET_CREATED", at: daysAgo(4) },
+    { ticket: davidTicket, actorId: mwangi.id, action: "TICKET_UPDATED", at: daysAgo(2) },
+    { ticket: sarahTicket, actorId: sarah.id, action: "TICKET_CREATED", at: daysAgo(10) },
+    { ticket: sarahTicket, actorId: mwangi.id, action: "TICKET_UPDATED", at: daysAgo(8) },
+    { ticket: kevinTicket, actorId: kevin.id, action: "TICKET_CREATED", at: daysAgo(12) },
+    { ticket: kevinTicket, actorId: amina.id, action: "TICKET_UPDATED", at: daysAgo(5) },
+  ]
+  for (const a of ticketAuditSeeds) {
+    await db.auditLog.create({
+      data: {
+        actorId: a.actorId,
+        action: a.action,
+        entity: "MaintenanceTicket",
+        entityId: a.ticket.id,
+        detailJson: JSON.stringify({
+          title: a.ticket.title,
+          status: a.ticket.status,
+          unitId: a.ticket.unitId,
+          priority: a.ticket.priority,
+        }),
+        createdAt: a.at,
+      },
+    })
+  }
+
   // --- 11) Summary (evidence) ----------------------------------------------
   const counts = {
     profiles: await db.profile.count(),
@@ -371,6 +642,9 @@ async function main(): Promise<void> {
     allocations: await db.paymentAllocation.count(),
     deposits: await db.deposit.count(),
     depositMovements: await db.depositMovement.count(),
+    tickets: await db.maintenanceTicket.count(),
+    ticketUpdates: await db.ticketUpdate.count(),
+    conditionReports: await db.conditionReport.count(),
     notifications: await db.notification.count(),
     auditLogs: await db.auditLog.count(),
   }
