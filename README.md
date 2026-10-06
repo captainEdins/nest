@@ -29,7 +29,7 @@ One plot. Five roles. One record of truth.
 
 **The honest risks.** A Kenyan fintech ("nesti") already operates in rent payments — brand clearance is tracked as a blocking issue; "NEST" is a codename until cleared. Incumbents ship broad suites; NEST wins by being field-first (offline, low-end Android, Kiswahili) and by making the caretaker the hero.
 
-### What is shipped in this repo (Phase 0 + 1)
+### What is shipped in this repo (Phase 0 → 5)
 
 | Capability | Status |
 |---|---|
@@ -40,8 +40,16 @@ One plot. Five roles. One record of truth.
 | Instant receipts + shareable record; cash collections in ≤3 taps | ✅ shipped |
 | Arrears with aging; occupancy & collection-rate KPIs | ✅ shipped |
 | Append-only money ledger (integer KES minor units) + audit log on every financial action | ✅ shipped |
-| English & Kiswahili, light/dark, PWA install, offline-tolerant collections | ✅ shipped |
-| Maintenance, condition reports, deposit ledger, guard module, agent module, wallet/payouts, KRA exports, rent score | 🗺 Phases 2–4 (see [roadmap](#-roadmap)) |
+| **Maintenance tickets** — tenant reporting → caretaker queue → landlord view → resolution timeline | ✅ shipped |
+| **Move-in condition reports** with per-room condition grading | ✅ shipped |
+| **Deposit ledger** — append-only movements, landlord settlement flow, tenant deposit detail | ✅ shipped |
+| **Guard module** — visitor gate register, incident reporting with acknowledgement, shift lifecycle | ✅ shipped |
+| **Agent funnel** — listings → applicants → landlord approve/reject, append-only event timelines | ✅ shipped |
+| **PWA** — installable, service worker (production registration), offline-tolerant collections | ✅ shipped |
+| **Landlord analytics** — 6-month collection trend, arrears-by-age buckets, occupancy donuts (hand-rolled SVG, zero deps) | ✅ shipped |
+| **KRA/MRI tax assistant** — monthly rent summary, 7.5% MRI estimate, CSV export (record-keeping only, never tax advice) | ✅ shipped |
+| English & Kiswahili, light/dark | ✅ shipped |
+| Rent score API, financing & insurance partners, load/security hardening | 🗺 Phase 5+ tail (see [roadmap](#-roadmap)) |
 
 ### Business-model hooks (Phase 4+, by design)
 
@@ -105,12 +113,12 @@ bun run dev                 # http://localhost:3000
 
 | Role | Phone | What to try |
 |---|---|---|
-| 👑 Landlord — Amina Barasa | +254711000001 | KPIs, arrears aging, match the unmatched payment |
-| 🧰 Caretaker — John Mwangi | +254711000002 | Record a cash collection in 3 taps, request M-Pesa |
-| 🏠 Tenant — Grace Wanjiku | +254711000003 | Pay rent via M-Pesa (sandbox sim), get instant receipt |
+| 👑 Landlord — Amina Barasa | +254711000001 | KPIs, arrears aging, match the unmatched payment, **Analytics charts, Tax assistant + CSV** |
+| 🧰 Caretaker — John Mwangi | +254711000002 | Record a cash collection in 3 taps, request M-Pesa, repairs queue |
+| 🏠 Tenant — Grace Wanjiku | +254711000003 | Pay rent via M-Pesa (sandbox sim), get instant receipt, report a repair |
 | 🏠 Tenant — David Otieno | +254711000004 | See arrears balance + reminder |
-| 🔒 Guard — Peter Njoroge | +254711000006 | Phase-3 preview state |
-| 🤝 Agent — Wanjiku Kamau | +254711000007 | Portfolio view |
+| 🔒 Guard — Peter Njoroge | +254711000006 | Log a visitor, report an incident, start/end shift |
+| 🤝 Agent — Wanjiku Kamau | +254711000007 | Publish a listing, record applicants, run the pipeline |
 
 > M-Pesa runs in `MPESA_MODE=sim` — a full Daraja-shaped sandbox (real STK callback JSON, real idempotency path) with the network call stubbed and clearly labelled. Set Daraja keys + `MPESA_MODE=live` to hit the real sandbox.
 
@@ -133,11 +141,12 @@ DECISIONS.md        every assumption, trade-off and rejected alternative
 | Phase | Scope | Status |
 |---|---|---|
 | 0 | Foundations: repo, contracts, design system, schema, CI | ✅ |
-| 1 | **The wedge**: auth+roles, M-Pesa collection, reconciliation, receipts, arrears, dashboards | ✅ (this repo) |
-| 2 | Maintenance tickets, condition reports with photos, deposit ledger, KRA/MRI assistant | ⏳ awaiting gate approval |
-| 3 | Guard module (visitors, incidents, shifts), caretaker fraud detection, offline hardening | planned |
-| 4 | Agent module, screening, **rent score API**, financing & insurance partners, analytics | planned |
-| 5 | Hardening, load, full security & a11y passes, pilot readiness | planned |
+| 1 | **The wedge**: auth+roles, M-Pesa collection, reconciliation, receipts, arrears, dashboards | ✅ |
+| 2 | Maintenance tickets, condition reports with photos, deposit ledger, KRA/MRI assistant | ✅ |
+| 3 | Guard module (visitors, incidents, shifts), caretaker fraud detection (unmatched-payment review), offline hardening | ✅ |
+| 4 | Agent module, listings funnel, landlord approvals, PWA service worker | ✅ |
+| 5-wedge | Landlord analytics (trend/aging/occupancy), KRA/MRI assistant + CSV export, a11y polish | ✅ v0.5.0 (this repo) |
+| 5-tail | **Rent score API**, financing & insurance partners, load/security/a11y hardening, pilot readiness | planned |
 
 ## 📚 Documentation
 
@@ -145,7 +154,7 @@ DECISIONS.md        every assumption, trade-off and rejected alternative
 - [docs/adr/](docs/adr/) — architecture decision records
 - [docs/architecture/](docs/architecture/) — data model, reconciliation flow, role-permission matrix
 - [docs/design/](docs/design/) — design system and screen specifications
-- [docs/guides/](docs/guides/) — user guides in English and Kiswahili
+- [docs/user-guide-en.md](docs/user-guide-en.md) · [docs/user-guide-sw.md](docs/user-guide-sw.md) — user guides in English and Kiswahili
 - [docs/qa/](docs/qa/) — phase test reports with evidence
 - [CONTRIBUTING.md](CONTRIBUTING.md) — the engineering operating model
 - [SECURITY.md](SECURITY.md) — reporting and security practices
