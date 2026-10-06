@@ -4,14 +4,18 @@
  * S-11 · Arrears (landlord tab / caretaker pushed screen).
  * Aging buckets derived client-side from oldestUnpaidPeriod (days overdue vs
  * the 5th). Mobile: grouped cards; ≥sm: table. Red never — amber only.
+ * Phase 6-b: each row carries the tenant's rent-score chip (one
+ * /api/rent-score/list call, staff scope) — "who usually pays" as data.
  */
 
 import { CheckCircle2 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { ArrearsRowDto } from "@/lib/types";
 import { formatKes } from "@/lib/money";
+import { useRentScoreList } from "@/hooks/use-overview";
 import { daysSincePeriodDue } from "./format";
 import { ArrearsRow, SendReminderButton } from "./arrears-row";
+import { RentScoreChip } from "./rent-score-chip";
 import { EmptyState } from "./empty-state";
 import { ErrorState } from "./error-state";
 import { Card } from "@/components/ui/card";
@@ -61,6 +65,8 @@ export function ArrearsScreen({
   onRetry: () => void;
 }) {
   const { t } = useI18n();
+  const { data: scoreList } = useRentScoreList(true);
+  const scoreByTenancy = new Map((scoreList ?? []).map((row) => [row.tenancyId, row]));
 
   if (error) {
     return (
@@ -141,9 +147,17 @@ export function ArrearsScreen({
                     {t(BUCKET_KEY[bucket])} ({bucketRows.length})
                   </h2>
                   <Card className="divide-y">
-                    {bucketRows.map((row) => (
-                      <ArrearsRow key={row.tenancyId} row={row} />
-                    ))}
+                    {bucketRows.map((row) => {
+                      const score = scoreByTenancy.get(row.tenancyId);
+                      return (
+                        <ArrearsRow
+                          key={row.tenancyId}
+                          row={row}
+                          score={score?.score}
+                          band={score?.band}
+                        />
+                      );
+                    })}
                   </Card>
                 </div>
               );
@@ -158,29 +172,36 @@ export function ArrearsScreen({
                   <TableHead>{t("receipt.forUnit")}</TableHead>
                   <TableHead>{t("receipt.property")}</TableHead>
                   <TableHead>{t("arrears.monthsBehindShort")}</TableHead>
+                  <TableHead>{t("score.title")}</TableHead>
                   <TableHead className="text-right">{t("money.balance")}</TableHead>
                   <TableHead className="text-right">{t("arrears.sendReminder")}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sorted.map((row) => (
-                  <TableRow key={row.tenancyId}>
-                    <TableCell className="font-medium">{row.tenantName}</TableCell>
-                    <TableCell>{row.unitLabel}</TableCell>
-                    <TableCell className="text-muted-foreground">{row.propertyName}</TableCell>
-                    <TableCell>
-                      {row.monthsBehind <= 1
-                        ? t("arrears.monthBehind")
-                        : t("arrears.monthsBehind", { count: row.monthsBehind })}
-                    </TableCell>
-                    <TableCell className="text-right text-attention font-semibold tabular-nums">
-                      {formatKes(row.balanceMinor)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <SendReminderButton row={row} />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {sorted.map((row) => {
+                  const score = scoreByTenancy.get(row.tenancyId);
+                  return (
+                    <TableRow key={row.tenancyId}>
+                      <TableCell className="font-medium">{row.tenantName}</TableCell>
+                      <TableCell>{row.unitLabel}</TableCell>
+                      <TableCell className="text-muted-foreground">{row.propertyName}</TableCell>
+                      <TableCell>
+                        {row.monthsBehind <= 1
+                          ? t("arrears.monthBehind")
+                          : t("arrears.monthsBehind", { count: row.monthsBehind })}
+                      </TableCell>
+                      <TableCell>
+                        {score ? <RentScoreChip score={score.score} band={score.band} /> : "—"}
+                      </TableCell>
+                      <TableCell className="text-right text-attention font-semibold tabular-nums">
+                        {formatKes(row.balanceMinor)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <SendReminderButton row={row} />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </Card>

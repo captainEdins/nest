@@ -3,6 +3,8 @@
 /**
  * Arrears row (S-03 / S-11): tenant, unit·property, months behind, amber
  * balance, one-tap Send reminder (60s cooldown to prevent spam).
+ * Phase 6-b: optional rent-score chip — the same engine output the tenant's
+ * own card shows, so "who usually pays" is data, not gossip.
  */
 
 import * as React from "react";
@@ -10,9 +12,10 @@ import { toast } from "sonner";
 import { Loader2, TriangleAlert } from "lucide-react";
 import { apiPost, ApiError } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
-import type { ArrearsRowDto } from "@/lib/types";
+import type { ArrearsRowDto, RentScoreBand } from "@/lib/types";
 import { formatKes } from "@/lib/money";
 import { useOnline } from "@/components/nest/offline-banner";
+import { RentScoreChip } from "@/components/nest/shared/rent-score-chip";
 import { Button } from "@/components/ui/button";
 
 /** Send reminder with 60s cooldown — shared by card rows and table rows. */
@@ -60,7 +63,15 @@ export function SendReminderButton({ row, compact = false }: { row: ArrearsRowDt
   );
 }
 
-export function ArrearsRow({ row }: { row: ArrearsRowDto }) {
+export function ArrearsRow({
+  row,
+  score,
+  band,
+}: {
+  row: ArrearsRowDto;
+  score?: number;
+  band?: RentScoreBand;
+}) {
   const { t } = useI18n();
   const monthsLabel =
     row.monthsBehind <= 1
@@ -71,8 +82,9 @@ export function ArrearsRow({ row }: { row: ArrearsRowDto }) {
     <div className="p-4 min-h-14">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <p className="text-body font-medium truncate" title={row.tenantName}>
-            {row.tenantName}
+          <p className="text-body font-medium truncate flex items-center gap-2" title={row.tenantName}>
+            <span className="truncate">{row.tenantName}</span>
+            {score != null && band != null ? <RentScoreChip score={score} band={band} /> : null}
           </p>
           <p className="text-caption text-muted-foreground truncate">
             {row.unitLabel} · {row.propertyName} · {monthsLabel}

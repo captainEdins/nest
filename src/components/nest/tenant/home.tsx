@@ -12,8 +12,9 @@ import { useI18n } from "@/lib/i18n";
 import type { ChargeDto, ChargeKind } from "@/lib/types";
 import { formatKes } from "@/lib/money";
 import { useUIStore } from "@/lib/ui-store";
-import { useSession, useTenantOverview } from "@/hooks/use-overview";
+import { useSession, useTenantOverview, useRentScore } from "@/hooks/use-overview";
 import { useTickets } from "@/hooks/use-tickets";
+import { RentScoreCard } from "@/components/nest/tenant/rent-score-card";
 import { useOnline } from "@/components/nest/offline-banner";
 import { formatDate, formatMonthKey, formatTime } from "@/components/nest/shared/format";
 import { AvatarInitials } from "@/components/nest/shared/avatar-initials";
@@ -51,6 +52,7 @@ export function TenantHome() {
   const { data: session } = useSession();
   const { data, isPending, error, refetch } = useTenantOverview();
   const { data: tickets, isPending: ticketsPending, error: ticketsError } = useTickets();
+  const { data: rentScore, isPending: rentScorePending } = useRentScore(true);
 
   if (error != null) {
     return (
@@ -134,6 +136,9 @@ export function TenantHome() {
               {t("tenant.yourReceipts")}
             </Button>
           )}
+
+          {/* Rent Score (Phase 6-b) — the portable record, earning its card */}
+          <RentScoreCard data={rentScore} isPending={rentScorePending} />
 
           {/* Stats row — the deposit cell opens the deposit ledger (Phase 2) */}
           <div className="grid grid-cols-3 gap-3">
@@ -271,9 +276,15 @@ export function TenantHome() {
             )}
           </section>
 
-          {/* Charges accordion (latest open) */}
+          {/* Charges accordion (latest open) — the statement deep-link sits in
+              the header action so the two money views stay one tap apart. */}
           <section aria-label={t("tenant.chargesBreakdown")}>
-            <SectionHeader title={t("tenant.chargesBreakdown")} className="mb-3" />
+            <SectionHeader
+              title={t("tenant.chargesBreakdown")}
+              actionLabel={t("statement.viewStatement")}
+              onAction={() => setTab("statement")}
+              className="mb-3"
+            />
             <Card>
               <CardContent className="p-0">
                 <Accordion type="single" collapsible defaultValue={periods[0]}>
