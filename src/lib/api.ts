@@ -98,7 +98,17 @@ async function parseErrorBody(res: Response): Promise<ApiErrorShape | null> {
   }
 }
 
-async function request<T>(method: "GET" | "POST", path: string, body?: unknown): Promise<T> {
+interface RequestOptions {
+  /** The session probe itself must not fire the global 401 handler. */
+  sessionProbe?: boolean
+}
+
+async function request<T>(
+  method: "GET" | "POST",
+  path: string,
+  body?: unknown,
+  opts: RequestOptions = {},
+): Promise<T> {
   let res: Response
   try {
     res = await fetch(path, {
@@ -130,7 +140,7 @@ async function request<T>(method: "GET" | "POST", path: string, body?: unknown):
       if (fx) return respondOrThrow<T>(fx)
     }
   }
-  if (res.status === 401) {
+  if (res.status === 401 && !opts.sessionProbe) {
     unauthorizedHandler?.()
   }
   throw new ApiError(
@@ -166,11 +176,14 @@ export function apiPost<T>(path: string, body?: unknown): Promise<T> {
 
 /**
  * Session fetch for the auth gate: 401 → null (signed out) instead of a throw,
- * so "no session" is a normal state, not an error.
+ * so "no session" is a normal state, not an error. The global unauthorized
+ * handler is intentionally NOT fired for this probe — it is the probe itself.
  */
 export async function apiGetSession(): Promise<SessionDto | null> {
   try {
-    return await request<SessionDto>("GET", "/api/auth/me")
+    return await request<SessionDto>("GET", "/api/auth/me", undefined, {
+      sessionProbe: true,
+    })
   } catch (e) {
     if (e instanceof ApiError && e.isUnauthorized) return null
     throw e

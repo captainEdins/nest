@@ -69,16 +69,19 @@ function useUnauthorizedHandler() {
   const queryClient = useQueryClient();
   React.useEffect(() => {
     setUnauthorizedHandler(() => {
-      // Neutral toast outside React — read the persisted language directly.
-      let lang: "en" | "sw" = "en";
-      try {
-        if (window.localStorage.getItem("nest-lang") === "sw") lang = "sw";
-      } catch {
-        /* storage unavailable */
-      }
-      toast(lang === "sw" ? swDict["errors.sessionExpired"] : enDict["errors.sessionExpired"]);
+      // Only treat as "session expired" when a session actually existed —
+      // a signed-out visitor probing /api/auth/me is a normal state, never a toast.
+      const hadSession = queryClient.getQueryData(["auth", "me"]) != null;
       queryClient.setQueryData(["auth", "me"], null);
-      queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== "profiles" });
+      // Cancel in-flight queries first so late responses cannot repopulate
+      // data for a signed-out role; then drop cached data EXCEPT the auth
+      // probe itself (removing it re-creates the query → refetch loop).
+      void queryClient.cancelQueries({
+        predicate: (q) => q.queryKey[0] !== "auth" && q.queryKey[0] !== "profiles",
+      });
+      queryClient.removeQueries({
+        predicate: (q) => q.queryKey[0] !== "auth" && q.queryKey[0] !== "profiles",
+      });
       useUIStore.setState({
         tab: "home",
         pushedScreen: null,
@@ -90,6 +93,16 @@ function useUnauthorizedHandler() {
         stkRequest: { open: false },
         payFlowOpen: false,
       });
+      if (hadSession) {
+        // Neutral toast outside React — read the persisted language directly.
+        let lang: "en" | "sw" = "en";
+        try {
+          if (window.localStorage.getItem("nest-lang") === "sw") lang = "sw";
+        } catch {
+          /* storage unavailable */
+        }
+        toast(lang === "sw" ? swDict["errors.sessionExpired"] : enDict["errors.sessionExpired"]);
+      }
     });
     return () => setUnauthorizedHandler(null);
   }, [queryClient]);

@@ -7,7 +7,7 @@
  */
 
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
-import { apiGet, apiGetSession } from "@/lib/api";
+import { apiGet, apiGetSession, type MpesaStatusDto } from "@/lib/api";
 import type {
   AgentOverviewDto,
   CaretakerOverviewDto,
@@ -121,13 +121,7 @@ export function useProfiles(enabled = true): UseQueryResult<import("@/lib/types"
 }
 
 /** M-Pesa STK status (GET /api/mpesa/status?checkoutRequestId=…) — poll shape. */
-export interface MpesaStatusDto {
-  status: "PENDING" | "SUCCESS" | "FAILED" | "TIMEOUT";
-  resultCode: string | null;
-  resultDesc: string | null;
-  paymentId: string | null;
-  receiptNo: string | null;
-}
+export type { MpesaStatusDto };
 
 export function fetchMpesaStatus(checkoutRequestId: string): Promise<MpesaStatusDto> {
   return apiGet<MpesaStatusDto>(

@@ -129,7 +129,7 @@ export function StkRequestModal() {
         void queryClient.invalidateQueries({ queryKey: ["overview"] });
         void queryClient.invalidateQueries({ queryKey: ["receipts"] });
         void queryClient.invalidateQueries({ queryKey: ["notifications"] });
-      } else if (status.status === "FAILED" || status.status === "TIMEOUT") {
+      } else if (status.status === "FAILED") {
         setPhase((prev) =>
           prev.step === "status" ? { ...prev, state: "failed", reason: status.resultDesc } : prev,
         );
