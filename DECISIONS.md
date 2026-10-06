@@ -97,9 +97,19 @@ Recorded by the Principal Engineer. Every entry: context, decision, trade-offs, 
 
 ---
 
+## D-019 — Phase 6 wedge decisions (statement + rent score)
+- **Context**: Post-Phase-5 close (PR #64), the next wedge came from the README moat narrative and open assumption #5: the tenant-side record products. Shipped as PR #67 (issues #65, #66).
+- **Decisions**:
+  - The **statement's month attribution follows the waterfall ledger, not the payment date**: a payment made in October that clears September rent appears on September's row, with its allocated slice. Cross-month payments appear on every month they touched. This is where a human looks during a dispute; the ledger stays untouched (read-only derivation, no AuditLog rows, D-018).
+  - The **rent score is a pure function with named constants** (weights 300/250/150/100, saturation 24 months, depth floor 2 rent-months, streak floor 3 months, trend window 3) — every number is documented in code and the card ships an expandable one-sentence-per-factor explainer. Never a black box; the score reflects the NEST record only.
+  - **Tenant and staff views share one engine** (`lib/rent-score.ts`): the arrears chip and the tenant's card cannot diverge because they are the same function over the same facts.
+  - Score arc + statement timeline are **hand-rolled inline SVG/CSS, zero new dependencies** (D-018 discipline continues).
+  - Strict on-time rule: a charge counts on-time only when fully paid within its own billed month; RECENT_TREND divides by 3 even with fewer billed months. Deliberate — short or late records earn visibly less, and the explainer says so.
+  - Tenant `?tenancyId=` params are **ignored** (own ACTIVE tenancy is always resolved server-side); staff ids are re-fetched inside `tenancyScopeWhere` (miss ⇒ 404).
+
 ## Open assumptions awaiting user input
 1. Supabase service-role key or DB password — to run migrations, RLS, and phone OTP.
 2. Daraja sandbox credentials — for live M-Pesa testing (sim mode until then).
 3. SMS/WhatsApp provider credentials — to send real notifications.
 4. Brand clearance for "NEST" (vs existing fintech "nesti") before public marketing.
-5. Phase 5-tail scope confirmation: rent score API, financing/insurance partners, load/security/a11y hardening, pilot readiness.
+5. Phase 6-tail scope confirmation: consent-gated external Rent Score API (the tenant/staff views shipped in PR #67), financing & insurance partners, load/security/a11y hardening, pilot readiness.

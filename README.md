@@ -29,7 +29,7 @@ One plot. Five roles. One record of truth.
 
 **The honest risks.** A Kenyan fintech ("nesti") already operates in rent payments — brand clearance is tracked as a blocking issue; "NEST" is a codename until cleared. Incumbents ship broad suites; NEST wins by being field-first (offline, low-end Android, Kiswahili) and by making the caretaker the hero.
 
-### What is shipped in this repo (Phase 0 → 5)
+### What is shipped in this repo (Phase 0 → 6)
 
 | Capability | Status |
 |---|---|
@@ -48,8 +48,10 @@ One plot. Five roles. One record of truth.
 | **PWA** — installable, service worker (production registration), offline-tolerant collections | ✅ shipped |
 | **Landlord analytics** — 6-month collection trend, arrears-by-age buckets, occupancy donuts (hand-rolled SVG, zero deps) | ✅ shipped |
 | **KRA/MRI tax assistant** — monthly rent summary, 7.5% MRI estimate, CSV export (record-keeping only, never tax advice) | ✅ shipped |
+| **Tenant monthly statement** — brought-forward → billed → settled → carried-forward per month; cross-month payments shown where they landed | ✅ shipped |
+| **Rent Score (tenant + staff views)** — 0–800 from four documented factors, factor breakdown on the card, same engine output on arrears rows | ✅ shipped |
 | English & Kiswahili, light/dark | ✅ shipped |
-| Rent score API, financing & insurance partners, load/security hardening | 🗺 Phase 5+ tail (see [roadmap](#-roadmap)) |
+| Consent-gated external Rent Score API, financing & insurance partners, load/security hardening | 🗺 next tail (see [roadmap](#-roadmap)) |
 
 ### Business-model hooks (Phase 4+, by design)
 
@@ -113,9 +115,9 @@ bun run dev                 # http://localhost:3000
 
 | Role | Phone | What to try |
 |---|---|---|
-| 👑 Landlord — Amina Barasa | +254711000001 | KPIs, arrears aging, match the unmatched payment, **Analytics charts, Tax assistant + CSV** |
+| 👑 Landlord — Amina Barasa | +254711000001 | KPIs, arrears aging **with rent-score chips**, match the unmatched payment, **Analytics charts, Tax assistant + CSV** |
 | 🧰 Caretaker — John Mwangi | +254711000002 | Record a cash collection in 3 taps, request M-Pesa, repairs queue |
-| 🏠 Tenant — Grace Wanjiku | +254711000003 | Pay rent via M-Pesa (sandbox sim), get instant receipt, report a repair |
+| 🏠 Tenant — Grace Wanjiku | +254711000003 | Pay rent via M-Pesa (sandbox sim), get instant receipt, report a repair, **see your Rent Score + monthly Statement (More tab)** |
 | 🏠 Tenant — David Otieno | +254711000004 | See arrears balance + reminder |
 | 🔒 Guard — Peter Njoroge | +254711000006 | Log a visitor, report an incident, start/end shift |
 | 🤝 Agent — Wanjiku Kamau | +254711000007 | Publish a listing, record applicants, run the pipeline |
@@ -145,8 +147,9 @@ DECISIONS.md        every assumption, trade-off and rejected alternative
 | 2 | Maintenance tickets, condition reports with photos, deposit ledger, KRA/MRI assistant | ✅ |
 | 3 | Guard module (visitors, incidents, shifts), caretaker fraud detection (unmatched-payment review), offline hardening | ✅ |
 | 4 | Agent module, listings funnel, landlord approvals, PWA service worker | ✅ |
-| 5-wedge | Landlord analytics (trend/aging/occupancy), KRA/MRI assistant + CSV export, a11y polish | ✅ v0.5.0 (this repo) |
-| 5-tail | **Rent score API**, financing & insurance partners, load/security/a11y hardening, pilot readiness | planned |
+| 5-wedge | Landlord analytics (trend/aging/occupancy), KRA/MRI assistant + CSV export, a11y polish | ✅ v0.5.0 |
+| 6-wedge | **Tenant monthly statement** (portable payment record) + **Rent Score** (0–800, four documented factors, tenant card + staff chips) | ✅ v0.6.0 (this repo) |
+| 6-tail | Consent-gated external Rent Score API, financing & insurance partners, load/security/a11y hardening, pilot readiness | planned |
 
 ## 📚 Documentation
 
