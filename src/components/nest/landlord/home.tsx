@@ -5,7 +5,7 @@
  * alert, arrears, recent payments, vacancies, properties.
  */
 
-import { CheckCircle2, ChevronRight, HelpCircle, TriangleAlert } from "lucide-react";
+import { CheckCircle2, ChevronRight, HelpCircle, TriangleAlert, Wrench } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { PropertyDto, UnitDto } from "@/lib/types";
 import { formatKes } from "@/lib/money";
@@ -102,6 +102,26 @@ export function LandlordHome() {
               progressPct={totals.occupancyRatePct}
               sub={t("common.ofUnits", { occupied: totals.occupied, total: totals.units })}
             />
+            {/* KPI 4 — open repairs (tap → repairs tab, Phase 2) */}
+            <button
+              type="button"
+              onClick={() => setTab("repairs")}
+              aria-label={`${t("repairs.openRepairs")}: ${totals.openTickets}`}
+              className="text-left w-full rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition active:scale-[0.99]"
+            >
+              <KpiCard
+                label={t("repairs.openRepairs")}
+                value={String(totals.openTickets)}
+                icon={Wrench}
+                tone={totals.openTickets > 0 ? "amber" : "default"}
+                sub={
+                  <span className="flex items-center gap-1">
+                    <span className="tabular-nums">{t("repairs.ticketsCount", { count: totals.openTickets })}</span>
+                    <ChevronRight className="size-3.5" aria-hidden />
+                  </span>
+                }
+              />
+            </button>
           </div>
 
           {/* Unmatched alert card (amber tint — hidden when zero) */}

@@ -2,22 +2,25 @@
 
 /**
  * S-08 · Tenant home — ONE call (TenantOverviewDto). Balance hero, Pay now,
- * stats row, receipts preview, charges accordion, notifications preview.
+ * stats row (deposit cell → deposit ledger), receipts preview, repairs preview
+ * (Phase 2), charges accordion, notifications preview.
  */
 
-import { Bell, ChevronRight, Receipt } from "lucide-react";
+import { Bell, ChevronRight, Receipt, Wrench } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { ChargeDto, ChargeKind } from "@/lib/types";
 import { formatKes } from "@/lib/money";
 import { useUIStore } from "@/lib/ui-store";
 import { useSession, useTenantOverview } from "@/hooks/use-overview";
+import { useTickets } from "@/hooks/use-tickets";
 import { useOnline } from "@/components/nest/offline-banner";
 import { formatDate, formatMonthKey, formatTime } from "@/components/nest/shared/format";
 import { SectionHeader } from "@/components/nest/shared/section-header";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
-import { HeroSkeleton, ListSkeleton } from "@/components/nest/shared/skeletons";
+import { HeroSkeleton, ListSkeleton, RowSkeleton } from "@/components/nest/shared/skeletons";
 import { StatusBadge } from "@/components/nest/shared/status-badge";
+import { TicketRow } from "@/components/nest/shared/ticket-detail";
 import { NotificationsList } from "@/components/nest/shared/notifications";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,8 +43,11 @@ export function TenantHome() {
   const setTab = useUIStore((s) => s.setTab);
   const setPayFlowOpen = useUIStore((s) => s.setPayFlowOpen);
   const openReceipt = useUIStore((s) => s.openReceipt);
+  const pushDeposit = useUIStore((s) => s.pushDeposit);
+  const setReportIssueOpen = useUIStore((s) => s.setReportIssueOpen);
   const { data: session } = useSession();
   const { data, isPending, error, refetch } = useTenantOverview();
+  const { data: tickets, isPending: ticketsPending, error: ticketsError } = useTickets();
 
   if (error != null) {
     return (
@@ -126,9 +132,22 @@ export function TenantHome() {
             </Button>
           )}
 
-          {/* Stats row */}
+          {/* Stats row — the deposit cell opens the deposit ledger (Phase 2) */}
           <div className="grid grid-cols-3 gap-3">
-            <StatCell label={t("money.deposit")} value={formatKes(tenancy.depositHeldMinor)} />
+            <button
+              type="button"
+              onClick={pushDeposit}
+              aria-label={`${t("money.deposit")}: ${formatKes(tenancy.depositHeldMinor)}`}
+              className="rounded-lg border p-3 min-w-0 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition active:scale-[0.99] hover:bg-muted/40"
+            >
+              <p className="text-caption text-muted-foreground truncate flex items-center gap-0.5">
+                <span className="truncate">{t("money.deposit")}</span>
+                <ChevronRight className="size-3 shrink-0" aria-hidden />
+              </p>
+              <p className="text-body font-semibold tabular-nums truncate mt-0.5">
+                {formatKes(tenancy.depositHeldMinor)}
+              </p>
+            </button>
             <StatCell label={t("tenant.yourReceipts")} value={String(data.receipts.length)} />
             <StatCell label={t("tenant.openCharges")} value={String(openCharges)} />
           </div>
@@ -168,6 +187,38 @@ export function TenantHome() {
               </Card>
             )}
           </section>
+
+          {/* Repairs preview (Phase 2) — top 2 of the tenant's own reports */}
+          {ticketsError == null ? (
+            <section aria-label={t("repairs.yourReports")}>
+              <SectionHeader
+                title={t("repairs.yourReports")}
+                actionLabel={t("arrears.viewAll")}
+                onAction={() => setTab("repairs")}
+                className="mb-3"
+              />
+              {ticketsPending ? (
+                <Card className="divide-y" aria-busy>
+                  <RowSkeleton />
+                  <RowSkeleton />
+                </Card>
+              ) : (tickets ?? []).length === 0 ? (
+                <EmptyState
+                  icon={Wrench}
+                  title={t("repairs.empty")}
+                  hint={t("repairs.emptyDesc")}
+                  actionLabel={t("repairs.reportIssue")}
+                  onAction={() => setReportIssueOpen(true)}
+                />
+              ) : (
+                <Card className="divide-y">
+                  {(tickets ?? []).slice(0, 2).map((ticket) => (
+                    <TicketRow key={ticket.id} ticket={ticket} />
+                  ))}
+                </Card>
+              )}
+            </section>
+          ) : null}
 
           {/* Charges accordion (latest open) */}
           <section aria-label={t("tenant.chargesBreakdown")}>

@@ -9,9 +9,11 @@
 import * as React from "react";
 import {
   Banknote,
+  ChevronRight,
   DoorOpen,
   Smartphone,
   TriangleAlert,
+  Wrench,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { formatKes } from "@/lib/money";
@@ -118,6 +120,30 @@ export function CaretakerHome() {
                   <span className="text-attention text-label shrink-0">{t("arrears.viewAll")}</span>
                 </button>
               ) : null}
+
+              {/* Open repairs — straight into the queue (Phase 2) */}
+              <button
+                type="button"
+                onClick={() => setTab("repairs")}
+                aria-label={t("repairs.openRepairs")}
+                className="w-full flex items-center justify-between gap-2 rounded-md border bg-background px-3 h-11 text-left focus-visible:ring-2 focus-visible:ring-ring outline-none transition-colors hover:bg-muted/40 active:scale-[0.99]"
+              >
+                <span
+                  className={`flex items-center gap-1.5 text-label font-medium min-w-0 ${
+                    totals.openTickets > 0 ? "text-attention" : "text-foreground"
+                  }`}
+                >
+                  <Wrench
+                    className={`size-4 shrink-0 ${totals.openTickets > 0 ? "text-attention" : "text-muted-foreground"}`}
+                    aria-hidden
+                  />
+                  <span className="truncate">{t("repairs.openRepairs")}</span>
+                </span>
+                <span className="flex items-center gap-1 shrink-0">
+                  <span className="text-label font-semibold tabular-nums">{totals.openTickets}</span>
+                  <ChevronRight className="size-4 text-muted-foreground" aria-hidden />
+                </span>
+              </button>
             </CardContent>
           </Card>
 
