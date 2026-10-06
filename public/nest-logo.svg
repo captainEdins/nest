@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="NEST logo">
+  <!-- NEST: house + nest rings mark -->
+  <rect width="128" height="128" rx="28" fill="#0B6B3A"/>
+  <g stroke="#F7F3E8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <!-- roof -->
+    <path d="M36 62 L64 38 L92 62"/>
+    <!-- walls -->
+    <path d="M44 60 V92 H84 V60"/>
+    <!-- door -->
+    <path d="M57 92 V74 H71 V92" fill="#F7F3E8" stroke="none" opacity="0.25"/>
+    <!-- nest rings -->
+    <path d="M40 84 C48 96 80 96 88 84" opacity="0.55"/>
+    <path d="M36 88 C46 104 82 104 92 88" opacity="0.35"/>
+  </g>
+</svg>

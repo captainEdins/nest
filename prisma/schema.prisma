@@ -1,0 +1,363 @@
+// NEST — Prisma schema (SQLite).
+//
+// Authored by the Principal Engineer as the domain contract; reviewed and
+// operationalised by the Database & Security Architect (Task 1-a).
+//
+// Conventions:
+// - Money: integer minor units (KES cents) — never floats.
+// - SQLite has no enums: enum-like values are strings, validated by Zod in
+//   src/lib/... and typed by src/lib/types.ts.
+// - Financial records (payments, deposit movements, audit log) are
+//   append-only: created, never mutated in amount. Corrections are new
+//   reversing entries. All writes flow through src/lib/reconciliation.ts
+//   + src/lib/audit.ts guardrails.
+// - Phase 2/3/4 tables are scaffolded now so later phases need no schema
+//   surgery (maintenance, condition reports, deposits ledger, guard
+//   module, listings).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// People
+// ---------------------------------------------------------------------------
+
+model Profile {
+  id        String   @id @default(cuid())
+  phone     String   @unique // E.164-ish: +2547XXXXXXXX
+  fullName  String
+  role      String // LANDLORD | AGENT | CARETAKER | TENANT | GUARD
+  active    Boolean  @default(true)
+  language  String   @default("en") // en | sw
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([role])
+}
+
+// ---------------------------------------------------------------------------
+// Property graph
+// ---------------------------------------------------------------------------
+
+model Property {
+  id          String   @id @default(cuid())
+  name        String
+  location    String
+  landlordId  String // Profile.id (LANDLORD)
+  caretakerId String? // Profile.id (CARETAKER) assigned to run the plot
+  agentId     String? // Profile.id (AGENT) managing the property
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  units Unit[]
+
+  @@index([landlordId])
+  @@index([caretakerId])
+  @@index([agentId])
+}
+
+model Unit {
+  id                String   @id @default(cuid())
+  propertyId        String
+  label             String // e.g. "A1"
+  type              String // BEDSITTER | SINGLE | ONE_BR | TWO_BR | THREE_BR | SHOP
+  rentAmountMinor   Int
+  depositAmountMinor Int
+  status            String   @default("VACANT") // VACANT | OCCUPIED | NOTICE
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  property  Property   @relation(fields: [propertyId], references: [id])
+  tenancies Tenancy[]
+
+  @@unique([propertyId, label])
+  @@index([propertyId, status])
+}
+
+model Tenancy {
+  id                String    @id @default(cuid())
+  unitId            String
+  tenantId          String // Profile.id (TENANT)
+  startDate         DateTime
+  endDate           DateTime?
+  monthlyRentMinor  Int
+  depositHeldMinor  Int
+  status            String    @default("ACTIVE") // ACTIVE | ENDED | NOTICE
+  /// Stable account reference printed on M-Pesa prompts, e.g. "NEST-A1-0012"
+  accountRef        String    @unique
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  unit      Unit         @relation(fields: [unitId], references: [id])
+  charges   RentCharge[]
+  payments  Payment[]
+
+  @@index([tenantId])
+  @@index([unitId, status])
+}
+
+// ---------------------------------------------------------------------------
+// Money in: charges, payments, reconciliation
+// ---------------------------------------------------------------------------
+
+model RentCharge {
+  id          String   @id @default(cuid())
+  tenancyId   String
+  kind        String // RENT | WATER | GARBAGE
+  periodMonth String // "YYYY-MM"
+  dueDate     DateTime
+  amountMinor Int
+  paidMinor   Int      @default(0)
+  status      String   @default("UNPAID") // UNPAID | PART | PAID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenancy    Tenancy            @relation(fields: [tenancyId], references: [id])
+  allocations PaymentAllocation[]
+
+  @@unique([tenancyId, kind, periodMonth])
+  @@index([tenancyId, status])
+  @@index([status, dueDate])
+}
+
+/// Append-only money record. Integer id => race-free receipt numbering.
+model Payment {
+  id              Int      @id @default(autoincrement())
+  /// Human receipt number, e.g. NEST-R-000123. Set once, never changed.
+  receiptNo       String?  @unique
+  amountMinor     Int
+  source          String // MPESA | CASH | BANK
+  status          String // PENDING | COMPLETED | UNMATCHED | REVERSED
+  receivedAt      DateTime @default(now())
+  tenancyId       String?
+  accountReference String?
+  phone           String?
+  /// Who recorded it (caretaker id for cash; null for M-Pesa callbacks)
+  recordedById    String?
+  note            String?
+  /// Client idempotency key for offline-safe sync (cash collections)
+  clientRef       String?  @unique
+  createdAt       DateTime @default(now())
+
+  tenancy    Tenancy?             @relation(fields: [tenancyId], references: [id])
+  allocations PaymentAllocation[]
+
+  @@index([tenancyId, receivedAt])
+  @@index([status])
+}
+
+model PaymentAllocation {
+  id          String   @id @default(cuid())
+  paymentId   Int
+  chargeId    String
+  amountMinor Int
+  createdAt   DateTime @default(now())
+
+  payment Payment    @relation(fields: [paymentId], references: [id])
+  charge  RentCharge @relation(fields: [chargeId], references: [id])
+
+  @@unique([paymentId, chargeId])
+  @@index([chargeId])
+}
+
+model MpesaTransaction {
+  id                 String    @id @default(cuid())
+  /// Daraja CheckoutRequestID — the idempotency key for callbacks
+  checkoutRequestId  String    @unique
+  merchantRequestId  String
+  phone              String
+  amountMinor        Int
+  accountReference   String
+  tenancyId          String?
+  /// INITIATED | PUSHED | SUCCESS | FAILED | TIMEOUT | REVERSED
+  status             String    @default("INITIATED")
+  resultCode         String?
+  resultDesc         String?
+  /// Raw callback JSON, kept for audit and dispute resolution
+  rawJson            String?
+  callbackProcessedAt DateTime?
+  paymentId          Int?
+  createdAt          DateTime  @default(now())
+
+  @@index([status, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Deposits ledger (Phase 2 — append-only movements)
+// ---------------------------------------------------------------------------
+
+model Deposit {
+  id         String   @id @default(cuid())
+  tenancyId  String   @unique
+  heldMinor  Int
+  status     String   @default("HELD") // HELD | RELEASED
+  createdAt  DateTime @default(now())
+
+  movements DepositMovement[]
+}
+
+model DepositMovement {
+  id          String   @id @default(cuid())
+  depositId   String
+  /// HOLD | DEDUCT | REFUND | ADJUST — one-way ledger entries
+  kind        String
+  amountMinor Int
+  reason      String?
+  actorId     String?
+  createdAt   DateTime @default(now())
+
+  deposit Deposit @relation(fields: [depositId], references: [id])
+
+  @@index([depositId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Maintenance & condition (Phase 2)
+// ---------------------------------------------------------------------------
+
+model MaintenanceTicket {
+  id           String    @id @default(cuid())
+  propertyId   String
+  unitId       String
+  tenancyId    String?
+  title        String
+  description  String
+  priority     String    @default("NORMAL") // LOW | NORMAL | HIGH | URGENT
+  status       String    @default("OPEN") // OPEN | IN_PROGRESS | RESOLVED | CLOSED
+  reportedById String
+  resolvedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  updates TicketUpdate[]
+
+  @@index([propertyId, status])
+  @@index([unitId])
+}
+
+model TicketUpdate {
+  id         String   @id @default(cuid())
+  ticketId   String
+  authorId   String
+  note       String
+  statusFrom String?
+  statusTo   String?
+  createdAt  DateTime @default(now())
+
+  ticket MaintenanceTicket @relation(fields: [ticketId], references: [id])
+
+  @@index([ticketId, createdAt])
+}
+
+model ConditionReport {
+  id           String   @id @default(cuid())
+  tenancyId    String
+  kind         String // MOVE_IN | MOVE_OUT
+  notes        String
+  /// JSON array of storage URLs (Supabase Storage in production)
+  photoUrlsJson String   @default("[]")
+  recordedById String
+  createdAt    DateTime @default(now())
+
+  @@index([tenancyId, kind])
+}
+
+// ---------------------------------------------------------------------------
+// Guard module (Phase 3)
+// ---------------------------------------------------------------------------
+
+model VisitorLog {
+  id           String    @id @default(cuid())
+  propertyId   String
+  unitId       String?
+  visitorName  String
+  visitorPhone String?
+  /// VISITOR | DELIVERY | CONTRACTOR | VIEWING | OTHER
+  purpose      String
+  guardId      String
+  enteredAt    DateTime  @default(now())
+  exitedAt     DateTime?
+
+  @@index([propertyId, enteredAt])
+}
+
+model IncidentReport {
+  id          String   @id @default(cuid())
+  propertyId  String
+  guardId     String
+  category    String // SECURITY | DAMAGE | DISPUTE | THEFT | OTHER
+  description String
+  actionTaken String?
+  severity    String   @default("LOW") // LOW | MEDIUM | HIGH | CRITICAL
+  createdAt   DateTime @default(now())
+
+  @@index([propertyId, createdAt])
+}
+
+model GuardShift {
+  id         String    @id @default(cuid())
+  propertyId String
+  guardId    String
+  startedAt  DateTime  @default(now())
+  endedAt    DateTime?
+  notes      String?
+
+  @@index([guardId, startedAt])
+}
+
+// ---------------------------------------------------------------------------
+// Agent module (Phase 4)
+// ---------------------------------------------------------------------------
+
+model Listing {
+  id             String   @id @default(cuid())
+  propertyId     String
+  unitId         String
+  title          String
+  description    String
+  rentAmountMinor Int
+  /// DRAFT | PUBLISHED | PAUSED | LET
+  status         String   @default("DRAFT")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([status])
+}
+
+// ---------------------------------------------------------------------------
+// Cross-cutting
+// ---------------------------------------------------------------------------
+
+model Notification {
+  id          String    @id @default(cuid())
+  profileId   String
+  channel     String    @default("IN_APP") // SMS | WHATSAPP | IN_APP
+  templateKey String
+  body        String
+  /// QUEUED | SENT | FAILED — delivery is provider-agnostic (src/lib/notify.ts)
+  status      String    @default("QUEUED")
+  createdAt   DateTime  @default(now())
+  sentAt      DateTime?
+
+  @@index([profileId, status, createdAt])
+}
+
+/// Append-only audit trail. Every financial/deposit/auth mutation lands here.
+model AuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  action     String // e.g. PAYMENT_CASH_RECORDED, MPESA_CALLBACK, UNMATCHED_MATCHED
+  entity     String // e.g. Payment, MpesaTransaction, Profile
+  entityId   String?
+  detailJson String?
+  createdAt  DateTime @default(now())
+
+  @@index([entity, entityId])
+  @@index([actorId, createdAt])
+}

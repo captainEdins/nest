@@ -1,0 +1,18 @@
+# CODEOWNERS — architectural review lanes
+# The Solution Architect (Principal Engineer in this repo's org model) owns
+# the contract seams; Security owns the threat surface.
+
+# Architecture decision records — Architect review required
+/docs/adr/               @captainEdins
+
+# Schema, money, payments, security — Architect review required
+/prisma/                 @captainEdins
+/src/lib/reconciliation.ts @captainEdins
+/src/lib/mpesa.ts        @captainEdins
+/src/lib/types.ts        @captainEdins
+/src/lib/money.ts        @captainEdins
+/src/lib/session.ts      @captainEdins
+/src/app/api/            @captainEdins
+
+# Security policy
+/SECURITY.md             @captainEdins

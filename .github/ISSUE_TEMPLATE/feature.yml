@@ -1,0 +1,57 @@
+name: 🚀 Feature / Epic
+description: Definition-of-Ready-compliant feature issue (Solution Manager + Architect review before `ready`)
+labels: ["type:feature", "status:needs-triage"]
+body:
+  - type: textarea
+    id: story
+    attributes:
+      label: User story
+      description: As a <role>, I want <capability>, so that <benefit>
+      placeholder: As a caretaker, I want to record a cash collection in 3 taps, so that I am protected by an instant receipt.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context & links
+      description: Epic, ADR, design spec, contract files touched
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria (Given/When/Then)
+      description: MUST include at least one negative case and one permission case (who must NOT be able to do it)
+      placeholder: |
+        Given David Otieno owes two months, when he opens his home screen, then his balance shows KSh 31,000.
+        Given a tenant, when they request another tenant's payments via the API, then the request is denied (403).
+    validations:
+      required: true
+  - type: textarea
+    id: testplan
+    attributes:
+      label: Test plan
+      description: unit / integration / e2e (mobile viewport) / a11y / perf checks required
+    validations:
+      required: true
+  - type: textarea
+    id: security
+    attributes:
+      label: Security & privacy notes
+      description: data touched, consent, audit-log entries written
+  - type: textarea
+    id: outofscope
+    attributes:
+      label: Out of scope
+  - type: textarea
+    id: deps
+    attributes:
+      label: Dependencies
+      description: blocked by / blocks
+  - type: dropdown
+    id: phase
+    attributes:
+      label: Phase
+      options: ["phase-0", "phase-1", "phase-2", "phase-3", "phase-4", "phase-5"]
+    validations:
+      required: true

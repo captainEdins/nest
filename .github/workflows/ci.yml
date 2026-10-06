@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Lint · Type-check · Prisma
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: file:./db/ci.db
+      SESSION_SECRET: ci-only-secret
+      DEMO_MODE: "1"
+      MPESA_MODE: sim
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: bun run db:generate
+
+      - name: Push schema (creates SQLite file)
+        run: bun run db:push
+
+      - name: Seed demo data
+        run: bun run db:seed
+
+      - name: Type-check (tsc --noEmit)
+        run: bunx tsc --noEmit
+
+      - name: Lint (eslint)
+        run: bun run lint
