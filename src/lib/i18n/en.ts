@@ -657,6 +657,12 @@ export const en = {
   "agent.titleShort": "Title needs at least 5 characters",
   "agent.descShort": "Description needs at least 20 characters",
   "agent.perMonth": "per month",
+
+  // ----- Landlord approvals (Phase 4, issue #48) — funnel card + listings tab
+  "landlord.awaitingDecision": "Awaiting your decision",
+  "landlord.funnelNoNew": "No new applicants",
+  "landlord.emptyListings": "No listings yet — your agent creates them from vacant units",
+  "landlord.funnelAllLet": "All listings closed — the units are rented",
 } as const
 
 /** Every dotted key above, as a literal union. sw.ts must cover all of them. */

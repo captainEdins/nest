@@ -100,9 +100,10 @@ export function ListingDetailScreen({ listingId }: { listingId: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Actions — AGENT only (the landlord observes the funnel; P4-d adds their
-// approvals surface on the application screen, not here). DRAFT → Publish ·
-// PUBLISHED → Pause + Record applicant · PAUSED → Resume · LET = closed.
+// Actions — AGENT only (the landlord observes the funnel; their approvals
+// surface lives on the application screen, not here — matrix §4.2). The LET
+// "closed" banner is read-only history, so the landlord sees it too. DRAFT →
+// Publish · PUBLISHED → Pause + Record applicant · PAUSED → Resume · LET.
 // ---------------------------------------------------------------------------
 
 function ListingActions({
@@ -119,7 +120,7 @@ function ListingActions({
   const pause = usePauseListing(listingId);
   const openRecordApplicant = useUIStore((s) => s.openRecordApplicant);
 
-  if (role !== "AGENT") return null;
+  if (role !== "AGENT" && role !== "LANDLORD") return null;
 
   if (status === "LET") {
     return (
@@ -131,6 +132,8 @@ function ListingActions({
       </Card>
     );
   }
+
+  if (role !== "AGENT") return null;
 
   const busy = publish.isPending || pause.isPending;
 

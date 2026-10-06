@@ -34,6 +34,7 @@ import { PaymentsLedger } from "@/components/nest/landlord/payments-ledger";
 import { PropertiesScreen } from "@/components/nest/landlord/properties";
 import { LandlordTickets } from "@/components/nest/landlord/tickets";
 import { SettleDepositModal } from "@/components/nest/landlord/settle-deposit";
+import { LandlordListingsScreen } from "@/components/nest/landlord/listings-screen";
 import { CaretakerHome } from "@/components/nest/caretaker/home";
 import { CaretakerUnits } from "@/components/nest/caretaker/units";
 import { CaretakerTickets } from "@/components/nest/caretaker/tickets";
@@ -121,6 +122,7 @@ function useUnauthorizedHandler() {
         startShiftOpen: false,
         endShiftOpen: false,
         securitySegment: "visitors",
+        listingsSegment: "listings",
         createListingOpen: false,
         recordApplicantOpen: false,
         recordApplicantListingId: null,
@@ -345,6 +347,9 @@ function TabContent({ role, tab }: { role: Role; tab: string }) {
       if (tab === "properties") return <PropertiesScreen />;
       if (tab === "repairs") return <LandlordTickets />;
       if (tab === "security") return <SecurityScreen />;
+      // Phase 4 (More tab): the landlord's read-only funnel view — listings +
+      // the applicant decision queue (approve/reject lives in the detail screens).
+      if (tab === "listings") return <LandlordListingsScreen />;
       return <LandlordHome />;
     }
     case "CARETAKER": {

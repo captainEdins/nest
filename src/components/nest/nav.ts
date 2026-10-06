@@ -62,10 +62,13 @@ export const TABS: Record<Role, TabDef[]> = {
 /**
  * Overflow tabs that lost their bottom-nav slot to a higher-priority Phase 2 tab
  * (mobile: reached via the More sheet; desktop sidebar appends them after TABS).
+ * Landlord "listings" (Phase 4) is read-only funnel observation — matrix §4.2
+ * (the agent runs the listings; the landlord decides on applicants).
  */
 export const MORE_TABS: Partial<Record<Role, TabDef[]>> = {
   LANDLORD: [
     { id: "properties", labelKey: "nav.properties", icon: Building2 },
+    { id: "listings", labelKey: "nav.listings", icon: Megaphone },
     { id: "security", labelKey: "nav.security", icon: Shield },
   ],
   CARETAKER: [{ id: "security", labelKey: "nav.security", icon: Shield }],

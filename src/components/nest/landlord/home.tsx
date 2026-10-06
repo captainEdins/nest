@@ -5,12 +5,13 @@
  * alert, arrears, recent payments, vacancies, properties.
  */
 
-import { CheckCircle2, ChevronRight, HelpCircle, TriangleAlert, Wrench } from "lucide-react";
+import { CheckCircle2, ChevronRight, HelpCircle, Megaphone, TriangleAlert, Wrench } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import type { PropertyDto, UnitDto } from "@/lib/types";
+import type { ListingApplicationDto, PropertyDto, UnitDto } from "@/lib/types";
 import { formatKes } from "@/lib/money";
 import { useUIStore } from "@/lib/ui-store";
 import { useLandlordOverview, useSession } from "@/hooks/use-overview";
+import { useApplications, useListings } from "@/hooks/use-listings";
 import { formatMonthKey } from "@/components/nest/shared/format";
 import { SecurityCard } from "@/components/nest/shared/security/security-card";
 import { KpiCard } from "@/components/nest/shared/kpi-card";
@@ -21,6 +22,7 @@ import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
 import { KpiSkeleton, ListSkeleton } from "@/components/nest/shared/skeletons";
 import { StatusBadge } from "@/components/nest/shared/status-badge";
+import { ListingStatusChip } from "@/components/nest/shared/listing-chips";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
@@ -130,6 +132,10 @@ export function LandlordHome() {
               land the tap straight on the incident queue. */}
           {overview ? <SecurityCard security={overview.security} /> : null}
 
+          {/* Vacancy funnel (Phase 4) — the landlord's decision queue; amber
+              attention while live applicants await an approve/reject. */}
+          <VacancyFunnelCard />
+
           {/* Unmatched alert card (amber tint — hidden when zero) */}
           {unmatchedCount > 0 ? (
             <button
@@ -229,6 +235,146 @@ export function LandlordHome() {
         </>
       ) : null}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Vacancy funnel card (Phase 4, issue #48) — the landlord's decision queue at
+// a glance. Data: ["listings"] + ["applications"] (both landlord-scoped
+// server-side; the same keys P4-c's decision mutations invalidate, so the
+// pending count live-updates after every approve/reject). Rendered ONLY when
+// there is something to show (listings exist): amber attention while live
+// applicants (NEW/CONTACTED/VIEWING) on non-LET listings await a decision;
+// a neutral summary when the funnel runs quietly; a muted line when every
+// listing is closed (LET). Never rendered while pending or on query error —
+// the home's own skeleton/error states cover that.
+// ---------------------------------------------------------------------------
+
+/** Live pipeline statuses — an undecided, unwithdrawn applicant. */
+const LIVE_APPLICATION_STATUSES: ReadonlySet<ListingApplicationDto["status"]> = new Set([
+  "NEW",
+  "CONTACTED",
+  "VIEWING",
+]);
+
+function VacancyFunnelCard() {
+  const { t } = useI18n();
+  const setTab = useUIStore((s) => s.setTab);
+  const setListingsSegment = useUIStore((s) => s.setListingsSegment);
+  const { data: listings } = useListings();
+  const { data: applications } = useApplications();
+
+  // Nothing to observe yet (also covers the queries' pending state).
+  if (listings == null || listings.length === 0) return null;
+
+  const liveListings = listings.filter((listing) => listing.status !== "LET");
+  const liveListingIds = new Set(liveListings.map((listing) => listing.id));
+  const pending = (applications ?? []).filter(
+    (application) =>
+      LIVE_APPLICATION_STATUSES.has(application.status) && liveListingIds.has(application.listingId),
+  );
+
+  function openListings(segment: "listings" | "applicants") {
+    // Decisions pending land on the applicant queue (the urgent thing first);
+    // everything else opens the listings view — the security-card precedent.
+    setListingsSegment(segment);
+    setTab("listings");
+  }
+
+  // 1. Live applicants await the landlord's decision — amber attention.
+  if (pending.length > 0) {
+    const primary = liveListings.find((listing) => pending.some((a) => a.listingId === listing.id));
+    const pendingUnits = [...new Set(pending.map((application) => application.unitLabel))];
+    const summary =
+      primary != null && pendingUnits.length === 1
+        ? `${primary.unitLabel} · ${primary.propertyName} · ${formatKes(primary.rentAmountMinor)} ${t("agent.perMonth")}`
+        : pendingUnits.join(" · ");
+    return (
+      <button
+        type="button"
+        onClick={() => openListings("applicants")}
+        aria-label={`${t("agent.funnelCardTitle")} — ${t("agent.pendingDecisions", { count: pending.length })}`}
+        className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition active:scale-[0.99]"
+      >
+        <Card className="border-l-4 border-l-warning/70 bg-warning/15 dark:bg-warning/10 animate-in fade-in duration-300">
+          <CardContent className="p-4 sm:p-6 space-y-2.5">
+            <div className="flex items-center gap-2 min-w-0">
+              <Megaphone className="size-4 text-attention shrink-0" aria-hidden />
+              <p className="text-label font-medium text-attention truncate flex-1 min-w-0">
+                {t("agent.funnelCardTitle")}
+              </p>
+              {/* NEW-style amber pulse badge — the awaiting-decision count */}
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-warning/60 bg-warning/15 dark:bg-warning/10 px-2 py-0.5 text-caption font-semibold text-attention tabular-nums shrink-0">
+                <span aria-hidden className="size-1.5 rounded-full bg-attention animate-pulse" />
+                {pending.length}
+              </span>
+            </div>
+            <p className="text-body font-medium text-attention">
+              {t("agent.pendingDecisions", { count: pending.length })}
+            </p>
+            <p className="text-caption text-muted-foreground truncate">{summary}</p>
+            <p className="flex items-center justify-end gap-1 text-label font-medium text-attention">
+              {t("agent.viewApplicants")}
+              <ChevronRight className="size-4" aria-hidden />
+            </p>
+          </CardContent>
+        </Card>
+      </button>
+    );
+  }
+
+  // 2. The funnel runs quietly — a neutral summary of the live listing.
+  if (liveListings.length > 0) {
+    const primary = liveListings[0];
+    return (
+      <button
+        type="button"
+        onClick={() => openListings("listings")}
+        aria-label={`${t("agent.funnelCardTitle")} — ${primary.unitLabel}. ${formatKes(primary.rentAmountMinor)}`}
+        className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition active:scale-[0.99]"
+      >
+        <Card className="animate-in fade-in duration-300">
+          <CardContent className="p-4 sm:p-6 space-y-2.5">
+            <div className="flex items-center gap-2 min-w-0">
+              <Megaphone className="size-4 text-muted-foreground shrink-0" aria-hidden />
+              <p className="text-label font-medium text-muted-foreground truncate flex-1 min-w-0">
+                {t("agent.funnelCardTitle")}
+              </p>
+              <ChevronRight className="size-4 text-muted-foreground shrink-0" aria-hidden />
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <ListingStatusChip status={primary.status} />
+            </div>
+            <p className="text-body font-semibold break-words">{primary.title}</p>
+            <p className="text-caption text-muted-foreground truncate">
+              {primary.unitLabel} · {primary.propertyName} ·{" "}
+              <span className="tabular-nums">{formatKes(primary.rentAmountMinor)}</span>
+            </p>
+            <p className="text-caption text-muted-foreground tabular-nums">
+              {t("applicant.count", { count: primary.applicationCount })} · {t("landlord.funnelNoNew")}
+            </p>
+          </CardContent>
+        </Card>
+      </button>
+    );
+  }
+
+  // 3. Every listing closed (LET) — the quiet line.
+  return (
+    <button
+      type="button"
+      onClick={() => openListings("listings")}
+      aria-label={`${t("agent.funnelCardTitle")} — ${t("landlord.funnelAllLet")}`}
+      className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition active:scale-[0.99]"
+    >
+      <Card className="bg-muted/40 animate-in fade-in duration-300">
+        <CardContent className="p-4 flex items-center gap-2.5 text-muted-foreground">
+          <Megaphone className="size-5 shrink-0" aria-hidden />
+          <p className="text-body flex-1 min-w-0 truncate">{t("landlord.funnelAllLet")}</p>
+          <ChevronRight className="size-4 shrink-0" aria-hidden />
+        </CardContent>
+      </Card>
+    </button>
   );
 }
 
