@@ -13,7 +13,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { apiGetSession, setUnauthorizedHandler } from "@/lib/api";
-import { I18nProvider, useI18n } from "@/lib/i18n";
+import { I18nProvider, useI18n, en as enDict, sw as swDict } from "@/lib/i18n";
 import type { Role, SessionDto } from "@/lib/types";
 import { useUIStore } from "@/lib/ui-store";
 import { syncOutbox } from "@/hooks/use-outbox";
@@ -69,6 +69,14 @@ function useUnauthorizedHandler() {
   const queryClient = useQueryClient();
   React.useEffect(() => {
     setUnauthorizedHandler(() => {
+      // Neutral toast outside React — read the persisted language directly.
+      let lang: "en" | "sw" = "en";
+      try {
+        if (window.localStorage.getItem("nest-lang") === "sw") lang = "sw";
+      } catch {
+        /* storage unavailable */
+      }
+      toast(lang === "sw" ? swDict["errors.sessionExpired"] : enDict["errors.sessionExpired"]);
       queryClient.setQueryData(["auth", "me"], null);
       queryClient.removeQueries({ predicate: (q) => q.queryKey[0] !== "profiles" });
       useUIStore.setState({

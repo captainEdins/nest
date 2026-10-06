@@ -109,11 +109,18 @@ export function StkRequestModal() {
     }
   }
 
+  // Mirror the latest phase for pollers created in the interval closure.
+  const phaseRef = React.useRef(phase);
+  React.useEffect(() => {
+    phaseRef.current = phase;
+  });
+
   async function pollOnce() {
-    if (phase.step !== "status") return;
-    if (phase.state !== "pending" && phase.state !== "stillWaiting") return;
+    const current = phaseRef.current;
+    if (current.step !== "status") return;
+    if (current.state !== "pending" && current.state !== "stillWaiting") return;
     try {
-      const status = await fetchMpesaStatus(phase.response.checkoutRequestId);
+      const status = await fetchMpesaStatus(current.response.checkoutRequestId);
       if (status.status === "SUCCESS") {
         setPhase((prev) =>
           prev.step === "status" ? { ...prev, state: "success", receiptNo: status.receiptNo } : prev,
@@ -145,13 +152,18 @@ export function StkRequestModal() {
     }
   }
 
-  // Polling loop (3s, ≤120s).
+  // Polling loop (3s, ≤120s); stops on terminal states; re-polls on focus.
   React.useEffect(() => {
     if (phase.step !== "status" || phase.state !== "pending") return;
     let cancelled = false;
     const startedAt = Date.now();
     const interval = window.setInterval(async () => {
       if (cancelled) return;
+      const current = phaseRef.current;
+      if (current.step === "status" && (current.state === "success" || current.state === "failed")) {
+        window.clearInterval(interval);
+        return;
+      }
       if (Date.now() - startedAt >= POLL_TIMEOUT_MS) {
         window.clearInterval(interval);
         setPhase((prev) => (prev.step === "status" ? { ...prev, state: "stillWaiting" } : prev));
