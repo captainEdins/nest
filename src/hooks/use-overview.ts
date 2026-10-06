@@ -13,6 +13,7 @@ import type {
   AgentOverviewDto,
   CaretakerOverviewDto,
   GuardOverviewDto,
+  LandlordAnalyticsDto,
   LandlordOverviewDto,
   NotificationDto,
   PaymentDto,
@@ -57,6 +58,22 @@ export function useAgentOverview(): UseQueryResult<AgentOverviewDto> {
 
 export function useGuardOverview(): UseQueryResult<GuardOverviewDto> {
   return useOverview<GuardOverviewDto>();
+}
+
+/**
+ * Landlord analytics (Phase 5 wedge A): the Analytics tab's own payload —
+ * GET /api/analytics is LANDLORD-only, so the query only runs on the
+ * landlord shell (403 for anyone else would flip this to error). Key is
+ * separate from ["overview"]: charts invalidate independently, payments
+ * mutations don't recompute trends on every keystroke.
+ */
+export function useLandlordAnalytics(): UseQueryResult<LandlordAnalyticsDto> {
+  return useQuery({
+    queryKey: ["analytics"],
+    queryFn: () => apiGet<LandlordAnalyticsDto>("/api/analytics"),
+    staleTime: 30_000,
+    refetchInterval: 60_000,
+  });
 }
 
 /** Scoped ACTIVE-tenancy picker rows (GET /api/tenancies — real wire shape). */

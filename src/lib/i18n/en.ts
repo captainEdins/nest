@@ -661,6 +661,30 @@ export const en = {
   "landlord.funnelNoNew": "No new applicants",
   "landlord.emptyListings": "No listings yet — your agent creates them from vacant units",
   "landlord.funnelAllLet": "All listings closed — the units are rented",
+
+  // ----- Landlord analytics (Phase 5 wedge A, issue #57) --------------------
+  "nav.analytics": "Analytics",
+  "analytics.title": "Analytics",
+  "analytics.generated": "Updated {date}",
+  "analytics.collectionTrend": "Collection trend",
+  "analytics.last6Months": "Last 6 months",
+  "analytics.billed": "Billed",
+  "analytics.collected": "Collected",
+  "analytics.monthHeader": "Month",
+  "analytics.monthSummary": "{month}: {billed} billed, {collected} collected",
+  "analytics.monthCollected": "Billed versus collected for each of the last 6 months.",
+  "analytics.arrearsAging": "Arrears by age",
+  "analytics.agingHint": "Age is counted from each tenant's oldest unpaid charge.",
+  "analytics.current": "Current",
+  "analytics.days1to30": "1–30 days",
+  "analytics.days31to60": "31–60 days",
+  "analytics.days61plus": "61+ days",
+  "analytics.tenants": "{count} tenant(s)",
+  "analytics.occupancy": "Occupancy",
+  "analytics.occupied": "Occupied",
+  "analytics.vacant": "Vacant",
+  "analytics.emptyTitle": "No analytics yet",
+  "analytics.emptyHint": "Add a property and raise charges — the trends will grow here.",
 } as const
 
 /** Every dotted key above, as a literal union. sw.ts must cover all of them. */

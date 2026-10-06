@@ -7,6 +7,7 @@ import {
   Bell,
   BookOpen,
   Building2,
+  ChartColumn,
   DoorOpen,
   Home,
   Megaphone,
@@ -64,12 +65,15 @@ export const TABS: Record<Role, TabDef[]> = {
  * (mobile: reached via the More sheet; desktop sidebar appends them after TABS).
  * Landlord "listings" (Phase 4) is read-only funnel observation — matrix §4.2
  * (the agent runs the listings; the landlord decides on applicants).
+ * Landlord "analytics" (Phase 5, issue #57) is the charts dashboard —
+ * collection trend, arrears aging, occupancy.
  */
 export const MORE_TABS: Partial<Record<Role, TabDef[]>> = {
   LANDLORD: [
     { id: "properties", labelKey: "nav.properties", icon: Building2 },
     { id: "listings", labelKey: "nav.listings", icon: Megaphone },
     { id: "security", labelKey: "nav.security", icon: Shield },
+    { id: "analytics", labelKey: "nav.analytics", icon: ChartColumn },
   ],
   CARETAKER: [{ id: "security", labelKey: "nav.security", icon: Shield }],
 };

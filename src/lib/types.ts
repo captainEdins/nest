@@ -571,6 +571,60 @@ export interface ApplicationStatusChangeRequest {
 }
 
 // ---------------------------------------------------------------------------
+// Landlord analytics (Phase 5 wedge A, issue #57)
+// ---------------------------------------------------------------------------
+
+/**
+ * One month of the collection trend. Money is integer KES minor units:
+ * billed = charges issued (due date in the month, any status); collected =
+ * allocations of successful (COMPLETED) payments received in the month.
+ */
+export interface AnalyticsMonthDto {
+  /** Calendar key, e.g. "2026-05". */
+  monthKey: string
+  /** Short month label for chart axes, e.g. "May". */
+  label: string
+  billedMinor: number
+  collectedMinor: number
+}
+
+/** One arrears-aging bucket: tenant count + outstanding total. */
+export interface ArrearsAgingBucketDto {
+  count: number
+  totalMinor: number
+}
+
+/**
+ * Tenants bucketed by outstanding-balance age (days since the OLDEST unpaid
+ * charge's dueDate). "current" = balance exactly zero, or owed but nothing
+ * past due yet; negative balances (tenant credit) are skipped entirely.
+ */
+export interface ArrearsAgingDto {
+  current: ArrearsAgingBucketDto
+  d1_30: ArrearsAgingBucketDto
+  d31_60: ArrearsAgingBucketDto
+  d61plus: ArrearsAgingBucketDto
+}
+
+/** Occupancy per owned property (NOTICE units still count as occupied). */
+export interface OccupancyRowDto {
+  propertyId: string
+  propertyName: string
+  occupied: number
+  vacant: number
+}
+
+/** GET /api/analytics — LANDLORD only (read-only, no audit rows). */
+export interface LandlordAnalyticsDto {
+  /** Last 6 calendar months INCLUDING the current one, oldest first. */
+  monthly: AnalyticsMonthDto[]
+  arrearsAging: ArrearsAgingDto
+  occupancy: OccupancyRowDto[]
+  /** ISO timestamp of the server computation. */
+  generatedAt: string
+}
+
+// ---------------------------------------------------------------------------
 // M-Pesa / payments API payloads
 // ---------------------------------------------------------------------------
 

@@ -23,6 +23,27 @@ export function formatKes(minor: number, opts: { withCents?: boolean } = {}): st
   return negative ? `-${out}` : out
 }
 
+/**
+ * Compact axis-label form of formatKes for charts: "KSh 40k", "KSh 1.2M",
+ * "KSh 800". Display-only (integer math throughout — the value itself never
+ * becomes a float), for tight tick labels where the full form would not fit.
+ */
+export function formatKesCompact(minor: number): string {
+  const negative = minor < 0
+  const whole = Math.round(Math.abs(minor) / 100) // whole shillings, display-only
+  let out: string
+  if (whole >= 1_000_000) {
+    // Tenths of a million, kept integral so the label is exact ("1.2M").
+    const tenths = Math.round(whole / 100_000)
+    out = tenths % 10 === 0 ? `KSh ${tenths / 10}M` : `KSh ${Math.floor(tenths / 10)}.${tenths % 10}M`
+  } else if (whole >= 1_000) {
+    out = `KSh ${Math.round(whole / 1000)}k`
+  } else {
+    out = `KSh ${whole}`
+  }
+  return negative ? `-${out}` : out
+}
+
 /** Convert a whole-shilling user input string ("12500") to minor units. */
 export function shillingsToMinor(input: string): number | null {
   const cleaned = input.replace(/[,\sKSh]/gi, "")
