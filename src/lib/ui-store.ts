@@ -39,8 +39,10 @@ interface UIState {
   setTab: (tab: TabId) => void;
   /** Secondary screen pushed over the tab content (caretaker arrears; Phase 2: ticket + deposit detail; Phase 3: guard shift log). */
   pushedScreen: "arrears" | "ticket" | "deposit" | "shift" | null;
+  /** Tenancy whose deposit the pushed screen shows (caretaker, Phase 3); tenants use /api/deposits/mine. */
+  depositTenancyId: string | null;
   pushArrears: () => void;
-  pushDeposit: () => void;
+  pushDeposit: (tenancyId?: string) => void;
   pushShiftLog: () => void;
   popScreen: () => void;
   /** Payments ledger filter (S-17a); the unmatched alert card presets it. */
@@ -102,10 +104,11 @@ export const useUIStore = create<UIState>((set) => ({
   tab: "home",
   setTab: (tab) => set({ tab, pushedScreen: null }),
   pushedScreen: null,
+  depositTenancyId: null,
   pushArrears: () => set({ pushedScreen: "arrears" }),
-  pushDeposit: () => set({ pushedScreen: "deposit" }),
+  pushDeposit: (tenancyId) => set({ pushedScreen: "deposit", depositTenancyId: tenancyId ?? null }),
   pushShiftLog: () => set({ pushedScreen: "shift" }),
-  popScreen: () => set({ pushedScreen: null }),
+  popScreen: () => set({ pushedScreen: null, depositTenancyId: null }),
   paymentsFilter: "ALL",
   setPaymentsFilter: (paymentsFilter) => set({ paymentsFilter }),
   moreOpen: false,

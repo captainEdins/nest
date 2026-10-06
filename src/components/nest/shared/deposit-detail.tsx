@@ -1,22 +1,28 @@
 "use client";
 
 /**
- * S-29 · Deposit detail (tenant pushed screen, Task P2-d — issue #24).
+ * S-29 · Deposit detail (pushed screen, Task P2-d — issue #24; caretaker
+ * view added in P3-d, issue #37).
  *
- * The tenant's trust view of their security deposit: the amount held (or the
- * settled story), the append-only movements ledger (HOLD/DEDUCT/REFUND/ADJUST
- * with reasons, actors and dates on a kind-coloured timeline rail) and the
+ * The trust view of a security deposit: the amount held (or the settled
+ * story), the append-only movements ledger (HOLD/DEDUCT/REFUND/ADJUST with
+ * reasons, actors and dates on a kind-coloured timeline rail) and the
  * MOVE_IN / MOVE_OUT condition reports that make any deduction arguable.
  *
- * Data: GET /api/deposits/mine (own ACTIVE/NOTICE tenancy). The app shell
- * renders the back header + "Security deposit" heading — content only.
+ * Data: TENANT → GET /api/deposits/mine (own ACTIVE/NOTICE tenancy).
+ * CARETAKER → GET /api/deposits/[tenancyId] (property-chain scope, Phase 2
+ * leftover shipped with issue #37). The app shell renders the back header
+ * + "Security deposit" heading — content only.
+ *
+ * Read-only for every caller: no settle CTA exists here — settlement lives
+ * in the landlord-only SettleDepositModal (role-gated in the shell).
  */
 
 import { ClipboardCheck, ClipboardList } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { DepositMovementDto, DepositMovementKind, DepositStatus } from "@/lib/types";
 import { formatKes } from "@/lib/money";
-import { useMyDeposit } from "@/hooks/use-deposits";
+import { useDeposit, useMyDeposit } from "@/hooks/use-deposits";
 import { formatDate } from "./format";
 import { SectionHeader } from "./section-header";
 import { EmptyState } from "./empty-state";
@@ -82,9 +88,13 @@ function DepositStatusBadge({ status, className }: { status: DepositStatus; clas
 // Screen
 // ---------------------------------------------------------------------------
 
-export function DepositDetailScreen() {
+export function DepositDetailScreen({ tenancyId }: { tenancyId?: string }) {
   const { t } = useI18n();
-  const { data: deposit, isPending, error, refetch } = useMyDeposit();
+  // TENANT reads /mine; CARETAKER (Phase 3) reads the tenancy-scoped ledger.
+  // Both hooks mount unconditionally; only the active one is read below.
+  const mine = useMyDeposit();
+  const byId = useDeposit(tenancyId);
+  const { data: deposit, isPending, error, refetch } = tenancyId != null ? byId : mine;
 
   if (error != null) {
     return (

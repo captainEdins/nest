@@ -158,6 +158,7 @@ function Shell({ session }: { session: SessionDto }) {
   const queryClient = useQueryClient();
   const tab = useUIStore((s) => s.tab);
   const pushedScreen = useUIStore((s) => s.pushedScreen);
+  const depositTenancyId = useUIStore((s) => s.depositTenancyId);
   const popScreen = useUIStore((s) => s.popScreen);
   const ticketViewId = useUIStore((s) => s.ticketViewId);
   const moreOpen = useUIStore((s) => s.moreOpen);
@@ -227,7 +228,7 @@ function Shell({ session }: { session: SessionDto }) {
               </div>
               <TicketDetailScreen ticketId={ticketViewId} />
             </section>
-          ) : pushedScreen === "deposit" && role === "TENANT" ? (
+          ) : pushedScreen === "deposit" && (role === "TENANT" || role === "CARETAKER") ? (
             <section aria-label={t("deposit.title")}>
               <div className="flex items-center gap-2 mb-4">
                 <Button variant="ghost" size="icon" className="h-11 w-11" onClick={popScreen} aria-label={t("common.back")}>
@@ -235,7 +236,8 @@ function Shell({ session }: { session: SessionDto }) {
                 </Button>
                 <h1 className="text-h2 font-semibold">{t("deposit.title")}</h1>
               </div>
-              <DepositDetailScreen />
+              {/* Caretaker (Phase 3) passes the tenancy id; tenant reads /mine. */}
+              <DepositDetailScreen tenancyId={role === "CARETAKER" ? (depositTenancyId ?? undefined) : undefined} />
             </section>
           ) : pushedScreen === "shift" && role === "GUARD" ? (
             <section aria-label={t("guard.shiftLog")}>

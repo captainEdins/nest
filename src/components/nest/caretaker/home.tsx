@@ -20,11 +20,12 @@ import { formatKes } from "@/lib/money";
 import { useUIStore } from "@/lib/ui-store";
 import { useCaretakerOverview, useSession } from "@/hooks/use-overview";
 import { formatMonthKey } from "@/components/nest/shared/format";
+import { SecurityCard } from "@/components/nest/shared/security/security-card";
 import { SectionHeader } from "@/components/nest/shared/section-header";
 import { PaymentRow } from "@/components/nest/shared/payment-row";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
-import { HeroSkeleton, ListSkeleton } from "@/components/nest/shared/skeletons";
+import { HeroSkeleton, KpiSkeleton, ListSkeleton } from "@/components/nest/shared/skeletons";
 import { StatusBadge } from "@/components/nest/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -82,6 +83,7 @@ export function CaretakerHome() {
       {isPending || !totals ? (
         <div className="space-y-4 sm:space-y-6" aria-busy>
           <HeroSkeleton className="h-36" />
+          <KpiSkeleton />
           <ListSkeleton rows={5} />
         </div>
       ) : (
@@ -146,6 +148,9 @@ export function CaretakerHome() {
               </button>
             </CardContent>
           </Card>
+
+          {/* Security digest (Phase 3) — same card as the landlord's home. */}
+          {data ? <SecurityCard security={data.security} /> : null}
 
           {/* Quick actions 2×2 */}
           <div className="grid grid-cols-2 gap-4">

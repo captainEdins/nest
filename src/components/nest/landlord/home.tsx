@@ -12,6 +12,7 @@ import { formatKes } from "@/lib/money";
 import { useUIStore } from "@/lib/ui-store";
 import { useLandlordOverview, useSession } from "@/hooks/use-overview";
 import { formatMonthKey } from "@/components/nest/shared/format";
+import { SecurityCard } from "@/components/nest/shared/security/security-card";
 import { KpiCard } from "@/components/nest/shared/kpi-card";
 import { SectionHeader } from "@/components/nest/shared/section-header";
 import { PaymentRow } from "@/components/nest/shared/payment-row";
@@ -65,6 +66,7 @@ export function LandlordHome() {
             <KpiSkeleton />
             <KpiSkeleton />
           </div>
+          <KpiSkeleton />
           <ListSkeleton rows={5} />
         </div>
       ) : totals ? (
@@ -123,6 +125,10 @@ export function LandlordHome() {
               />
             </button>
           </div>
+
+          {/* Security digest (Phase 3) — eyes on the ground; unseen reports
+              land the tap straight on the incident queue. */}
+          {overview ? <SecurityCard security={overview.security} /> : null}
 
           {/* Unmatched alert card (amber tint — hidden when zero) */}
           {unmatchedCount > 0 ? (

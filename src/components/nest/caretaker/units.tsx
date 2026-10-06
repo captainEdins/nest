@@ -2,7 +2,11 @@
 
 /**
  * S-17c · Units (caretaker tab) — search + status filter chips; tapping an
- * occupied row opens the cash-collection flow preselected (S-06).
+ * occupied row opens the cash-collection flow preselected (S-06). Rows with
+ * an ACTIVE/NOTICE tenancy also carry a Deposit cell (Phase 3, issue #37):
+ * the caretaker's read-only view of that tenancy's deposit ledger — the
+ * settlement flow itself stays landlord-only (SettleDepositModal is
+ * role-gated in the shell).
  */
 
 import * as React from "react";
@@ -10,7 +14,7 @@ import { DoorOpen, Search } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { formatKes } from "@/lib/money";
 import { useUIStore } from "@/lib/ui-store";
-import { useCaretakerOverview } from "@/hooks/use-overview";
+import { useUnits } from "@/hooks/use-deposits";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
 import { ListSkeleton } from "@/components/nest/shared/skeletons";
@@ -25,13 +29,16 @@ type StatusFilter = "ALL" | "OCCUPIED" | "VACANT";
 export function CaretakerUnits() {
   const { t } = useI18n();
   const openCashFlow = useUIStore((s) => s.openCashFlow);
-  const { data, isPending, error, refetch } = useCaretakerOverview();
+  const pushDeposit = useUIStore((s) => s.pushDeposit);
+  // /api/units (not the overview) — it carries the CURRENT tenancy on NOTICE
+  // rows too, so every ACTIVE/NOTICE unit gets its deposit cell.
+  const { data, isPending, error, refetch } = useUnits(true);
 
   const [search, setSearch] = React.useState("");
   const [statusFilter, setStatusFilter] = React.useState<StatusFilter>("ALL");
 
   const units = React.useMemo(() => {
-    const all = data?.units ?? [];
+    const all = data ?? [];
     const occupiedFirst = [...all].sort((a, b) => {
       const aOccupied = a.status === "OCCUPIED" ? 0 : 1;
       const bOccupied = b.status === "OCCUPIED" ? 0 : 1;
@@ -104,7 +111,7 @@ export function CaretakerUnits() {
           ) : (
             <Card className="divide-y">
               {units.map((unit) => (
-                <UnitRow key={unit.id} unit={unit} onCollect={openCashFlow} />
+                <UnitRow key={unit.id} unit={unit} onCollect={openCashFlow} onDeposit={pushDeposit} />
               ))}
             </Card>
           )}
@@ -117,24 +124,26 @@ export function CaretakerUnits() {
 function UnitRow({
   unit,
   onCollect,
+  onDeposit,
 }: {
   unit: UnitDto;
   onCollect: (tenancyId?: string) => void;
+  onDeposit: (tenancyId?: string) => void;
 }) {
   const { t } = useI18n();
   const tenancy = unit.tenancy;
   const canCollect = unit.status === "OCCUPIED" && tenancy !== null && tenancy !== undefined;
 
   return (
-    <button
-      type="button"
-      disabled={!canCollect}
-      onClick={() => canCollect && onCollect(tenancy!.id)}
-      className="w-full text-left p-4 min-h-14 flex items-center gap-3 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset outline-none disabled:cursor-default"
-      aria-label={`${unit.label}${tenancy ? ` · ${tenancy.tenantName}` : ""}`}
-    >
-      <div className="min-w-0 flex-1">
-        <p className="text-body font-semibold">
+    <div className="p-4 flex items-center gap-3 animate-in fade-in duration-300 fill-mode-both">
+      <button
+        type="button"
+        disabled={!canCollect}
+        onClick={() => canCollect && onCollect(tenancy!.id)}
+        className="flex-1 min-w-0 text-left rounded-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset outline-none disabled:cursor-default"
+        aria-label={`${unit.label}${tenancy ? ` · ${tenancy.tenantName}` : ""}`}
+      >
+        <p className="text-body font-semibold truncate">
           {unit.label}
           <span className="text-muted-foreground font-normal">
             {tenancy ? ` · ${tenancy.tenantName}` : " · —"}
@@ -149,8 +158,23 @@ function UnitRow({
             </span>
           ) : null}
         </p>
-      </div>
+      </button>
+      {tenancy != null ? (
+        <button
+          type="button"
+          onClick={() => onDeposit(tenancy.id)}
+          aria-label={`${t("money.deposit")}: ${formatKes(unit.depositAmountMinor)} · ${unit.label}`}
+          className="shrink-0 h-11 min-w-28 px-3 rounded-lg border bg-background flex flex-col items-end justify-center gap-0 focus-visible:ring-2 focus-visible:ring-ring outline-none transition-colors hover:bg-muted/40 active:scale-[0.99]"
+        >
+          <span className="text-caption text-muted-foreground truncate max-w-full">
+            {t("money.deposit")}
+          </span>
+          <span className="text-label font-semibold tabular-nums whitespace-nowrap">
+            {formatKes(unit.depositAmountMinor)} · {t("deposit.kind.HOLD")}
+          </span>
+        </button>
+      ) : null}
       <StatusBadge status={unit.status} className="shrink-0" />
-    </button>
+    </div>
   );
 }

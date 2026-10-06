@@ -375,6 +375,11 @@ export const en = {
   "security.highSeverityFlag": "{count} HIGH severity unseen",
   "security.loadError": "Could not load security data",
   "security.todayAt": "Today, {time}",
+  "security.actionTakenLabel": "Action taken: {action}",
+  "security.noShifts": "No shifts recorded yet",
+  "security.timeJustNow": "Just now",
+  "security.timeMinsAgo": "{count} min ago",
+  "security.timeHoursAgo": "{count} h ago",
 
   // ----- Tenant — visitors to my unit (Phase 3) ------------------------------
   "tenant.visitors.title": "Visitors to your unit",
