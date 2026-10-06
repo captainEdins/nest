@@ -8,6 +8,7 @@
 
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import { apiGet, apiGetSession, type MpesaStatusDto } from "@/lib/api";
+import { getQueryClient } from "@/components/nest/providers";
 import type {
   AgentOverviewDto,
   CaretakerOverviewDto,
@@ -70,6 +71,37 @@ export interface TenancyPickerRow {
   balanceMinor: number;
 }
 
+/**
+ * Offline field fallback (D-012): derive picker rows from the cached role
+ * overview — the overview is always loaded before any money flow opens, so
+ * the caretaker who walks into a dead-signal basement still gets a picker.
+ */
+function overviewTenancyRows(): TenancyPickerRow[] | undefined {
+  if (typeof window === "undefined") return undefined;
+  const cache = getQueryClient();
+  const overview = cache.getQueryData<
+    LandlordOverviewDto | CaretakerOverviewDto | TenantOverviewDto | AgentOverviewDto | GuardOverviewDto
+  >(["overview"]);
+  if (!overview) return undefined;
+  const rows: TenancyPickerRow[] = [];
+  if ("units" in overview) {
+    for (const unit of overview.units) {
+      if (!unit.tenancy) continue;
+      rows.push({
+        id: unit.tenancy.id,
+        tenantName: unit.tenancy.tenantName,
+        tenantPhone: unit.tenancy.tenantPhone,
+        unitLabel: unit.label,
+        propertyName: unit.propertyName,
+        accountRef: unit.tenancy.accountRef,
+        monthlyRentMinor: unit.tenancy.monthlyRentMinor,
+        balanceMinor: unit.tenancy.balanceMinor,
+      });
+    }
+  }
+  return rows.length > 0 ? rows : undefined;
+}
+
 /** Tenancy picker list for match / cash / STK flows (lazy — modal-scoped). */
 export function useTenancies(enabled = true): UseQueryResult<TenancyPickerRow[]> {
   return useQuery({
@@ -77,6 +109,8 @@ export function useTenancies(enabled = true): UseQueryResult<TenancyPickerRow[]>
     queryFn: () => apiGet<TenancyPickerRow[]>("/api/tenancies"),
     enabled,
     staleTime: 60_000,
+    retry: false,
+    placeholderData: () => overviewTenancyRows(),
   });
 }
 

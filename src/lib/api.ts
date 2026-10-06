@@ -101,7 +101,16 @@ async function parseErrorBody(res: Response): Promise<ApiErrorShape | null> {
 interface RequestOptions {
   /** The session probe itself must not fire the global 401 handler. */
   sessionProbe?: boolean
+  /** Override the request timeout (ms). Defaults to REQUEST_TIMEOUT_MS. */
+  timeoutMs?: number
 }
+
+/**
+ * Requests MUST settle: on flaky rural networks a dead fetch can hang
+ * indefinitely (socket open, no bytes). Abort after this so money actions
+ * fail fast into the offline outbox instead of trapping the UI pending.
+ */
+const REQUEST_TIMEOUT_MS = 30_000
 
 async function request<T>(
   method: "GET" | "POST",
@@ -117,9 +126,12 @@ async function request<T>(
       body: body !== undefined ? JSON.stringify(body) : undefined,
       credentials: "same-origin",
       cache: "no-store",
+      signal: AbortSignal.timeout(opts.timeoutMs ?? REQUEST_TIMEOUT_MS),
     })
-  } catch {
-    // Network failure (offline / server down) — try fixtures in dev mode.
+  } catch (error) {
+    // Network failure / timeout (offline / server down) — try fixtures in dev mode.
+    // AbortSignal.timeout raises TimeoutError DOMException; both are network-class.
+    void error
     if (DEV_FIXTURES) {
       const fx = fixtureRespond(method, path, body)
       if (fx) return respondOrThrow<T>(fx)
