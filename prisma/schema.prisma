@@ -68,6 +68,10 @@ model Profile {
   guardVisitors      VisitorLog[]     @relation("GuardVisitors")
   guardIncidents     IncidentReport[] @relation("GuardIncidents")
   guardIncidentAcks  IncidentReport[] @relation("GuardIncidentAcks")
+  // Agent module (Phase 4)
+  applicationsHandled  ListingApplication[] @relation("ApplicationsHandled")
+  applicationsDecided  ListingApplication[] @relation("ApplicationsDecided")
+  applicationEvents    ListingApplicationEvent[] @relation("ApplicationEvents")
 
   @@index([role])
 }
@@ -95,6 +99,9 @@ model Property {
   visitorLogs   VisitorLog[]
   incidents     IncidentReport[]
   guardShifts   GuardShift[]
+  // Agent module (Phase 4)
+  listings          Listing[]
+  listingApplications ListingApplication[] @relation("ListingApplications")
 
   @@index([landlordId])
   @@index([caretakerId])
@@ -116,6 +123,7 @@ model Unit {
   tenancies Tenancy[]
   tickets   MaintenanceTicket[]
   visitorLogs VisitorLog[]
+  listings Listing[]
 
   @@unique([propertyId, label])
   @@index([propertyId, status])
@@ -403,7 +411,68 @@ model Listing {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
+  // Relations (P4-a, additive — the Phase 4 seam goes live).
+  property     Property             @relation(fields: [propertyId], references: [id])
+  unit         Unit                 @relation(fields: [unitId], references: [id])
+  applications ListingApplication[]
+
   @@index([status])
+  @@index([propertyId, status])
+  @@index([unitId])
+}
+
+/// A prospective tenant recorded by the agent (walk-in / phone / WhatsApp /
+/// Facebook lead). The application pipeline is the trust record: every
+/// status change appends a ListingApplicationEvent row — never mutated.
+model ListingApplication {
+  id             String   @id @default(cuid())
+  listingId      String
+  /// Denormalised from listing.unit.property for scoped queries (agentId).
+  propertyId     String
+  applicantName  String
+  applicantPhone String
+  /// Where the lead came from: WALK_IN | PHONE | WHATSAPP | FACEBOOK | OTHER
+  source         String   @default("WALK_IN")
+  /// Agent's first-notice note (optional context, shown as the quote).
+  note           String?
+  /// NEW | CONTACTED | VIEWING | APPROVED | REJECTED | WITHDRAWN
+  status         String   @default("NEW")
+  /// Agent who recorded the applicant (the recorder of record).
+  handledById    String
+  /// Set when the LANDLORD decides (APPROVED / REJECTED only).
+  decidedById    String?
+  decidedAt      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  listing   Listing                  @relation(fields: [listingId], references: [id])
+  property  Property                 @relation("ListingApplications", fields: [propertyId], references: [id])
+  handledBy Profile                  @relation("ApplicationsHandled", fields: [handledById], references: [id])
+  decidedBy Profile?                 @relation("ApplicationsDecided", fields: [decidedById], references: [id])
+  events    ListingApplicationEvent[]
+
+  @@index([listingId, status])
+  @@index([propertyId, status])
+  @@index([status, createdAt])
+}
+
+/// Append-only timeline of application status transitions — the demo's
+/// "trust as product" centrepiece for the funnel: what happened, when,
+/// and who did it. Rows are created, never updated or deleted.
+model ListingApplicationEvent {
+  id            String   @id @default(cuid())
+  applicationId String
+  /// Status AFTER the transition (the "to" state; "from" is the previous row).
+  toStatus      String
+  actorId       String
+  /// Optional context the actor typed (e.g. "Viewing Saturday 10am").
+  note          String?
+  createdAt     DateTime @default(now())
+
+  application ListingApplication @relation(fields: [applicationId], references: [id])
+  actor       Profile            @relation("ApplicationEvents", fields: [actorId], references: [id])
+
+  @@index([applicationId, createdAt])
 }
 
 // ---------------------------------------------------------------------------

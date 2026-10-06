@@ -18,6 +18,8 @@
 
 import type { Prisma, Profile, Property } from "@prisma/client"
 import type {
+  ApplicationSource,
+  ApplicationStatus,
   ChargeDto,
   ChargeKind,
   ChargeStatus,
@@ -29,6 +31,10 @@ import type {
   IncidentCategory,
   IncidentReportDto,
   IncidentSeverity,
+  ListingApplicationDto,
+  ListingDetailDto,
+  ListingDto,
+  ListingStatus,
   NotificationDto,
   PaymentDto,
   PaymentSource,
@@ -435,5 +441,116 @@ export function toGuardShiftDto(row: GuardShiftWithRelations): GuardShiftDto {
     startedAt: row.startedAt.toISOString(),
     endedAt: row.endedAt ? row.endedAt.toISOString() : null,
     notes: row.notes,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Agent module — listings + applicant pipeline (Phase 4)
+// ---------------------------------------------------------------------------
+
+/**
+ * Everything ListingDto needs. `applications` is included so list endpoints
+ * can derive funnel counts in one query; `_count` is avoided because we need
+ * per-status buckets (NEW vs total), which Prisma counts cannot express.
+ */
+export const listingInclude = {
+  unit: { select: { id: true, label: true } },
+  property: { select: { id: true, name: true } },
+  applications: {
+    select: { id: true, status: true, createdAt: true },
+    orderBy: { createdAt: "desc" as const },
+  },
+} satisfies Prisma.ListingInclude
+
+export type ListingWithRelations = Prisma.ListingGetPayload<{ include: typeof listingInclude }>
+
+/** Listing detail: adds full application rows (with relations) to ListingDto. */
+export const listingDetailInclude = {
+  unit: { select: { id: true, label: true } },
+  property: { select: { id: true, name: true } },
+  applications: {
+    include: {
+      listing: { select: { id: true, unit: { select: { label: true } }, property: { select: { name: true } } } },
+      handledBy: { select: { id: true, fullName: true } },
+      decidedBy: { select: { id: true, fullName: true } },
+      events: {
+        include: { actor: { select: { id: true, fullName: true } } },
+        orderBy: { createdAt: "asc" as const },
+      },
+    },
+    orderBy: { createdAt: "desc" as const },
+  },
+} satisfies Prisma.ListingInclude
+
+export type ListingDetailWithRelations = Prisma.ListingGetPayload<{ include: typeof listingDetailInclude }>
+
+export function toListingDto(row: ListingWithRelations): ListingDto {
+  const apps = row.applications ?? []
+  return {
+    id: row.id,
+    propertyId: row.propertyId,
+    propertyName: row.property.name,
+    unitId: row.unitId,
+    unitLabel: row.unit.label,
+    title: row.title,
+    description: row.description,
+    rentAmountMinor: row.rentAmountMinor,
+    status: row.status as ListingStatus,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    applicationCount: apps.length,
+    newApplicationCount: apps.filter((a) => a.status === "NEW").length,
+  }
+}
+
+export function toListingDetailDto(row: ListingDetailWithRelations): ListingDetailDto {
+  const base = toListingDto(row as unknown as ListingWithRelations)
+  return {
+    ...base,
+    applications: row.applications.map(toApplicationDto),
+  }
+}
+
+/** Everything ListingApplicationDto needs (listing anchor, agent, decision, timeline). */
+export const applicationInclude = {
+  listing: {
+    select: { id: true, unit: { select: { label: true } }, property: { select: { name: true } } },
+  },
+  handledBy: { select: { id: true, fullName: true } },
+  decidedBy: { select: { id: true, fullName: true } },
+  events: {
+    include: { actor: { select: { id: true, fullName: true } } },
+    orderBy: { createdAt: "asc" as const },
+  },
+} satisfies Prisma.ListingApplicationInclude
+
+export type ApplicationWithRelations = Prisma.ListingApplicationGetPayload<{ include: typeof applicationInclude }>
+
+export function toApplicationDto(row: ApplicationWithRelations): ListingApplicationDto {
+  return {
+    id: row.id,
+    listingId: row.listingId,
+    unitLabel: row.listing.unit.label,
+    propertyName: row.listing.property.name,
+    applicantName: row.applicantName,
+    applicantPhone: row.applicantPhone,
+    source: row.source as ApplicationSource,
+    note: row.note,
+    status: row.status as ApplicationStatus,
+    handledById: row.handledById,
+    handledByName: row.handledBy.fullName,
+    decidedById: row.decidedById,
+    decidedByName: row.decidedBy ? row.decidedBy.fullName : null,
+    decidedAt: row.decidedAt ? row.decidedAt.toISOString() : null,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+    events: row.events.map((ev) => ({
+      id: ev.id,
+      toStatus: ev.toStatus as ApplicationStatus,
+      actorId: ev.actorId,
+      actorName: ev.actor.fullName,
+      note: ev.note,
+      createdAt: ev.createdAt.toISOString(),
+    })),
   }
 }

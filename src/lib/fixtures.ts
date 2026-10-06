@@ -22,6 +22,8 @@ import { format, subMonths, addMonths, setDate } from "date-fns";
 import { splitWaterfall } from "./money";
 import type {
   AgentOverviewDto,
+  ApplicationSource,
+  ApplicationStatus,
   ArrearsRowDto,
   CaretakerOverviewDto,
   CashCollectionRequest,
@@ -31,6 +33,10 @@ import type {
   GuardShiftDto,
   IncidentReportDto,
   LandlordOverviewDto,
+  ListingApplicationDto,
+  ListingDetailDto,
+  ListingDto,
+  ListingStatus,
   NotificationDto,
   PaymentAllocationDto,
   PaymentDto,
@@ -769,12 +775,111 @@ const TENANCY_BY_TENANT: Record<string, string> = {
   "p-grace": "t-b2",
 }
 
+// ----- Phase 4: agent module fixtures (listing + applicants) ----------------
+
+const AGENT = { id: "p-wanjiku", fullName: "Wanjiku Kamau" }
+const B3_LISTING: ListingDto = {
+  id: "l-b3",
+  propertyId: PROPERTY.id,
+  propertyName: PROPERTY.name,
+  unitId: "u-b3",
+  unitLabel: "B3",
+  title: "Spacious 2-bedroom — Baraka Court",
+  description:
+    "Freshly painted 2-bedroom in a gated 5-unit court off Thika Road. Borehole water (metered), secure parking, 24/7 guard.",
+  rentAmountMinor: 2_500_000,
+  status: "PUBLISHED",
+  createdAt: daysAgoIso(10),
+  updatedAt: daysAgoIso(8),
+  applicationCount: 3,
+  newApplicationCount: 1,
+}
+
+const APPLICATIONS: ListingApplicationDto[] = [
+  {
+    id: "a-joyce",
+    listingId: B3_LISTING.id,
+    unitLabel: "B3",
+    propertyName: PROPERTY.name,
+    applicantName: "Joyce Muthoni",
+    applicantPhone: "+254701555666",
+    source: "PHONE",
+    note: "Called after seeing the Facebook post. Works at Kenyatta University library.",
+    status: "VIEWING",
+    handledById: AGENT.id,
+    handledByName: AGENT.fullName,
+    decidedById: null,
+    decidedByName: null,
+    decidedAt: null,
+    createdAt: daysAgoIso(2),
+    updatedAt: hoursAgoIso(3.2),
+    events: [
+      { id: "e-1", toStatus: "NEW", actorId: AGENT.id, actorName: AGENT.fullName, note: "Phone lead from the Facebook post.", createdAt: daysAgoIso(2) },
+      { id: "e-2", toStatus: "CONTACTED", actorId: AGENT.id, actorName: AGENT.fullName, note: "Called back — very interested.", createdAt: daysAgoIso(1.5) },
+      { id: "e-3", toStatus: "VIEWING", actorId: AGENT.id, actorName: AGENT.fullName, note: "Viewed the unit today. Gate entry logged by Peter.", createdAt: hoursAgoIso(3.2) },
+    ],
+  },
+  {
+    id: "a-brian",
+    listingId: B3_LISTING.id,
+    unitLabel: "B3",
+    propertyName: PROPERTY.name,
+    applicantName: "Brian Ochieng",
+    applicantPhone: "+254733444555",
+    source: "WHATSAPP",
+    note: "WhatsApped the number on the poster. Relocating from Kisumu in January.",
+    status: "NEW",
+    handledById: AGENT.id,
+    handledByName: AGENT.fullName,
+    decidedById: null,
+    decidedByName: null,
+    decidedAt: null,
+    createdAt: hoursAgoIso(5),
+    updatedAt: hoursAgoIso(5),
+    events: [
+      { id: "e-4", toStatus: "NEW", actorId: AGENT.id, actorName: AGENT.fullName, note: "WhatsApp lead — requested photos first.", createdAt: hoursAgoIso(5) },
+    ],
+  },
+  {
+    id: "a-faith",
+    listingId: B3_LISTING.id,
+    unitLabel: "B3",
+    propertyName: PROPERTY.name,
+    applicantName: "Faith Njeri",
+    applicantPhone: "+254799111222",
+    source: "FACEBOOK",
+    note: "Facebook Marketplace enquiry. Family of three.",
+    status: "CONTACTED",
+    handledById: AGENT.id,
+    handledByName: AGENT.fullName,
+    decidedById: null,
+    decidedByName: null,
+    decidedAt: null,
+    createdAt: daysAgoIso(1),
+    updatedAt: hoursAgoIso(20),
+    events: [
+      { id: "e-5", toStatus: "NEW", actorId: AGENT.id, actorName: AGENT.fullName, note: "Facebook Marketplace enquiry.", createdAt: daysAgoIso(1) },
+      { id: "e-6", toStatus: "CONTACTED", actorId: AGENT.id, actorName: AGENT.fullName, note: "Called — will confirm viewing day by Friday.", createdAt: hoursAgoIso(20) },
+    ],
+  },
+]
+
 function agentOverview(): AgentOverviewDto {
   const t = propertyTotals()
+  const vacantUnits = unitDtos().filter((u) => u.status === "VACANT")
   return {
     portfolioProperties: [PROPERTY],
-    totals: { properties: 1, units: t.units, occupancyRatePct: Math.round((t.occupied / t.units) * 100) },
-    phaseNotice: "Agent tools — listings, onboarding and reports — arrive in Phase 2.",
+    totals: {
+      properties: 1,
+      units: t.units,
+      occupancyRatePct: Math.round((t.occupied / t.units) * 100),
+      vacantUnits: vacantUnits.length,
+      liveListings: 1,
+      newApplications: 1,
+      activeApplications: 3,
+    },
+    unlistedVacantUnits: [], // the demo's only vacant unit (B3) is listed
+    liveListings: [B3_LISTING],
   }
 }
 

@@ -123,6 +123,7 @@ primitive above, e.g. caretaker:
 | condition reports (P2) | READ | `report.tenancy.unit.property.landlordId = SELF` |
 | visitor logs, incident reports, guard shifts (P3) | READ | `record.propertyId IN (Properties WHERE landlordId = SELF)` |
 | listings (P4) | READ, WRITE | `listing.propertyId IN (Properties WHERE landlordId = SELF)` |
+| listing applications + events (P4) | READ, WRITE(decide) | `application.propertyId IN (Properties WHERE landlordId = SELF)`. WRITE limited to APPROVED/REJECTED decisions (sets `decidedById/At`); pipeline moves are the agent's. |
 
 ### 4.2 AGENT — *manages the portfolio, not the ledger* (demo: Wanjiku Kamau)
 
@@ -144,7 +145,8 @@ primitive above, e.g. caretaker:
 | maintenance tickets, updates (P2) | READ, WRITE | `ticket.propertyId IN (Properties WHERE agentId = SELF)` |
 | condition reports (P2) | READ | `report.tenancy.unit.property.agentId = SELF` |
 | visitor logs, incident reports, guard shifts (P3) | READ | `record.propertyId IN (Properties WHERE agentId = SELF)` |
-| listings (P4) | READ, WRITE | `listing.propertyId IN (Properties WHERE agentId = SELF)` (their core Phase 4 module) |
+| listings (P4) | READ, WRITE | `listing.propertyId IN (Properties WHERE agentId = SELF)` (their core Phase 4 module). CREATE only from a VACANT unit in scope; status moves DRAFT→PUBLISHED↔PAUSED→LET. |
+| listing applications + events (P4) | READ, WRITE(record/pipeline) | `application.propertyId IN (Properties WHERE agentId = SELF)`. Agent records applicants and moves NEW→CONTACTED→VIEWING (+WITHDRAWN). APPROVED/REJECTED are the LANDLORD's alone — agents never decide. Events are append-only. |
 
 ### 4.3 CARETAKER — *runs one plot, records cash* (demo: John Mwangi)
 

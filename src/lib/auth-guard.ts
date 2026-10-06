@@ -366,3 +366,35 @@ export function shiftScopeWhere(profile: Profile): Prisma.GuardShiftWhereInput {
       return { id: "__never__" }
   }
 }
+
+/**
+ * Prisma `where` for Listing rows visible to `profile` (Phase 4 matrix §4.2):
+ * - AGENT: listings on properties they manage (their core module),
+ * - LANDLORD: listings on their properties (the owner of record),
+ * - TENANT/CARETAKER/GUARD: nothing (marketing funnel, not operations).
+ */
+export function listingScopeWhere(profile: Profile): Prisma.ListingWhereInput {
+  switch (profile.role) {
+    case "AGENT":
+      return { property: { agentId: profile.id } }
+    case "LANDLORD":
+      return { property: { landlordId: profile.id } }
+    default:
+      return { id: "__never__" }
+  }
+}
+
+/**
+ * Prisma `where` for ListingApplication rows visible to `profile` (Phase 4
+ * matrix §4.2 — same fence as listings; caretakers never see the funnel).
+ */
+export function applicationScopeWhere(profile: Profile): Prisma.ListingApplicationWhereInput {
+  switch (profile.role) {
+    case "AGENT":
+      return { property: { agentId: profile.id } }
+    case "LANDLORD":
+      return { property: { landlordId: profile.id } }
+    default:
+      return { id: "__never__" }
+  }
+}
