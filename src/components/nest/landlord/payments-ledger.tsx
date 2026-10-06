@@ -90,7 +90,7 @@ export function PaymentsLedger({ variant }: { variant: "landlord" | "caretaker" 
                 aria-pressed={filter === option.value}
                 onClick={() => setFilter(option.value)}
                 className={cn(
-                  "shrink-0 h-9 px-3 rounded-full text-caption font-medium border transition-colors",
+                  "shrink-0 h-11 px-4 rounded-full text-caption font-medium border transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-ring outline-none",
                   filter === option.value
                     ? option.value === "UNMATCHED"

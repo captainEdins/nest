@@ -212,7 +212,7 @@ export function PayFlowModal() {
                 setAmountInput(minorToShillingsInput(balanceMinor));
                 setAmountError(null);
               }}
-              className="h-9 px-3 rounded-full border text-caption font-medium focus-visible:ring-2 focus-visible:ring-ring outline-none"
+              className="h-11 px-4 rounded-full border text-caption font-medium focus-visible:ring-2 focus-visible:ring-ring outline-none"
             >
               {t("money.balance")} {formatKes(balanceMinor)}
             </button>
@@ -223,7 +223,7 @@ export function PayFlowModal() {
                   setAmountInput(minorToShillingsInput(nextDueMinor));
                   setAmountError(null);
                 }}
-                className="h-9 px-3 rounded-full border text-caption font-medium focus-visible:ring-2 focus-visible:ring-ring outline-none"
+                className="h-11 px-4 rounded-full border text-caption font-medium focus-visible:ring-2 focus-visible:ring-ring outline-none"
               >
                 {t("tenant.amountDue")} {formatKes(nextDueMinor)}
               </button>

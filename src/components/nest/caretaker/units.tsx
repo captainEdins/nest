@@ -85,7 +85,7 @@ export function CaretakerUnits() {
                 aria-pressed={statusFilter === filter.value}
                 onClick={() => setStatusFilter(filter.value)}
                 className={cn(
-                  "shrink-0 h-9 px-3 rounded-full text-caption font-medium border transition-colors",
+                  "shrink-0 h-11 px-4 rounded-full text-caption font-medium border transition-colors",
                   "focus-visible:ring-2 focus-visible:ring-ring outline-none",
                   statusFilter === filter.value
                     ? "bg-secondary text-secondary-foreground border-transparent"
