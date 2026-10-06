@@ -314,6 +314,7 @@ export const en = {
   "guard.visitors.purpose.OTHER": "Other",
   "guard.visitors.visitingUnit": "Visiting unit (optional)",
   "guard.visitors.noUnit": "No specific unit",
+  "guard.visitors.noPhone": "No phone",
   "guard.visitors.entry": "In",
   "guard.visitors.exit": "Out",
   "guard.visitors.onSite": "On site",
@@ -386,9 +387,6 @@ export const en = {
   "security.todayAt": "Today, {time}",
   "security.actionTakenLabel": "Action taken: {action}",
   "security.noShifts": "No shifts recorded yet",
-  "security.timeJustNow": "Just now",
-  "security.timeMinsAgo": "{count} min ago",
-  "security.timeHoursAgo": "{count} h ago",
 
   // ----- Tenant — visitors to my unit (Phase 3) ------------------------------
   "tenant.visitors.title": "Visitors to your unit",

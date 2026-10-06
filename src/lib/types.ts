@@ -377,6 +377,13 @@ export interface GuardOverviewDto {
   activeShift: GuardShiftDto | null
   /** Properties the guard has ever worked at (shift-derived scope), for Start-shift pickers. */
   properties: PropertyDto[]
+  /**
+   * Units of the ACTIVE shift's property (id + label, label-sorted) — the
+   * Log-visitor sheet's unit picker source. EMPTY when off duty: units are
+   * the active shift's context, and /api/units stays landlord/caretaker-only
+   * (the guard never fetches it — this field is the guard-scoped source).
+   */
+  activePropertyUnits: { id: string; label: string }[]
   totals: {
     visitorsToday: number
     onSiteNow: number
