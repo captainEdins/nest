@@ -47,14 +47,18 @@ import {
   toPropertyDto,
   toReceiptDto,
   toUnitDto,
+  toVisitorLogDto,
   unitInclude,
+  visitorLogInclude,
 } from "@/lib/dto"
 import type {
   AgentOverviewDto,
   ArrearsRowDto,
   CaretakerOverviewDto,
   GuardOverviewDto,
+  IncidentSeverity,
   LandlordOverviewDto,
+  SecurityDigestDto,
   TenantOverviewDto,
 } from "@/lib/types"
 
@@ -218,6 +222,45 @@ async function scopedActiveTenancies(unitIds: string[]): Promise<TenancyWithChai
 }
 
 // ---------------------------------------------------------------------------
+// Phase 3 — security digest (eyes on the ground)
+// ---------------------------------------------------------------------------
+
+/**
+ * SecurityDigestDto for a set of properties (the `where` selects them):
+ * today's visitor count, on-site count, unacknowledged incident counts,
+ * last incident, and who is on duty. No money — guards never touch it.
+ */
+async function securityDigest(propertyWhere: Prisma.PropertyWhereInput, now = new Date()): Promise<SecurityDigestDto> {
+  const midnight = startOfDay(now)
+  const [visitorsToday, onSiteNow, incidents, onDutyShift] = await Promise.all([
+    db.visitorLog.count({ where: { property: propertyWhere, enteredAt: { gte: midnight } } }),
+    db.visitorLog.count({ where: { property: propertyWhere, exitedAt: null, enteredAt: { gte: midnight } } }),
+    db.incidentReport.findMany({
+      where: { property: propertyWhere },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+      select: { severity: true, createdAt: true, acknowledgedById: true },
+    }),
+    db.guardShift.findFirst({
+      where: { property: propertyWhere, endedAt: null },
+      orderBy: { startedAt: "desc" },
+      include: { guard: { select: { fullName: true } } },
+    }),
+  ])
+
+  const unacked = incidents.filter((i) => i.acknowledgedById === null)
+  return {
+    visitorsToday,
+    onSiteNow,
+    unacknowledgedIncidents: unacked.length,
+    highSeverityUnacked: unacked.filter((i) => i.severity === "HIGH" || i.severity === "CRITICAL").length,
+    lastIncidentAt: incidents[0] ? incidents[0].createdAt.toISOString() : null,
+    lastIncidentSeverity: (incidents[0]?.severity as IncidentSeverity | undefined) ?? null,
+    onDutyGuardName: onDutyShift ? onDutyShift.guard.fullName : null,
+  }
+}
+
+// ---------------------------------------------------------------------------
 // LANDLORD
 // ---------------------------------------------------------------------------
 
@@ -237,7 +280,7 @@ export async function getLandlordOverview(profile: Profile): Promise<LandlordOve
   const occupied = units.filter((u) => u.status !== "VACANT").length // NOTICE still tenanted
   const vacant = totalUnits - occupied
 
-  const [recentPayments, openTickets] = await Promise.all([
+  const [recentPayments, openTickets, security] = await Promise.all([
     db.payment.findMany({
       where: await paymentScopeWhere(profile),
       orderBy: { receivedAt: "desc" },
@@ -248,6 +291,8 @@ export async function getLandlordOverview(profile: Profile): Promise<LandlordOve
     db.maintenanceTicket.count({
       where: { status: { in: ["OPEN", "IN_PROGRESS"] }, unit: { property: { landlordId: profile.id } } },
     }),
+    // Phase 3: eyes-on-the-ground digest.
+    securityDigest({ landlordId: profile.id }),
   ])
 
   return {
@@ -271,6 +316,7 @@ export async function getLandlordOverview(profile: Profile): Promise<LandlordOve
     arrears: rollup.arrears,
     recentPayments: recentPayments.map(toPaymentDto),
     vacancies: units.filter((u) => u.status === "VACANT").map((u) => toUnitDto(u, rollup.balances)),
+    security,
     month: rollup.month,
   }
 }
@@ -293,7 +339,7 @@ export async function getCaretakerOverview(profile: Profile): Promise<CaretakerO
   ])
 
   const rollup = await computeMoneyRollup(profile, tenancies, now)
-  const [recentPayments, openTickets] = await Promise.all([
+  const [recentPayments, openTickets, security] = await Promise.all([
     db.payment.findMany({
       where: await paymentScopeWhere(profile),
       orderBy: { receivedAt: "desc" },
@@ -304,6 +350,8 @@ export async function getCaretakerOverview(profile: Profile): Promise<CaretakerO
     db.maintenanceTicket.count({
       where: { status: { in: ["OPEN", "IN_PROGRESS"] }, unit: { property: { caretakerId: profile.id } } },
     }),
+    // Phase 3: eyes-on-the-ground digest.
+    securityDigest({ caretakerId: profile.id }),
   ])
 
   const occupied = units.filter((u) => u.status !== "VACANT").length
@@ -323,6 +371,7 @@ export async function getCaretakerOverview(profile: Profile): Promise<CaretakerO
     },
     arrears: rollup.arrears,
     recentPayments: recentPayments.map(toPaymentDto),
+    security,
     month: rollup.month,
   }
 }
@@ -347,10 +396,20 @@ export async function getTenantOverview(profile: Profile): Promise<TenantOvervie
     throw new ApiHttpError(404, "no active tenancy", "NOT_FOUND")
   }
 
-  const [charges, payments, notifications] = await Promise.all([
+  const [charges, payments, notifications, recentVisitors] = await Promise.all([
     db.rentCharge.findMany({ where: { tenancyId: tenancy.id }, include: chargeInclude }),
     db.payment.findMany({ where: { tenancyId: tenancy.id, status: "COMPLETED" }, include: paymentInclude }),
     db.notification.findMany({ where: { profileId: profile.id }, orderBy: { createdAt: "desc" }, take: 10 }),
+    // Phase 3: who came to my unit — last 7 days, newest first (matrix §4.4).
+    db.visitorLog.findMany({
+      where: {
+        unitId: tenancy.unitId,
+        enteredAt: { gte: new Date(now.getTime() - 7 * 86_400_000) },
+      },
+      orderBy: { enteredAt: "desc" },
+      take: 5,
+      include: visitorLogInclude,
+    }),
   ])
 
   // Newest first (dueDate desc), RENT before service charges within a period.
@@ -384,6 +443,7 @@ export async function getTenantOverview(profile: Profile): Promise<TenantOvervie
     charges: charges.map(toChargeDto),
     receipts: payments.filter((p) => p.receiptNo).map(toReceiptDto),
     notifications: notifications.map(toNotificationDtoRow),
+    recentVisitors: recentVisitors.map(toVisitorLogDto),
   }
 }
 
@@ -410,12 +470,71 @@ export async function getAgentOverview(profile: Profile): Promise<AgentOverviewD
 }
 
 // ---------------------------------------------------------------------------
-// GUARD — no money, ever (matrix §4.5); property link arrives with Phase 3 shifts
+// GUARD — no money, ever (matrix §4.5/§6); the shift is the trust anchor
 // ---------------------------------------------------------------------------
 
-export async function getGuardOverview(): Promise<GuardOverviewDto> {
+export async function getGuardOverview(profile: Profile): Promise<GuardOverviewDto> {
+  const now = new Date()
+  const midnight = startOfDay(now)
+
+  // The guard's property scope: distinct properties from their shift history.
+  const shifts = await db.guardShift.findMany({
+    where: { guardId: profile.id },
+    orderBy: { startedAt: "desc" },
+    include: { property: { include: { units: true } } },
+  })
+  const propertiesById = new Map(shifts.map((s) => [s.propertyId, s.property]))
+  const properties = [...propertiesById.values()]
+
+  // ACTIVE shift (write anchor) — newest open one.
+  const activeShift = shifts.find((s) => s.endedAt === null) ?? null
+  const activeProperty = activeShift ? propertiesById.get(activeShift.propertyId) ?? null : null
+
+  // Today's stats scoped to the guard's properties.
+  const scopeIds = properties.map((p) => p.id)
+  const propertyIn = scopeIds.length ? { propertyId: { in: scopeIds } } : { propertyId: "__never__" }
+  const [visitorsToday, onSiteNow, unacknowledgedIncidents, recentVisitors] = await Promise.all([
+    db.visitorLog.count({ where: { ...propertyIn, enteredAt: { gte: midnight } } }),
+    db.visitorLog.count({ where: { ...propertyIn, exitedAt: null, enteredAt: { gte: midnight } } }),
+    db.incidentReport.count({
+      where: { ...propertyIn, acknowledgedById: null, guardId: profile.id },
+    }),
+    db.visitorLog.findMany({
+      where: { ...propertyIn, enteredAt: { gte: midnight } },
+      orderBy: { enteredAt: "desc" },
+      take: 5,
+      include: visitorLogInclude,
+    }),
+  ])
+
   return {
-    property: null, // honest: no guard-property link exists until GuardShift (Phase 3)
-    phaseNotice: "Guard module — visitor logs, incident reports and shifts — arrives in Phase 3. Payment data is never shown to guards.",
+    property: activeProperty
+      ? toPropertyDto(
+          activeProperty,
+          activeProperty.units.length,
+          activeProperty.units.filter((u) => u.status !== "VACANT").length
+        )
+      : null,
+    activeShift: activeShift
+      ? {
+          id: activeShift.id,
+          propertyId: activeShift.propertyId,
+          propertyName: activeShift.property.name,
+          guardId: activeShift.guardId,
+          guardName: profile.fullName,
+          startedAt: activeShift.startedAt.toISOString(),
+          endedAt: null,
+          notes: null,
+        }
+      : null,
+    properties: properties.map((p) =>
+      toPropertyDto(p, p.units.length, p.units.filter((u) => u.status !== "VACANT").length)
+    ),
+    totals: {
+      visitorsToday,
+      onSiteNow,
+      unacknowledgedIncidents,
+    },
+    recentVisitors: recentVisitors.map(toVisitorLogDto),
   }
 }

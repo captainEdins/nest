@@ -303,6 +303,8 @@ export interface LandlordOverviewDto {
   arrears: ArrearsRowDto[]
   recentPayments: PaymentDto[]
   vacancies: UnitDto[]
+  /** Phase 3: eyes on the ground — visitor/incident digest. */
+  security: SecurityDigestDto
   month: string // "YYYY-MM" the numbers refer to
 }
 
@@ -323,6 +325,8 @@ export interface CaretakerOverviewDto {
   }
   arrears: ArrearsRowDto[]
   recentPayments: PaymentDto[]
+  /** Phase 3: eyes on the ground — visitor/incident digest. */
+  security: SecurityDigestDto
   month: string
 }
 
@@ -345,6 +349,8 @@ export interface TenantOverviewDto {
   charges: ChargeDto[]
   receipts: ReceiptDto[]
   notifications: NotificationDto[]
+  /** Phase 3: who came to my unit — most recent first (last 7 days, max 5). */
+  recentVisitors: VisitorLogDto[]
 }
 
 export interface AgentOverviewDto {
@@ -359,7 +365,105 @@ export interface AgentOverviewDto {
 
 export interface GuardOverviewDto {
   property: PropertyDto | null
-  phaseNotice: string
+  /** ACTIVE shift if on duty — the guard's write anchor (property derived from it). */
+  activeShift: GuardShiftDto | null
+  /** Properties the guard has ever worked at (shift-derived scope), for Start-shift pickers. */
+  properties: PropertyDto[]
+  totals: {
+    visitorsToday: number
+    onSiteNow: number
+    unacknowledgedIncidents: number
+  }
+  recentVisitors: VisitorLogDto[]
+}
+
+// ---------------------------------------------------------------------------
+// Guard module — visitor log, incident reports, shifts (Phase 3)
+// ---------------------------------------------------------------------------
+
+export const VISITOR_PURPOSES = ["VISITOR", "DELIVERY", "CONTRACTOR", "VIEWING", "OTHER"] as const
+export type VisitorPurpose = (typeof VISITOR_PURPOSES)[number]
+
+export const INCIDENT_CATEGORIES = ["SECURITY", "DAMAGE", "DISPUTE", "THEFT", "OTHER"] as const
+export type IncidentCategory = (typeof INCIDENT_CATEGORIES)[number]
+
+export const INCIDENT_SEVERITIES = ["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const
+export type IncidentSeverity = (typeof INCIDENT_SEVERITIES)[number]
+
+export interface VisitorLogDto {
+  id: string
+  propertyId: string
+  propertyName: string
+  unitId: string | null
+  unitLabel: string | null
+  visitorName: string
+  visitorPhone: string | null
+  purpose: VisitorPurpose
+  guardId: string
+  guardName: string
+  enteredAt: string
+  exitedAt: string | null
+}
+
+export interface LogVisitorRequest {
+  visitorName: string
+  visitorPhone?: string
+  purpose: VisitorPurpose
+  /** Optional unit the visitor is heading to (must belong to the shift property). */
+  unitId?: string
+}
+
+export interface IncidentReportDto {
+  id: string
+  propertyId: string
+  propertyName: string
+  guardId: string
+  guardName: string
+  category: IncidentCategory
+  severity: IncidentSeverity
+  description: string
+  actionTaken: string | null
+  acknowledgedById: string | null
+  acknowledgedByName: string | null
+  acknowledgedAt: string | null
+  createdAt: string
+}
+
+export interface ReportIncidentRequest {
+  category: IncidentCategory
+  severity: IncidentSeverity
+  description: string
+  actionTaken?: string
+}
+
+export interface GuardShiftDto {
+  id: string
+  propertyId: string
+  propertyName: string
+  guardId: string
+  guardName: string
+  startedAt: string
+  endedAt: string | null
+  notes: string | null
+}
+
+export interface StartShiftRequest {
+  propertyId: string
+}
+
+export interface EndShiftRequest {
+  notes?: string
+}
+
+/** Security digest for LANDLORD/CARETAKER home cards (Phase 3). */
+export interface SecurityDigestDto {
+  visitorsToday: number
+  onSiteNow: number
+  unacknowledgedIncidents: number
+  highSeverityUnacked: number
+  lastIncidentAt: string | null
+  lastIncidentSeverity: IncidentSeverity | null
+  onDutyGuardName: string | null
 }
 
 // ---------------------------------------------------------------------------

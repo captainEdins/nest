@@ -58,7 +58,7 @@ export function AgentHome() {
           {/* Phase notice — amber tint, info icon, non-urgent (S-12) */}
           <div className="rounded-xl border border-warning/40 bg-warning/15 dark:bg-warning/10 p-4 flex items-start gap-3">
             <Info className="size-5 text-attention shrink-0 mt-0.5" aria-hidden />
-            <p className="text-body text-attention">{t("phase.agentNotice", { phase: "Phase 4" })}</p>
+            <p className="text-body text-attention">{t("phase.agentNotice", { phase: "4" })}</p>
           </div>
 
           {/* Properties */}

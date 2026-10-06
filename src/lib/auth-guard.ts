@@ -265,3 +265,104 @@ export function depositTenancyScopeWhere(profile: Profile): Prisma.TenancyWhereI
       return { id: "__never__" }
   }
 }
+
+// ---------------------------------------------------------------------------
+// Guard module (Phase 3) — visitor log, incident reports, shifts
+//
+// The guard↔property link is the GuardShift row itself (schema intent): a
+// guard's read scope is every property they have EVER worked a shift at.
+// Writes additionally require an ACTIVE shift (guardActiveShift) — "on duty"
+// is the trust anchor; every visitor entry and incident carries the shift.
+// ---------------------------------------------------------------------------
+
+/**
+ * Property ids in the guard's scope: distinct properties from their GuardShift
+ * rows. Non-guards get an empty list (deny by default). First-shift bootstrap
+ * is a landlord-side invite flow — Phase 3.x candidate (documented).
+ */
+export async function guardPropertyIds(profile: Profile): Promise<string[]> {
+  if (profile.role !== "GUARD") return []
+  const shifts = await db.guardShift.findMany({
+    where: { guardId: profile.id },
+    select: { propertyId: true },
+    distinct: ["propertyId"],
+  })
+  return shifts.map((s) => s.propertyId)
+}
+
+/**
+ * The caller's ACTIVE shift (endedAt null, most recent), GUARD only — the
+ * server-side write anchor. The property of a visitor/incident write is ALWAYS
+ * this shift's property; the client never sends it.
+ */
+export async function guardActiveShift(profile: Profile) {
+  if (profile.role !== "GUARD") return null
+  return db.guardShift.findFirst({
+    where: { guardId: profile.id, endedAt: null },
+    orderBy: { startedAt: "desc" },
+    include: { property: { select: { id: true, name: true } } },
+  })
+}
+
+/**
+ * Prisma `where` for VisitorLog rows visible to `profile` (Phase 3 matrix):
+ * - GUARD: logs at properties they have worked at (the gate register is
+ *   SHARED — a relieving guard must see today's entries),
+ * - LANDLORD/CARETAKER: logs on their property chain,
+ * - TENANT: logs for their ACTIVE-tenancy unit only (who came to my unit),
+ * - AGENT: nothing (marketing role — not operations).
+ */
+export function visitorLogScopeWhere(profile: Profile): Prisma.VisitorLogWhereInput {
+  switch (profile.role) {
+    case "LANDLORD":
+      return { property: { landlordId: profile.id } }
+    case "CARETAKER":
+      return { property: { caretakerId: profile.id } }
+    case "GUARD":
+      // property → guardShifts(guardId) — sync form of guardPropertyIds.
+      return { property: { guardShifts: { some: { guardId: profile.id } } } }
+    case "TENANT":
+      return { unit: { tenancies: { some: { tenantId: profile.id, status: "ACTIVE" } } } }
+    default: // AGENT and anything unknown — deny by default.
+      return { id: "__never__" }
+  }
+}
+
+/**
+ * Prisma `where` for IncidentReport rows visible to `profile` (Phase 3 matrix):
+ * - GUARD: incidents at properties they have worked at (shared history —
+ *   context for the next shift),
+ * - LANDLORD/CARETAKER: incidents on their property chain,
+ * - TENANT/AGENT: nothing (incidents are operations data, not tenant-facing).
+ */
+export function incidentScopeWhere(profile: Profile): Prisma.IncidentReportWhereInput {
+  switch (profile.role) {
+    case "LANDLORD":
+      return { property: { landlordId: profile.id } }
+    case "CARETAKER":
+      return { property: { caretakerId: profile.id } }
+    case "GUARD":
+      return { property: { guardShifts: { some: { guardId: profile.id } } } }
+    default: // TENANT + AGENT — deny by default.
+      return { id: "__never__" }
+  }
+}
+
+/**
+ * Prisma `where` for GuardShift rows visible to `profile` (Phase 3 matrix):
+ * - GUARD: shifts at their properties — ALL guards' shifts (handover relay),
+ * - LANDLORD/CARETAKER: shifts at their properties (the on-duty record),
+ * - TENANT/AGENT: nothing.
+ */
+export function shiftScopeWhere(profile: Profile): Prisma.GuardShiftWhereInput {
+  switch (profile.role) {
+    case "LANDLORD":
+      return { property: { landlordId: profile.id } }
+    case "CARETAKER":
+      return { property: { caretakerId: profile.id } }
+    case "GUARD":
+      return { property: { guardShifts: { some: { guardId: profile.id } } } }
+    default:
+      return { id: "__never__" }
+  }
+}
