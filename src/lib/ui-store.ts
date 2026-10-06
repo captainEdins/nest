@@ -26,6 +26,7 @@ export type TabId =
   | "security" // Phase 3: landlord/caretaker security digest (More tab)
   | "listings" // Phase 4: agent listings (the marketing funnel)
   | "applicants" // Phase 4: agent applicant pipeline
+  | "analytics" // Phase 5: landlord analytics dashboard (More tab)
 ;
 export type PaymentsFilter = "ALL" | "MPESA" | "CASH" | "UNMATCHED";
 
