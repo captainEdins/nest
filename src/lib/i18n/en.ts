@@ -187,6 +187,22 @@ export const en = {
   "notifications.arrearsReminder": "Arrears reminder",
   "notifications.paymentNeedsReview": "Payment needs review",
   "notifications.empty": "No notifications yet",
+  // Phase 7 — template headings for every emitted key (11 total)
+  "notifications.depositSettled": "Deposit settled",
+  "notifications.applicationRecorded": "Applicant recorded",
+  "notifications.applicationDecided": "Application decided",
+  "notifications.applicationStatus": "Application update",
+  "notifications.incidentFiled": "Incident filed",
+  "notifications.incidentAcked": "Incident acknowledged",
+  "notifications.ticketCreated": "Repair reported",
+  "notifications.ticketUpdated": "Repair update",
+  // Phase 7 — notification center controls
+  "notifications.markAllRead": "Mark all read",
+  "notifications.markRead": "Mark read",
+  "notifications.filterAll": "All",
+  "notifications.filterUnread": "Unread",
+  "notifications.unreadCount": "{count} unread",
+  "notifications.allCaughtUp": "You're all caught up",
 
   // ----- Empty states -------------------------------------------------------
   "empty.payments": "No payments yet",

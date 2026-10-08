@@ -298,6 +298,7 @@ const NOTIFICATIONS: FxNotification[] = [
     status: "SENT",
     createdAt: daysAgoIso(2),
     sentAt: daysAgoIso(2),
+    readAt: daysAgoIso(1),
   },
   {
     id: "n-2",
@@ -307,6 +308,7 @@ const NOTIFICATIONS: FxNotification[] = [
     status: "QUEUED",
     createdAt: daysAgoIso(1),
     sentAt: null,
+    readAt: null,
   },
   {
     id: "n-3",
@@ -316,6 +318,7 @@ const NOTIFICATIONS: FxNotification[] = [
     status: "QUEUED",
     createdAt: daysAgoIso(1),
     sentAt: null,
+    readAt: null,
   },
 ]
 

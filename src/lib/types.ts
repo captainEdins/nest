@@ -148,6 +148,13 @@ export interface NotificationDto {
   status: "QUEUED" | "SENT" | "FAILED"
   createdAt: string
   sentAt: string | null
+  /** Phase 7: null = unread (own rows only, POST /api/notifications/read). */
+  readAt: string | null
+}
+
+/** Phase 7: cheap poll for the bell badge — own rows only. */
+export interface NotificationUnreadCountDto {
+  unread: number
 }
 
 // ---------------------------------------------------------------------------

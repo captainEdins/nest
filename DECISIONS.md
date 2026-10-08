@@ -107,6 +107,16 @@ Recorded by the Principal Engineer. Every entry: context, decision, trade-offs, 
   - Strict on-time rule: a charge counts on-time only when fully paid within its own billed month; RECENT_TREND divides by 3 even with fewer billed months. Deliberate — short or late records earn visibly less, and the explainer says so.
   - Tenant `?tenancyId=` params are **ignored** (own ACTIVE tenancy is always resolved server-side); staff ids are re-fetched inside `tenancyScopeWhere` (miss ⇒ 404).
 
+## D-020 — Phase 7 wedge: notification read state (Notification Center)
+- **Context**: Phase 6 closed with PR #69. The notification surface is the most-touched cross-role UI, but rows had no read state and the bell badge keyed off delivery status (IN_APP rows are SENT on creation, so the old QUEUED dot almost never showed). Opened as issue #70.
+- **Decisions**:
+  - **Read state is first-class data**: `Notification.readAt DateTime?` (null = unread), set only via `POST /api/notifications/read` (`{ids}` | `{all}`) scoped to `profileId = SELF`. Delivery state (QUEUED/SENT/FAILED) stays system-owned — read and delivered are different facts, and marking read is not a money action, so no AuditLog row (D-008 discipline).
+  - **Idempotent append-only spirit**: rows already read keep their original `readAt` (the first read time is the record); re-marking is a no-op, and foreign ids match nothing (existence must not leak).
+  - **The badge polls cheap**: `GET /api/notifications/unread-count` returns one integer from one COUNT, polled every 30s by every role — never a list fetch. The write returns the after-count so the client updates in one round-trip.
+  - **Tenant and modal surfaces share one feed component** (`NotificationsFeed`) — filters, mark-one/mark-all, and the day-grouped list cannot diverge between the tab and the bell modal; the tenant home preview keeps a controls-free variant.
+  - **Full template coverage**: all 11 emitted templateKeys now map to typed i18n headings (EN+SW) via one record, not a chain of ifs. New emitters add one key + two dictionary lines.
+  - Unread styling is a left accent bar + `bg-primary/[0.045]` tint + dot (not a color-only signal — a11y), 44px mark-read targets, and a `.nest-scrollbar` utility (thin, theme-aware) lands in globals.css for long-list surfaces.
+
 ## Open assumptions awaiting user input
 1. Supabase service-role key or DB password — to run migrations, RLS, and phone OTP.
 2. Daraja sandbox credentials — for live M-Pesa testing (sim mode until then).

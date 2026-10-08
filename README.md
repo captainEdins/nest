@@ -29,7 +29,7 @@ One plot. Five roles. One record of truth.
 
 **The honest risks.** A Kenyan fintech ("nesti") already operates in rent payments — brand clearance is tracked as a blocking issue; "NEST" is a codename until cleared. Incumbents ship broad suites; NEST wins by being field-first (offline, low-end Android, Kiswahili) and by making the caretaker the hero.
 
-### What is shipped in this repo (Phase 0 → 6)
+### What is shipped in this repo (Phase 0 → 7)
 
 | Capability | Status |
 |---|---|
@@ -50,6 +50,7 @@ One plot. Five roles. One record of truth.
 | **KRA/MRI tax assistant** — monthly rent summary, 7.5% MRI estimate, CSV export (record-keeping only, never tax advice) | ✅ shipped |
 | **Tenant monthly statement** — brought-forward → billed → settled → carried-forward per month; cross-month payments shown where they landed | ✅ shipped |
 | **Rent Score (tenant + staff views)** — 0–800 from four documented factors, factor breakdown on the card, same engine output on arrears rows | ✅ shipped |
+| **Notification Center** — read state per row, unread badge on the bell (every role), All/Unread filters, mark-one/mark-all read, translated headings for all 11 event types | ✅ shipped |
 | English & Kiswahili, light/dark | ✅ shipped |
 | Consent-gated external Rent Score API, financing & insurance partners, load/security hardening | 🗺 next tail (see [roadmap](#-roadmap)) |
 
@@ -149,6 +150,7 @@ DECISIONS.md        every assumption, trade-off and rejected alternative
 | 4 | Agent module, listings funnel, landlord approvals, PWA service worker | ✅ |
 | 5-wedge | Landlord analytics (trend/aging/occupancy), KRA/MRI assistant + CSV export, a11y polish | ✅ v0.5.0 |
 | 6-wedge | **Tenant monthly statement** (portable payment record) + **Rent Score** (0–800, four documented factors, tenant card + staff chips) | ✅ v0.6.0 (this repo) |
+| 7-wedge | **Notification Center** — read state (readAt), unread bell badges, All/Unread filters, mark-read, full template-heading coverage (11 keys, EN+SW) | ✅ v0.7.0 (this repo) |
 | 6-tail | Consent-gated external Rent Score API, financing & insurance partners, load/security/a11y hardening, pilot readiness | planned |
 
 ## 📚 Documentation
