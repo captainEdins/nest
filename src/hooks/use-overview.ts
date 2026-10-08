@@ -6,8 +6,8 @@
  * role — all tabs read the cached payload instead of re-fetching.
  */
 
-import { useQuery, type UseQueryResult } from "@tanstack/react-query";
-import { apiGet, apiGetSession, type MpesaStatusDto } from "@/lib/api";
+import { useMutation, useQuery, type UseMutationResult, type UseQueryResult } from "@tanstack/react-query";
+import { apiGet, apiGetSession, apiPost, type MpesaStatusDto } from "@/lib/api";
 import { getQueryClient } from "@/components/nest/providers";
 import type {
   AgentOverviewDto,
@@ -228,6 +228,41 @@ export function useNotifications(enabled = true): UseQueryResult<NotificationDto
     queryFn: () => apiGet<NotificationDto[]>("/api/notifications"),
     enabled,
     staleTime: 30_000,
+  });
+}
+
+/** Phase 7: own unread count — the cheap bell-badge poll (30s, all roles). */
+export function useUnreadCount(enabled = true): UseQueryResult<number> {
+  return useQuery({
+    queryKey: ["notifications", "unread-count"],
+    queryFn: () =>
+      apiGet<import("@/lib/types").NotificationUnreadCountDto>("/api/notifications/unread-count").then(
+        (dto) => dto.unread,
+      ),
+    enabled,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
+    staleTime: 15_000,
+  });
+}
+
+/**
+ * Phase 7: mark own notifications read. Optimistically zeroes the badge, then
+ * invalidates both caches so the list refetches with fresh readAt values.
+ */
+export function useMarkNotificationsRead(): UseMutationResult<number, Error, { ids?: string[]; all?: boolean }> {
+  const queryClient = getQueryClient();
+  return useMutation({
+    mutationFn: (vars: { ids?: string[]; all?: boolean }) =>
+      apiPost<import("@/lib/types").NotificationUnreadCountDto>("/api/notifications/read", vars).then(
+        (dto) => dto.unread,
+      ),
+    onSuccess: (unread) => {
+      queryClient.setQueryData(["notifications", "unread-count"], unread);
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+      // Tenant home carries notifications inside the overview cache too.
+      void queryClient.invalidateQueries({ queryKey: ["overview"] });
+    },
   });
 }
 

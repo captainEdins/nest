@@ -1,17 +1,25 @@
 "use client";
 
 /**
- * S-14 · Notifications — one feed of what NEST sent (SMS/WhatsApp/in-app).
+ * NEST · Notification Center (S-14 + Phase 7, issue #70).
+ *
  * Tenant: a tab fed by the cached overview. Other roles: header-bell modal
- * with a lazy /api/notifications fetch.
+ * with a lazy /api/notifications fetch. Phase 7 adds the read state everywhere:
+ * - bell badge counts unread rows (30s poll, /api/notifications/unread-count)
+ * - rows: unread tint + dot + per-row mark-read (44px target)
+ * - "Mark all read" in the header of both surfaces
+ * - All / Unread filter pills (same shape as the payments ledger chips)
+ * - every emitted templateKey (11) renders a translated heading
  */
 
+import { useState } from "react";
 import { differenceInCalendarDays, parseISO } from "date-fns";
-import { Bell, MessageCircle, MessageSquare } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { Bell, Check, CheckCheck, MessageCircle, MessageSquare } from "lucide-react";
+import { useI18n, type TranslationKey } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import type { NotificationChannel, NotificationDto } from "@/lib/types";
+import { useMarkNotificationsRead, useNotifications, useTenantOverview } from "@/hooks/use-overview";
 import { useUIStore } from "@/lib/ui-store";
-import { useNotifications, useTenantOverview } from "@/hooks/use-overview";
 import { formatDate, formatTime } from "./format";
 import { EmptyState } from "./empty-state";
 import { ErrorState } from "./error-state";
@@ -40,11 +48,24 @@ function channelKey(channel: NotificationChannel): "channel.sms" | "channel.what
   }
 }
 
+/** Phase 7: every emitted templateKey gets a translated heading (11 total). */
+const TEMPLATE_KEY_TO_I18N: Record<string, TranslationKey> = {
+  RECEIPT_ISSUED: "notifications.receiptIssued",
+  ARREARS_REMINDER: "notifications.arrearsReminder",
+  UNMATCHED_PAYMENT: "notifications.paymentNeedsReview",
+  DEPOSIT_SETTLED: "notifications.depositSettled",
+  APPLICATION_RECORDED: "notifications.applicationRecorded",
+  APPLICATION_DECIDED: "notifications.applicationDecided",
+  APPLICATION_STATUS: "notifications.applicationStatus",
+  INCIDENT_FILED: "notifications.incidentFiled",
+  INCIDENT_ACKED: "notifications.incidentAcked",
+  TICKET_CREATED: "notifications.ticketCreated",
+  TICKET_UPDATED: "notifications.ticketUpdated",
+};
+
 function templateLine(templateKey: string, t: ReturnType<typeof useI18n>["t"]): string | null {
-  if (templateKey === "RECEIPT_ISSUED") return t("notifications.receiptIssued");
-  if (templateKey === "ARREARS_REMINDER") return t("notifications.arrearsReminder");
-  if (templateKey === "UNMATCHED_PAYMENT") return t("notifications.paymentNeedsReview");
-  return null;
+  const key = TEMPLATE_KEY_TO_I18N[templateKey];
+  return key ? t(key) : null;
 }
 
 interface DayGroup {
@@ -75,10 +96,15 @@ function groupByDay(notifications: NotificationDto[], t: ReturnType<typeof useI1
 function NotificationRow({
   notification,
   matchTab,
+  onMarkRead,
+  marking,
 }: {
   notification: NotificationDto;
   /** Tab holding the unmatched queue for this role, or null to hide the action. */
   matchTab: "payments" | "collections" | null;
+  /** Phase 7: mark this row read (own row — server re-checks scope). */
+  onMarkRead: ((id: string) => void) | null;
+  marking: boolean;
 }) {
   const { t } = useI18n();
   const setTab = useUIStore((s) => s.setTab);
@@ -88,19 +114,30 @@ function NotificationRow({
   const Icon = CHANNEL_ICON[notification.channel];
   const heading = templateLine(notification.templateKey, t);
   const needsReview = notification.templateKey === "UNMATCHED_PAYMENT" && matchTab !== null;
+  const unread = notification.readAt == null;
 
   return (
-    <div className="p-4 min-h-14 flex items-start gap-2">
+    <div
+      className={cn(
+        "group/row p-4 min-h-14 flex items-start gap-2 transition-colors",
+        unread ? "bg-primary/[0.045] border-l-2 border-primary" : "border-l-2 border-transparent",
+      )}
+    >
       <span className="w-2 shrink-0 self-center" aria-hidden>
-        {notification.status === "QUEUED" ? (
-          <span className="block size-2 rounded-full bg-primary" />
-        ) : null}
+        {unread ? <span className="block size-2 rounded-full bg-primary" /> : null}
       </span>
       <div className="min-w-0 flex-1">
         {heading ? (
-          <p className="text-body font-medium truncate">{heading}</p>
+          <p className={cn("text-body truncate", unread ? "font-semibold" : "font-medium")}>{heading}</p>
         ) : null}
-        <p className="text-body text-muted-foreground break-words line-clamp-2">{notification.body}</p>
+        <p
+          className={cn(
+            "text-body break-words line-clamp-2",
+            unread ? "text-foreground/90" : "text-muted-foreground",
+          )}
+        >
+          {notification.body}
+        </p>
         <p className="text-caption text-muted-foreground flex items-center gap-1.5 flex-wrap mt-1">
           <Badge variant="secondary" className="text-caption gap-1">
             <Icon className="size-3" aria-hidden />
@@ -110,24 +147,99 @@ function NotificationRow({
           <StatusBadge status={notification.status} />
         </p>
       </div>
-      {needsReview && matchTab ? (
+      <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 shrink-0">
+        {unread && onMarkRead ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-11 w-11 sm:h-9 sm:w-9 p-0"
+            disabled={marking}
+            onClick={() => onMarkRead(notification.id)}
+            aria-label={t("notifications.markRead")}
+          >
+            <Check className="size-4" aria-hidden />
+          </Button>
+        ) : null}
+        {needsReview && matchTab ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-11 sm:h-9 shrink-0"
+            onClick={() => {
+              setPaymentsFilter("UNMATCHED");
+              setTab(matchTab);
+              setNotificationsOpen(false);
+            }}
+          >
+            {t("unmatched.matchToTenant")}
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/** Phase 7 filter values for the feed. */
+type FeedFilter = "ALL" | "UNREAD";
+
+interface FeedControlsProps {
+  filter: FeedFilter;
+  setFilter: (f: FeedFilter) => void;
+  unreadCount: number;
+  totalCount: number;
+  onMarkAll: (() => void) | null;
+  marking: boolean;
+}
+
+/** Filter pills + "Mark all read" — shared by the modal and the tenant tab. */
+function FeedControls({ filter, setFilter, unreadCount, totalCount, onMarkAll, marking }: FeedControlsProps) {
+  const { t } = useI18n();
+  const pills: { value: FeedFilter; labelKey: TranslationKey; count: number }[] = [
+    { value: "ALL", labelKey: "notifications.filterAll", count: totalCount },
+    { value: "UNREAD", labelKey: "notifications.filterUnread", count: unreadCount },
+  ];
+  return (
+    <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label={t("notifications.title")}>
+        {pills.map((option) => (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={filter === option.value}
+            onClick={() => setFilter(option.value)}
+            className={cn(
+              "shrink-0 h-11 px-4 rounded-full text-caption font-medium border transition-colors",
+              "focus-visible:ring-2 focus-visible:ring-ring outline-none",
+              filter === option.value
+                ? option.value === "UNREAD"
+                  ? "border-warning text-attention bg-warning/15"
+                  : "bg-secondary text-secondary-foreground border-transparent"
+                : "border-border text-muted-foreground",
+            )}
+          >
+            {t(option.labelKey)}
+            <span className="ml-1.5 tabular-nums">{option.count}</span>
+          </button>
+        ))}
+      </div>
+      <div className="flex-1" />
+      {unreadCount > 0 && onMarkAll ? (
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
-          className="h-11 sm:h-9 shrink-0"
-          onClick={() => {
-            setPaymentsFilter("UNMATCHED");
-            setTab(matchTab);
-            setNotificationsOpen(false);
-          }}
+          className="h-11 gap-1.5 text-caption"
+          disabled={marking}
+          onClick={onMarkAll}
         >
-          {t("unmatched.matchToTenant")}
+          <CheckCheck className="size-4" aria-hidden />
+          {t("notifications.markAllRead")}
         </Button>
       ) : null}
     </div>
   );
 }
 
+/** Day-grouped card list WITHOUT controls — used by the tenant home preview. */
 export function NotificationsList({
   notifications,
   matchTab = null,
@@ -146,7 +258,13 @@ export function NotificationsList({
           </h2>
           <Card className="divide-y">
             {group.items.map((notification) => (
-              <NotificationRow key={notification.id} notification={notification} matchTab={matchTab} />
+              <NotificationRow
+                key={notification.id}
+                notification={notification}
+                matchTab={matchTab}
+                onMarkRead={null}
+                marking={false}
+              />
             ))}
           </Card>
         </section>
@@ -155,22 +273,106 @@ export function NotificationsList({
   );
 }
 
+/**
+ * The full feed: controls + day-grouped list. Pure of data-fetching so the
+ * tenant tab (overview cache) and the bell modal (lazy fetch) share it.
+ */
+export function NotificationsFeed({
+  notifications,
+  matchTab = null,
+  onMarkOne,
+  onMarkAll,
+  marking = false,
+  maxHeight = null,
+}: {
+  notifications: NotificationDto[];
+  matchTab?: "payments" | "collections" | null;
+  onMarkOne?: (id: string) => void;
+  onMarkAll?: () => void;
+  marking?: boolean;
+  /** e.g. "max-h-[60vh]" for the modal; null scrolls with the page. */
+  maxHeight?: string | null;
+}) {
+  const { t } = useI18n();
+  const [filter, setFilter] = useState<FeedFilter>("ALL");
+
+  const unreadCount = notifications.filter((n) => n.readAt == null).length;
+  const filtered = filter === "UNREAD" ? notifications.filter((n) => n.readAt == null) : notifications;
+  const groups = groupByDay(filtered, t);
+
+  const list = (
+    <div className="space-y-4">
+      <FeedControls
+        filter={filter}
+        setFilter={setFilter}
+        unreadCount={unreadCount}
+        totalCount={notifications.length}
+        onMarkAll={onMarkAll ?? null}
+        marking={marking}
+      />
+      {filter === "UNREAD" && unreadCount === 0 ? (
+        <EmptyState icon={CheckCheck} title={t("notifications.allCaughtUp")} success />
+      ) : groups.length === 0 ? (
+        <EmptyState icon={Bell} title={t("notifications.empty")} />
+      ) : (
+        groups.map((group) => (
+          <section key={group.label} aria-label={group.label}>
+            <h2 className="text-label font-medium text-muted-foreground uppercase tracking-wide mb-2">
+              {group.label}
+            </h2>
+            <Card className="divide-y">
+              {group.items.map((notification) => (
+                <NotificationRow
+                  key={notification.id}
+                  notification={notification}
+                  matchTab={matchTab}
+                  onMarkRead={onMarkOne ?? null}
+                  marking={marking}
+                />
+              ))}
+            </Card>
+          </section>
+        ))
+      )}
+    </div>
+  );
+
+  if (maxHeight) {
+    return (
+      <div className={cn("overflow-y-auto pr-1 nest-scrollbar", maxHeight)}>{list}</div>
+    );
+  }
+  return list;
+}
+
 /** Tenant Notifications tab — fed by the cached overview (one call per home). */
 export function TenantNotificationsScreen() {
   const { t } = useI18n();
   const { data, isPending, error, refetch } = useTenantOverview();
+  const markRead = useMarkNotificationsRead();
+  const notifications = data?.notifications ?? [];
 
   return (
     <section aria-label={t("notifications.title")}>
-      <h1 className="text-h2 font-semibold mb-4">{t("notifications.title")}</h1>
+      <div className="flex items-baseline justify-between gap-2 mb-4">
+        <h1 className="text-h2 font-semibold">{t("notifications.title")}</h1>
+        {data && notifications.some((n) => n.readAt == null) ? (
+          <span className="text-caption text-attention font-medium tabular-nums">
+            {t("notifications.unreadCount", {
+              count: notifications.filter((n) => n.readAt == null).length,
+            })}
+          </span>
+        ) : null}
+      </div>
       {isPending ? <ListSkeleton rows={6} /> : null}
       {error != null ? <ErrorState onRetry={() => refetch()} /> : null}
       {data ? (
-        data.notifications.length === 0 ? (
-          <EmptyState icon={Bell} title={t("notifications.empty")} />
-        ) : (
-          <NotificationsList notifications={data.notifications} />
-        )
+        <NotificationsFeed
+          notifications={notifications}
+          onMarkOne={(id) => markRead.mutate({ ids: [id] })}
+          onMarkAll={() => markRead.mutate({ all: true })}
+          marking={markRead.isPending}
+        />
       ) : null}
     </section>
   );
@@ -186,6 +388,8 @@ export function NotificationsModal({
   const open = useUIStore((s) => s.notificationsOpen);
   const setOpen = useUIStore((s) => s.setNotificationsOpen);
   const { data, isPending, error, refetch } = useNotifications(open);
+  const markRead = useMarkNotificationsRead();
+  const notifications = data ?? [];
 
   return (
     <ResponsiveModal
@@ -197,11 +401,14 @@ export function NotificationsModal({
       {isPending ? <ListSkeleton rows={6} /> : null}
       {error != null ? <ErrorState onRetry={() => refetch()} /> : null}
       {data ? (
-        data.length === 0 ? (
-          <EmptyState icon={Bell} title={t("notifications.empty")} />
-        ) : (
-          <NotificationsList notifications={data} matchTab={matchTab} />
-        )
+        <NotificationsFeed
+          notifications={notifications}
+          matchTab={matchTab}
+          onMarkOne={(id) => markRead.mutate({ ids: [id] })}
+          onMarkAll={() => markRead.mutate({ all: true })}
+          marking={markRead.isPending}
+          maxHeight="max-h-[65vh]"
+        />
       ) : null}
     </ResponsiveModal>
   );

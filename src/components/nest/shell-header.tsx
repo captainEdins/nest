@@ -9,7 +9,7 @@ import { Bell, Globe, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useI18n, LANGS } from "@/lib/i18n";
 import type { SessionDto } from "@/lib/types";
-import { useTenantOverview } from "@/hooks/use-overview";
+import { useUnreadCount } from "@/hooks/use-overview";
 import { useUIStore } from "@/lib/ui-store";
 import { roleLabelKey } from "@/components/nest/nav";
 import { NestLogo } from "@/components/nest/nest-logo";
@@ -29,13 +29,12 @@ export function ShellHeader({ session }: { session: SessionDto }) {
   const setTab = useUIStore((s) => s.setTab);
   const setNotificationsOpen = useUIStore((s) => s.setNotificationsOpen);
 
-  // Tenant: the bell navigates to the Notifications tab; unread dot comes
-  // from the already-cached overview (no extra call).
+  // Tenant: the bell navigates to the Notifications tab. Phase 7: every role
+  // gets a numeric unread badge from the cheap 30s poll (read-state, not
+  // delivery-state — IN_APP rows are SENT on creation, so the old QUEUED dot
+  // almost never showed).
   const isTenant = session.profile.role === "TENANT";
-  const { data: tenantOverview } = useTenantOverview();
-  const hasUndelivered = isTenant
-    ? (tenantOverview?.notifications ?? []).some((n) => n.status === "QUEUED")
-    : false;
+  const { data: unread } = useUnreadCount();
 
   const nextTheme = resolvedTheme === "dark" ? "light" : "dark";
 
@@ -92,19 +91,25 @@ export function ShellHeader({ session }: { session: SessionDto }) {
           {resolvedTheme === "dark" ? <Sun aria-hidden /> : <Moon aria-hidden />}
         </Button>
 
-        {/* Notifications */}
+        {/* Notifications — Phase 7 badge shows unread count (9+ beyond 9) */}
         <Button
           variant="ghost"
           className="relative h-11 w-11"
           onClick={onBellClick}
-          aria-label={t("notifications.title")}
+          aria-label={
+            unread
+              ? `${t("notifications.title")} — ${t("notifications.unreadCount", { count: unread })}`
+              : t("notifications.title")
+          }
         >
           <Bell aria-hidden />
-          {hasUndelivered ? (
+          {unread ? (
             <span
               aria-hidden
-              className="absolute top-2.5 right-2.5 size-2 rounded-full bg-primary"
-            />
+              className="absolute -top-0.5 -right-0.5 min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-caption font-semibold tabular-nums flex items-center justify-center shadow-sm"
+            >
+              {unread > 9 ? "9+" : unread}
+            </span>
           ) : null}
         </Button>
       </div>
