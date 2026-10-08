@@ -84,7 +84,7 @@ primitive above, e.g. caretaker:
 | charges (money) | R + W(generate) | R | R + W(generate) | R (own) | N |
 | payments (money) | R + W(cash, match) | R | R + W(cash, match) | R (own) | N |
 | receipts (money) | R | R | R | R (own) | N |
-| notifications | R (own) | R (own) | R (own) | R (own) | R (own) |
+| notifications | R (own) + W(read-state, P7) | R (own) + W(read-state, P7) | R (own) + W(read-state, P7) | R (own) + W(read-state, P7) | R (own) + W(read-state, P7) |
 | mpesa transactions (money) | R | R | R | R (own pushes) | N |
 | unmatched queue (money) | R + W(match) | R | R + W(match) | N | N |
 | audit log | N | N | N | N | N |
@@ -114,7 +114,7 @@ primitive above, e.g. caretaker:
 | payments | READ | `payment.tenancy.unit.property.landlordId = SELF` OR `payment.status = 'UNMATCHED'` (owner of record for unattributable cash — see §6) |
 | payments | WRITE | record CASH for `tenancy.unit.property.landlordId = SELF`; match an UNMATCHED payment to such a tenancy. Never edit `amountMinor`/`receiptNo`/allocations. |
 | receipts | READ | `receipt.payment.tenancy.unit.property.landlordId = SELF` (derived data — no role ever writes receipts) |
-| notifications | READ | `notification.profileId = SELF` |
+| notifications | READ | `notification.profileId = SELF` (WRITE, P7: mark read — own rows only, sets `readAt`). |
 | mpesa transactions | READ | `mpesaTransaction.tenancy.unit.property.landlordId = SELF` (WRITE: never — only the callback pipeline) |
 | unmatched queue | READ, WRITE(match) | queue rows: `payment.status = 'UNMATCHED'`. Match target must satisfy `tenancy.unit.property.landlordId = SELF`. |
 | audit log | NONE | admin/server-side only (written by the system on every financial mutation) |
@@ -137,7 +137,7 @@ primitive above, e.g. caretaker:
 | charges | READ | `charge.tenancy.unit.property.agentId = SELF`. WRITE: NONE. |
 | payments | READ | `payment.tenancy.unit.property.agentId = SELF` (money-endpoint rule §5 lets agents READ scoped money). WRITE: NONE in Phase 1 — agents neither record cash nor match. |
 | receipts | READ | `receipt.payment.tenancy.unit.property.agentId = SELF` |
-| notifications | READ | `notification.profileId = SELF` |
+| notifications | READ | `notification.profileId = SELF` (WRITE, P7: mark read — own rows only, sets `readAt`). |
 | mpesa transactions | READ | `mpesaTransaction.tenancy.unit.property.agentId = SELF` |
 | unmatched queue | READ | `payment.status = 'UNMATCHED' AND payment.phone IN (tenant phones of Properties WHERE agentId = SELF)` — i.e. an agent only sees unmatched money plausibly belonging to their portfolio. WRITE(match): NONE in Phase 1. |
 | audit log | NONE | |
@@ -162,7 +162,7 @@ primitive above, e.g. caretaker:
 | payments | READ | `payment.tenancy.unit.property.caretakerId = SELF` OR scoped unmatched (below) |
 | payments | WRITE (cash) | record CASH **only** where `tenancy.unit.property.caretakerId = SELF`, with `recordedById = SELF`, idempotent by `clientRef`. Never edit/delete existing rows. |
 | receipts | READ | `receipt.payment.tenancy.unit.property.caretakerId = SELF` |
-| notifications | READ | `notification.profileId = SELF` |
+| notifications | READ | `notification.profileId = SELF` (WRITE, P7: mark read — own rows only, sets `readAt`). |
 | mpesa transactions | READ | `mpesaTransaction.tenancy.unit.property.caretakerId = SELF` |
 | unmatched queue | READ | `payment.status = 'UNMATCHED' AND payment.phone IN (tenant phones of Properties WHERE caretakerId = SELF)`. WRITE(match): target tenancy must satisfy `tenancy.unit.property.caretakerId = SELF`. |
 | audit log | NONE | |
@@ -183,7 +183,7 @@ primitive above, e.g. caretaker:
 | charges | READ | `charge.tenancy.tenantId = SELF AND charge.tenancy.status = 'ACTIVE'` |
 | payments | READ | `payment.tenancy.tenantId = SELF AND payment.tenancy.status = 'ACTIVE'` |
 | receipts | READ | `receipt.payment.tenancy.tenantId = SELF AND receipt.payment.tenancy.status = 'ACTIVE'` |
-| notifications | READ | `notification.profileId = SELF`. WRITE: NONE (system marks SENT). |
+| notifications | READ | `notification.profileId = SELF` (WRITE, P7: mark read — own rows only; delivery state stays system-owned). |
 | mpesa transactions | READ | `mpesaTransaction.tenancyId IN (Tenancies WHERE tenantId = SELF AND status = 'ACTIVE')` — their own STK pushes only |
 | mpesa transactions | WRITE (initiate) | create an STK push for `tenancy.tenantId = SELF AND tenancy.status = 'ACTIVE'` — the ONLY money write a tenant can cause, and it completes only via the M-Pesa callback pipeline |
 | unmatched queue | NONE | |
@@ -203,7 +203,7 @@ primitive above, e.g. caretaker:
 | units | READ (P3) | unit labels of the guarded property (for visitor-log unit pickers). WRITE: NONE. |
 | tenancies | NONE | |
 | charges / payments / receipts / mpesa transactions / unmatched queue / deposits | **NONE — categorically, by role, with no parameter that can override** | |
-| notifications | READ | `notification.profileId = SELF`. WRITE: NONE. |
+| notifications | READ | `notification.profileId = SELF` (WRITE, P7: mark read — own rows only). |
 | audit log | NONE | |
 | visitor logs (P3) | READ, WRITE | READ: `visitorLog.propertyId = guarded property`; WRITE: create/exit with `guardId = SELF` |
 | incident reports (P3) | READ, WRITE | `incidentReport.propertyId = guarded property AND guardId = SELF` for writes |

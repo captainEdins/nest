@@ -190,6 +190,22 @@ export const sw: Record<TranslationKey, string> = {
   "notifications.arrearsReminder": "Kumbusho la deni",
   "notifications.paymentNeedsReview": "Malipo yanahitaji uhakiki",
   "notifications.empty": "Hakuna taarifa bado",
+  // Phase 7 — vichwa vya kila aina ya taarifa
+  "notifications.depositSettled": "Amana imelipwa",
+  "notifications.applicationRecorded": "Mgombaji amesajiliwa",
+  "notifications.applicationDecided": "Maamuzi ya maombi",
+  "notifications.applicationStatus": "Taarifa ya maombi",
+  "notifications.incidentFiled": "Tukio limeripotiwa",
+  "notifications.incidentAcked": "Tukio limethibitishwa",
+  "notifications.ticketCreated": "Matengenezo yameripotiwa",
+  "notifications.ticketUpdated": "Taarifa ya matengenezo",
+  // Phase 7 — vidhibiti vya kituo cha taarifa
+  "notifications.markAllRead": "Weka zote kuwa zimesomwa",
+  "notifications.markRead": "Weka kuwa imesomwa",
+  "notifications.filterAll": "Zote",
+  "notifications.filterUnread": "Hazijasomwa",
+  "notifications.unreadCount": "{count} hazijasomwa",
+  "notifications.allCaughtUp": "Umeisoma zote",
 
   // ----- Empty states -------------------------------------------------------
   "empty.payments": "Hakuna malipo bado",

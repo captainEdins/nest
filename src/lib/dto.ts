@@ -213,6 +213,7 @@ export function toNotificationDtoRow(n: {
   status: string
   createdAt: Date
   sentAt: Date | null
+  readAt: Date | null
 }): NotificationDto {
   return {
     id: n.id,
@@ -222,6 +223,7 @@ export function toNotificationDtoRow(n: {
     status: n.status as NotificationDto["status"],
     createdAt: n.createdAt.toISOString(),
     sentAt: n.sentAt ? n.sentAt.toISOString() : null,
+    readAt: n.readAt ? n.readAt.toISOString() : null,
   }
 }
 

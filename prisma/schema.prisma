@@ -489,8 +489,11 @@ model Notification {
   status      String    @default("QUEUED")
   createdAt   DateTime  @default(now())
   sentAt      DateTime?
+  /// Phase 7: null = unread. Marked only via POST /api/notifications/read (own rows).
+  readAt      DateTime?
 
   @@index([profileId, status, createdAt])
+  @@index([profileId, readAt])
 }
 
 /// Append-only audit trail. Every financial/deposit/auth mutation lands here.

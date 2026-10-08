@@ -614,6 +614,7 @@ async function main(): Promise<void> {
       status: "SENT",
       createdAt: gracePaidAt,
       sentAt: gracePaidAt,
+      readAt: gracePaidAt, // Phase 7: old receipt — read
     },
   })
 
@@ -678,6 +679,7 @@ async function main(): Promise<void> {
       status: "SENT",
       createdAt: daysAgo(2),
       sentAt: daysAgo(2),
+      readAt: daysAgo(1),
     },
   })
 
@@ -708,6 +710,7 @@ async function main(): Promise<void> {
       status: "SENT",
       createdAt: hoursAgo(24.5),
       sentAt: hoursAgo(24.5),
+      readAt: hoursAgo(24),
     },
   })
   await db.notification.create({
@@ -721,6 +724,7 @@ async function main(): Promise<void> {
       status: "SENT",
       createdAt: hoursAgo(41),
       sentAt: hoursAgo(41),
+      readAt: hoursAgo(40),
     },
   })
 
