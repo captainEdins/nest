@@ -17,6 +17,7 @@ import { useTickets } from "@/hooks/use-tickets";
 import { RentScoreCard } from "@/components/nest/tenant/rent-score-card";
 import { useOnline } from "@/components/nest/offline-banner";
 import { formatDate, formatMonthKey, formatTime } from "@/components/nest/shared/format";
+import { NoticeBanner } from "@/components/nest/shared/give-notice-sheet";
 import { AvatarInitials } from "@/components/nest/shared/avatar-initials";
 import { visitorPurposeLabel } from "@/components/nest/shared/security/visitor-row";
 import { SectionHeader } from "@/components/nest/shared/section-header";
@@ -114,6 +115,17 @@ export function TenantHome() {
               ) : null}
             </CardContent>
           </Card>
+
+          {/* Phase 11 — the notice state, made visible at the top of the day */}
+          {tenancy.status === "NOTICE" ? (
+            <NoticeBanner
+              tenancy={{
+                id: tenancy.id,
+                unitLabel: tenancy.unitLabel,
+                moveOutDate: tenancy.moveOutDate,
+              }}
+            />
+          ) : null}
 
           {/* Pay now */}
           {balance > 0 ? (

@@ -151,7 +151,7 @@ const UNITS: FxUnit[] = [
     tenancy: {
       id: "t-a1", tenantId: "p-david", tenantName: "David Otieno", tenantPhone: "+254711000004",
       accountRef: "NEST-A1-1001", monthlyRentMinor: 1_500_000, startDate: monthsAgoIso(4),
-      balanceMinor: 3_100_000,
+      balanceMinor: 3_100_000, moveOutDate: null, tenancyStatus: "ACTIVE" as const,
     },
   },
   {
@@ -160,7 +160,7 @@ const UNITS: FxUnit[] = [
     tenancy: {
       id: "t-a2", tenantId: "p-sarah", tenantName: "Sarah Achieng", tenantPhone: "+254711000005",
       accountRef: "NEST-A2-1002", monthlyRentMinor: 1_200_000, startDate: monthsAgoIso(4),
-      balanceMinor: 1_900_000,
+      balanceMinor: 1_900_000, moveOutDate: null, tenancyStatus: "ACTIVE" as const,
     },
   },
   {
@@ -173,7 +173,7 @@ const UNITS: FxUnit[] = [
     tenancy: {
       id: "t-b2", tenantId: "p-grace", tenantName: "Grace Wanjiku", tenantPhone: "+254711000003",
       accountRef: "NEST-B2-1003", monthlyRentMinor: 850_000, startDate: monthsAgoIso(4),
-      balanceMinor: 900_000,
+      balanceMinor: 900_000, moveOutDate: null, tenancyStatus: "ACTIVE" as const,
     },
   },
   {
@@ -766,6 +766,9 @@ function tenantOverview(profileId: string): TenantOverviewDto | { status: 404 } 
       monthlyRentMinor: own.monthlyRentMinor,
       depositHeldMinor: own.depositHeldMinor,
       startDate: monthsAgoIso(4),
+      // Fixtures model live leases only — the exit arc lives behind the real API.
+      status: "ACTIVE" as const,
+      moveOutDate: null,
     },
     totals: {
       balanceMinor: balanceOf(own.tenancyId),
@@ -1076,7 +1079,7 @@ function roleAllowsMoney(role: Role | undefined): boolean {
  * Respond to a request from fixture data. Returns null when no fixture route
  * matches (the api client then surfaces the original network/404 error).
  */
-export function fixtureRespond(method: "GET" | "POST", path: string, body?: unknown): FixtureResponse | null {
+export function fixtureRespond(method: "GET" | "POST" | "DELETE", path: string, body?: unknown): FixtureResponse | null {
   const [pathname, search = ""] = path.split("?")
   const params = new URLSearchParams(search)
   const profile = currentProfile()

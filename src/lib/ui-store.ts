@@ -131,6 +131,25 @@ interface UIState {
   moveInApplicationId: string | null;
   openMoveIn: (applicationId: string) => void;
   closeMoveIn: () => void;
+  /** Give-notice sheet (Phase 11, issue #78), tenant — the exit arc starts
+   *  where the lease story is told: the statement screen and the home banner. */
+  giveNoticeOpen: boolean;
+  setGiveNoticeOpen: (open: boolean) => void;
+  /** Complete move-out dialog (Phase 11, issue #78), landlord + caretaker —
+   *  anchored to a NOTICE tenancy; context row (unit/tenant/date) rides the
+   *  store like every other flow anchor (matchPayment, settleDeposit). */
+  moveOutFlow: { open: boolean; tenancyId?: string };
+  moveOutContext: { unitLabel: string; tenantName: string; moveOutDate: string | null } | null;
+  openMoveOut: (
+    tenancyId: string,
+    context: { unitLabel: string; tenantName: string; moveOutDate: string | null },
+  ) => void;
+  closeMoveOut: () => void;
+  /** Move-out inspection sheet (Phase 11, issue #78), landlord + caretaker —
+   *  records the MOVE_OUT condition report the deposit settlement requires. */
+  inspectionFlow: { open: boolean; tenancyId?: string };
+  openInspection: (tenancyId: string) => void;
+  closeInspection: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -200,4 +219,14 @@ export const useUIStore = create<UIState>((set) => ({
   moveInApplicationId: null,
   openMoveIn: (applicationId) => set({ moveInOpen: true, moveInApplicationId: applicationId }),
   closeMoveIn: () => set({ moveInOpen: false, moveInApplicationId: null }),
+  giveNoticeOpen: false,
+  setGiveNoticeOpen: (giveNoticeOpen) => set({ giveNoticeOpen }),
+  moveOutFlow: { open: false },
+  moveOutContext: null,
+  openMoveOut: (tenancyId, context) =>
+    set({ moveOutFlow: { open: true, tenancyId }, moveOutContext: context }),
+  closeMoveOut: () => set({ moveOutFlow: { open: false }, moveOutContext: null }),
+  inspectionFlow: { open: false },
+  openInspection: (tenancyId) => set({ inspectionFlow: { open: true, tenancyId } }),
+  closeInspection: () => set({ inspectionFlow: { open: false } }),
 }));

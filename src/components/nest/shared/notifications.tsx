@@ -63,6 +63,10 @@ const TEMPLATE_KEY_TO_I18N: Record<string, TranslationKey> = {
   TICKET_CREATED: "notifications.ticketCreated",
   TICKET_UPDATED: "notifications.ticketUpdated",
   MOVE_IN: "notifications.moveIn",
+  // Phase 11 — exit-arc template headings.
+  NOTICE_GIVEN: "notifications.noticeGiven",
+  NOTICE_WITHDRAWN: "notifications.noticeWithdrawn",
+  TENANCY_ENDED: "notifications.tenancyEnded",
 };
 
 function templateLine(templateKey: string, t: ReturnType<typeof useI18n>["t"]): string | null {

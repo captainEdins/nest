@@ -451,6 +451,8 @@ export async function getTenantOverview(profile: Profile): Promise<TenantOvervie
       monthlyRentMinor: tenancy.monthlyRentMinor,
       depositHeldMinor: tenancy.depositHeldMinor,
       startDate: tenancy.startDate.toISOString(),
+      status: tenancy.status as TenantOverviewDto["tenancy"]["status"],
+      moveOutDate: tenancy.endDate ? tenancy.endDate.toISOString() : null,
     },
     totals: {
       balanceMinor,

@@ -40,7 +40,15 @@ export async function GET() {
       include: {
         property: { select: { id: true, name: true } },
         tenancies: {
-          where: { status: { in: ["ACTIVE", "NOTICE"] } },
+          // Phase 11: ENDED tenancies stay visible while their deposit is
+          // still HELD — the settlement action must survive the move-out
+          // (the settle route itself allows NOTICE and ENDED alike).
+          where: {
+            OR: [
+              { status: { in: ["ACTIVE", "NOTICE"] } },
+              { status: "ENDED", deposit: { status: "HELD" } },
+            ],
+          },
           include: { tenant: true },
         },
       },
@@ -67,9 +75,13 @@ export async function GET() {
     }
 
     const dtos: UnitDto[] = units.map((unit) => {
-      // Current tenancy: ACTIVE beats NOTICE if anomalous data ever has both.
+      // Current tenancy: ACTIVE beats NOTICE beats an ENDED lease whose
+      // deposit is still HELD (the settle action must survive move-out).
       const tenancy =
-        unit.tenancies.find((t) => t.status === "ACTIVE") ?? unit.tenancies[0] ?? null
+        unit.tenancies.find((t) => t.status === "ACTIVE") ??
+        unit.tenancies.find((t) => t.status === "NOTICE") ??
+        unit.tenancies[0] ??
+        null
       return {
         id: unit.id,
         propertyId: unit.propertyId,
@@ -89,6 +101,8 @@ export async function GET() {
               monthlyRentMinor: tenancy.monthlyRentMinor,
               startDate: tenancy.startDate.toISOString(),
               balanceMinor: balances.get(tenancy.id) ?? 0,
+              moveOutDate: tenancy.endDate ? tenancy.endDate.toISOString() : null,
+              tenancyStatus: tenancy.status as "ACTIVE" | "NOTICE" | "ENDED",
             }
           : null,
       }
