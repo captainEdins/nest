@@ -71,6 +71,7 @@ import { TicketDetailScreen } from "@/components/nest/shared/ticket-detail";
 import { ReportIssueSheet } from "@/components/nest/shared/report-issue-sheet";
 import { DepositDetailScreen } from "@/components/nest/shared/deposit-detail";
 import { MoreSheetContent } from "@/components/nest/shared/more-sheet";
+import { SearchPalette } from "@/components/nest/shared/search-palette";
 import { Button } from "@/components/ui/button";
 import {
   Drawer,
@@ -112,6 +113,7 @@ function useUnauthorizedHandler() {
         tab: "home",
         pushedScreen: null,
         moreOpen: false,
+        searchOpen: false,
         notificationsOpen: false,
         matchPayment: null,
         receiptView: null,
@@ -298,6 +300,9 @@ function Shell({ session }: { session: SessionDto }) {
       <BottomNav tabs={tabs} />
 
       {/* Global flow modals (role-scoped) */}
+      {/* Phase 10: the ⌘K search palette (every role — each has ≥1 surface). */}
+      <SearchPalette role={role} />
+
       {role === "CARETAKER" ? <CashFlowModal /> : null}
       {role === "CARETAKER" ? <StkRequestModal /> : null}
       {role === "TENANT" ? <PayFlowModal /> : null}

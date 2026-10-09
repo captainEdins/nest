@@ -62,6 +62,9 @@ interface UIState {
   /** Mobile "More" drawer (S-15). */
   moreOpen: boolean;
   setMoreOpen: (open: boolean) => void;
+  /** Global search palette (Phase 10, issue #76) — ⌘K / header trigger. */
+  searchOpen: boolean;
+  setSearchOpen: (open: boolean) => void;
   /** Notifications modal for the header bell (non-tenant roles). */
   notificationsOpen: boolean;
   setNotificationsOpen: (open: boolean) => void;
@@ -148,6 +151,8 @@ export const useUIStore = create<UIState>((set) => ({
   setPaymentsFilter: (paymentsFilter) => set({ paymentsFilter }),
   moreOpen: false,
   setMoreOpen: (moreOpen) => set({ moreOpen }),
+  searchOpen: false,
+  setSearchOpen: (searchOpen) => set({ searchOpen }),
   notificationsOpen: false,
   setNotificationsOpen: (notificationsOpen) => set({ notificationsOpen }),
   matchPayment: null,

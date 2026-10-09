@@ -852,3 +852,38 @@ export interface ApiError {
 export interface ApiOk<T> {
   data: T
 }
+
+// -------------------------------------------------------------------------
+// Global search (Phase 10, issue #76) — role-scoped record lookup
+// -------------------------------------------------------------------------
+
+export type SearchKind =
+  | "TENANT"
+  | "RECEIPT"
+  | "TICKET"
+  | "LISTING"
+  | "APPLICANT"
+  | "VISITOR"
+  | "INCIDENT";
+
+/** One row of the ⌘K palette. Rendered client-side; ids deep-link into the
+ *  existing tab/detail screens (the palette never renders its own record view).
+ *  No `tab` field by design (PE review, PR #77): the palette's navigateTo()
+ *  owns routing keyed by kind + client role — server tab hints drifted from
+ *  per-role tab surfaces (caretaker has no "payments" tab; agent has no money
+ *  tab at all). */
+export interface SearchResultDto {
+  kind: SearchKind;
+  /** Entity id — receiptNo for RECEIPT (the human key the detail screen loads). */
+  id: string;
+  /** Primary line: tenant/listing title, receipt number, ticket title. */
+  title: string;
+  /** Secondary context: unit · property, listing title, purpose. */
+  subtitle: string | null;
+  /** Right-aligned context chip: status, amount (already formatted server-side
+   *  from integer minors via formatKes — money stays server-formatted). */
+  meta: string | null;
+  /** Timestamp for the row (receivedAt / createdAt / enteredAt) — ISO, the
+   *  client formats it with formatDate (design-system §9.6). */
+  at: string | null;
+}

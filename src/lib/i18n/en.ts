@@ -792,6 +792,23 @@ export const en = {
   "score.explain.RECENT_TREND": "Of the last 3 billed months, how many were settled on time.",
   "score.disclaimer": "Reflects your NEST payment record only.",
   "score.howBuilt": "How this is built",
+
+  // ----- Global search (Phase 10, issue #76) -------------------------------
+  "search.trigger": "Search",
+  "search.clear": "Clear search",
+  "search.placeholder": "Search tenants, receipts, tickets…",
+  "search.hint": "Type at least 2 letters",
+  "search.searching": "Searching…",
+  "search.error": "Search failed — check your connection and try again",
+  "search.noResults": "No matches for “{query}”",
+  "search.group.TENANT": "Tenants",
+  "search.group.RECEIPT": "Receipts",
+  "search.group.TICKET": "Repairs",
+  "search.group.LISTING": "Listings",
+  "search.group.APPLICANT": "Applicants",
+  "search.group.VISITOR": "Visitors",
+  "search.group.INCIDENT": "Incidents",
+  "search.openHint": "Search records · Ctrl K",
 } as const
 
 /** Every dotted key above, as a literal union. sw.ts must cover all of them. */
