@@ -117,6 +117,18 @@ Recorded by the Principal Engineer. Every entry: context, decision, trade-offs, 
   - **Full template coverage**: all 11 emitted templateKeys now map to typed i18n headings (EN+SW) via one record, not a chain of ifs. New emitters add one key + two dictionary lines.
   - Unread styling is a left accent bar + `bg-primary/[0.045]` tint + dot (not a color-only signal — a11y), 44px mark-read targets, and a `.nest-scrollbar` utility (thin, theme-aware) lands in globals.css for long-list surfaces.
 
+## D-021 — Phase 8 wedge: move-in (approved applicant → active tenancy)
+- **Context**: Phase 7 closed with PR #71. Audit found the funnel dead-ends at APPROVED — an approved applicant never becomes a tenant in NEST, forcing paper leases exactly at move-in day, the highest-stakes moment of "trust as product". Opened as issue #72.
+- **Decisions**:
+  - **One transaction, whole backbone**: `POST /api/move-ins` (LANDLORD only) writes tenant Profile (find-or-create by phone) + Tenancy (ACTIVE, `NEST-<unit>-<seq>` accountRef continuing the seed's 1001-series) + Deposit with append-only HOLD movement (actor stamped) + first RENT charge (start month, due at start date — the `@@unique(tenancy,kind,period)` constraint makes double-raising impossible) + Unit → OCCUPIED + Listing → LET + Application → CONVERTED + timeline event, atomically. Partial move-ins cannot exist.
+  - **CONVERTED is a terminal application status** (added to `APPLICATION_STATUSES`): conversion is exactly-once — a second attempt 409s "already been moved in". No new schema tables or columns: the Phase 1–4 contracts already anticipated this (Listing. status already had LET).
+  - **Phone is the tenant identity seam**: existing TENANT profile on that phone → reused (no duplicates); a staff phone → hard 409 (a caretaker cannot become a tenant by move-in); otherwise a TENANT profile is created whose name of record is the applicant's own.
+  - **Money discipline continues**: integer KES minor only (zod int, rent > 0, deposit ≥ 0). The deposit is HELD, never "paid" — move-in moves no rent money; the first charge simply exists for the waterfall (ADR-0004/ADR-0007).
+  - **The timeline note is the receipt of record**: the CONVERTED event always carries the machine summary (`Tenancy NEST-X-#### opened · rent … · deposit … held · starts …`) — a landlord's custom note is prefixed, never replaces it, so every surface (agent, landlord, tenant) shows the lease facts without a join.
+  - **Trust trail**: MOVE_IN AuditLog row + two notifications — the agent who recorded the applicant (APPLICATION_STATUS) and the new tenant (MOVE_IN template, EN+SW heading, "Karibu" welcome with the accountRef and pay-from-home instruction).
+  - **UI**: green "ready to move in" funnel card on the landlord home (below amber pending-decisions in priority), MoveInCard on APPROVED application details, a prefilled sheet (listing rent + one-month deposit default — the Kenya standard), ConvertedSummary card on CONVERTED details, and timeline dots/pills for the new status. All 44px targets, EN+SW.
+- **Rejected alternatives**: a two-step wizard (lease → deposit) — splits the atomic moment and invites drift; auto-converting on APPROVE — removes the landlord's deliberate move-in action (the deposit + start date are real decisions); a `Tenancy.applicationId` back-reference — derivable from the timeline event and would leak the marketing module into the lease contract.
+
 ## Open assumptions awaiting user input
 1. Supabase service-role key or DB password — to run migrations, RLS, and phone OTP.
 2. Daraja sandbox credentials — for live M-Pesa testing (sim mode until then).

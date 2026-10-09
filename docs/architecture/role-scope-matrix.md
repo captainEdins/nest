@@ -124,6 +124,7 @@ primitive above, e.g. caretaker:
 | visitor logs, incident reports, guard shifts (P3) | READ | `record.propertyId IN (Properties WHERE landlordId = SELF)` |
 | listings (P4) | READ, WRITE | `listing.propertyId IN (Properties WHERE landlordId = SELF)` |
 | listing applications + events (P4) | READ, WRITE(decide) | `application.propertyId IN (Properties WHERE landlordId = SELF)`. WRITE limited to APPROVED/REJECTED decisions (sets `decidedById/At`); pipeline moves are the agent's. |
+| move-ins (P8) | WRITE(convert) | `POST /api/move-ins` on an application satisfying 4.1's scope (miss ⇒ 404). Guards: application APPROVED (409 otherwise / 409 if already CONVERTED), unit VACANT with no ACTIVE tenancy (409), applicant phone must not belong to a staff account (409). The single transaction creates the tenancy + tenant profile (find-or-create) + deposit (HOLD, actor = SELF) + first RENT charge, flips unit → OCCUPIED and listing → LET, appends the CONVERTED event. |
 
 ### 4.2 AGENT — *manages the portfolio, not the ledger* (demo: Wanjiku Kamau)
 

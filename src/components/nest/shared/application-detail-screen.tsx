@@ -11,15 +11,20 @@
  * (Contacted / Viewing / Withdraw quick actions) and never decides; LANDLORD
  * decides (Approve / Reject behind an AlertDialog with an optional note) and
  * never staffs the pipeline. Decided or withdrawn applications are read-only.
+ *
+ * Phase 8 (issue #72): an APPROVED application surfaces the landlord's
+ * "Move them in" card (opens the MoveInSheet); a CONVERTED one shows the
+ * tenancy-of-record summary line parsed from the conversion event's note.
  */
 
 import * as React from "react";
-import { Check, CheckCircle2, Loader2, Phone, ThumbsDown, ThumbsUp, XCircle } from "lucide-react";
+import { Check, CheckCircle2, Home, KeyRound, Loader2, Phone, ThumbsDown, ThumbsUp, XCircle } from "lucide-react";
 import { ApiError } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import type { ApplicationEventDto, ApplicationStatus, ListingApplicationDto } from "@/lib/types";
 import { useSession } from "@/hooks/use-overview";
 import { useApplication, useApplicationStatus } from "@/hooks/use-listings";
+import { useUIStore } from "@/lib/ui-store";
 import { formatDate, formatPhone, timeAgo } from "@/components/nest/shared/format";
 import { SectionHeader } from "@/components/nest/shared/section-header";
 import { ErrorState } from "@/components/nest/shared/error-state";
@@ -62,7 +67,8 @@ export function ApplicationDetailScreen({ applicationId }: { applicationId: stri
   }
 
   const approved = application.status === "APPROVED";
-  const decided = approved || application.status === "REJECTED";
+  const converted = application.status === "CONVERTED";
+  const decided = approved || application.status === "REJECTED" || converted;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -91,7 +97,7 @@ export function ApplicationDetailScreen({ applicationId }: { applicationId: stri
           {t("agent.recordedBy", { name: application.handledByName })} ·{" "}
           {formatDate(application.createdAt)}
         </p>
-        {decided && application.decidedByName ? (
+        {!converted && decided && application.decidedByName ? (
           <p
             className={cn(
               "text-caption font-medium flex items-center gap-1.5 tabular-nums",
@@ -134,7 +140,85 @@ export function ApplicationDetailScreen({ applicationId }: { applicationId: stri
       </section>
 
       <ApplicationActions application={application} />
+      <MoveInCard application={application} />
+      {converted ? <ConvertedSummary application={application} /> : null}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Phase 8 — the conversion surfaces. MoveInCard: the landlord's CTA on an
+// APPROVED application (opens the MoveInSheet). ConvertedSummary: the
+// tenancy-of-record line once the move-in landed (accountRef + start date
+// parsed from the CONVERTED event's note — the server's own summary).
+// ---------------------------------------------------------------------------
+
+function MoveInCard({ application }: { application: ListingApplicationDto }) {
+  const { t } = useI18n();
+  const { data: session } = useSession();
+  const openMoveIn = useUIStore((s) => s.openMoveIn);
+  const role = session?.profile.role;
+
+  if (role !== "LANDLORD" || application.status !== "APPROVED") return null;
+
+  return (
+    <Card className="border-success/40 bg-success/5 dark:bg-success/10 animate-in fade-in duration-300">
+      <CardContent className="p-4 sm:p-6 space-y-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
+            <Home className="size-4.5" aria-hidden />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-label font-semibold text-success">{t("agent.moveInReadyCard", { count: 1 })}</p>
+            <p className="text-caption text-muted-foreground">
+              {application.unitLabel} · {application.propertyName}
+            </p>
+          </div>
+        </div>
+        <p className="text-caption text-muted-foreground">{t("agent.moveInDesc")}</p>
+        <Button
+          className="w-full h-11 sm:h-10"
+          onClick={() => openMoveIn(application.id)}
+          aria-label={`${t("agent.moveInCta")} — ${application.applicantName}`}
+        >
+          <KeyRound aria-hidden />
+          {t("agent.moveInCta")}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ConvertedSummary({ application }: { application: ListingApplicationDto }) {
+  const { t } = useI18n();
+  const convertedEvent = [...application.events]
+    .reverse()
+    .find((event) => event.toStatus === "CONVERTED");
+  if (!convertedEvent) return null;
+
+  // The server writes the summary note "Tenancy NEST-B3-1004 opened · …" —
+  // the accountRef is the one stable fact worth elevating to a heading line.
+  const accountRef = convertedEvent.note?.match(/NEST-[A-Z0-9]+-\d+/)?.[0];
+
+  return (
+    <Card className="border-primary/30 bg-primary/5 dark:bg-primary/10 animate-in fade-in duration-300">
+      <CardContent className="p-4 sm:p-6 space-y-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <CheckCircle2 className="size-4.5 text-primary shrink-0" aria-hidden />
+          <p className="text-label font-semibold text-primary truncate">
+            {accountRef
+              ? t("agent.convertedLine", {
+                  ref: accountRef,
+                  date: formatDate(convertedEvent.createdAt),
+                })
+              : t("applicant.converted")}
+          </p>
+        </div>
+        {convertedEvent.note ? (
+          <p className="text-caption text-muted-foreground break-words">{convertedEvent.note}</p>
+        ) : null}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -149,6 +233,7 @@ const TIMELINE_DOT_TONES: Record<ApplicationStatus, string> = {
   APPROVED: "bg-success",
   REJECTED: "bg-destructive",
   WITHDRAWN: "bg-muted-foreground/50",
+  CONVERTED: "bg-primary",
 };
 
 const TIMELINE_PILL_TONES: Record<ApplicationStatus, string> = {
@@ -158,6 +243,7 @@ const TIMELINE_PILL_TONES: Record<ApplicationStatus, string> = {
   APPROVED: "border-success/40 bg-success/10 text-success",
   REJECTED: "border-destructive/40 bg-destructive/10 text-destructive",
   WITHDRAWN: "border-border bg-muted text-muted-foreground",
+  CONVERTED: "border-transparent bg-primary text-primary-foreground",
 };
 
 function TimelineEvent({ event }: { event: ApplicationEventDto }) {
@@ -171,6 +257,14 @@ function TimelineEvent({ event }: { event: ApplicationEventDto }) {
           className="absolute left-0 top-1 size-3 rounded-full bg-success ring-4 ring-card flex items-center justify-center"
         >
           <Check className="size-2 text-success-foreground" strokeWidth={3} aria-hidden />
+        </span>
+      ) : event.toStatus === "CONVERTED" ? (
+        // Green filled + house — the move-in dot (Phase 8: the lease landed).
+        <span
+          aria-hidden
+          className="absolute left-0 top-1 size-3.5 -translate-x-[2px] rounded-full bg-primary ring-4 ring-card flex items-center justify-center"
+        >
+          <Home className="size-2.5 text-primary-foreground" strokeWidth={3} aria-hidden />
         </span>
       ) : (
         <span

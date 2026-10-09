@@ -72,6 +72,7 @@ const APPLICATION_STATUS_STYLES: Record<ApplicationStatus, string> = {
   APPROVED: "border-transparent bg-success text-success-foreground",
   REJECTED: "border-destructive/50 bg-destructive/10 text-destructive",
   WITHDRAWN: "border-border bg-transparent text-muted-foreground",
+  CONVERTED: "border-transparent bg-primary text-primary-foreground",
 };
 
 export const APPLICATION_STATUS_LABEL_KEYS: Record<ApplicationStatus, TranslationKey> = {
@@ -81,6 +82,7 @@ export const APPLICATION_STATUS_LABEL_KEYS: Record<ApplicationStatus, Translatio
   APPROVED: "applicant.approved",
   REJECTED: "applicant.rejected",
   WITHDRAWN: "applicant.withdrawn",
+  CONVERTED: "applicant.converted",
 };
 
 export function ApplicationStatusChip({
