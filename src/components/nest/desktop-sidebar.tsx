@@ -1,6 +1,9 @@
 "use client";
 
-/** Desktop sidebar — 264px fixed left (design-system §6.2). */
+/** Desktop sidebar — 264px fixed left (design-system §6.2).
+ *  Phase 9 (D-022): Monty nav treatment — active pill (primary/10 tint,
+ *  12px radius, leading icon colored), soft hover, brand lockup with the
+ *  role chip in the pastel family. */
 
 import * as React from "react";
 import { useI18n } from "@/lib/i18n";
@@ -37,7 +40,7 @@ export function DesktopSidebar({ session }: { session: SessionDto }) {
       <div className="h-14 flex items-center gap-2.5 px-4 border-b">
         <NestLogo className="h-7 w-7" />
         <span className="font-bold text-h3">NEST</span>
-        <Badge variant="secondary" className="text-caption px-2 py-0.5 rounded-full">
+        <Badge variant="secondary" className="text-caption px-2 py-0.5 rounded-full bg-primary/10 text-primary border-transparent dark:bg-primary/15">
           {t(roleLabelKey(session.profile.role))}
         </Badge>
       </div>
@@ -54,14 +57,14 @@ export function DesktopSidebar({ session }: { session: SessionDto }) {
               onClick={() => setTab(def.id)}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "w-full h-10 px-3 rounded-md flex items-center gap-3 text-body",
+                "w-full h-10 px-3 rounded-xl flex items-center gap-3 text-body",
                 "focus-visible:ring-2 focus-visible:ring-ring outline-none transition-colors",
                 active
-                  ? "bg-secondary text-secondary-foreground font-medium"
-                  : "text-foreground hover:bg-secondary/60",
+                  ? "bg-primary/10 text-primary font-medium"
+                  : "text-foreground hover:bg-muted",
               )}
             >
-              <Icon size={20} aria-hidden />
+              <Icon size={20} aria-hidden className={active ? "text-primary" : undefined} />
               <span className="flex-1 text-left truncate">{t(def.labelKey)}</span>
               {def.id === "notifications" && undeliveredCount > 0 ? (
                 <span className="text-caption tabular-nums text-primary font-medium">
@@ -79,7 +82,7 @@ export function DesktopSidebar({ session }: { session: SessionDto }) {
           <PopoverTrigger asChild>
             <button
               type="button"
-              className="w-full h-12 px-2 rounded-md flex items-center gap-3 text-left focus-visible:ring-2 focus-visible:ring-ring outline-none hover:bg-secondary/60 transition-colors"
+              className="w-full h-12 px-2 rounded-xl flex items-center gap-3 text-left focus-visible:ring-2 focus-visible:ring-ring outline-none hover:bg-muted transition-colors"
             >
               <AvatarInitials fullName={session.profile.fullName} size="sm" />
               <span className="min-w-0 flex-1">

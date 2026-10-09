@@ -225,7 +225,7 @@ function Shell({ session }: { session: SessionDto }) {
       <div className="flex-1 flex flex-col w-full lg:pl-[264px]">
         <main
           id="main"
-          className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-6"
+          className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] lg:pb-6"
         >
           {pushedScreen === "arrears" && role === "CARETAKER" ? (
             <section aria-label={t("landlord.arrears")}>

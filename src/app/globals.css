@@ -63,19 +63,24 @@
   --text-label--line-height: 1rem;
   --text-caption: 0.75rem;
   --text-caption--line-height: 1rem;
-  --text-kpi: 1.625rem;
-  --text-kpi--line-height: 2rem;
+  --text-kpi: 1.75rem;
+  --text-kpi--line-height: 2.125rem;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 16px);
 }
 
 :root {
-  --radius: 0.625rem;
-  /* Light mode (dictated — design-system.md §1.2) */
-  --background: oklch(0.985 0.005 95);
+  /* D-022 (Monty-inspired Soft-SaaS pass): base radius 10px → 12px so lg/xl/2xl
+     land on 12/16/20 — Monty's soft geometry. */
+  --radius: 0.75rem;
+  /* Light mode (dictated — design-system.md §1.2; D-022: warm cream → cool
+     green-tinted off-white, the Monty layered-canvas feel) */
+  --background: oklch(0.982 0.004 140);
   --foreground: oklch(0.22 0.02 150);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.22 0.02 150);
@@ -97,8 +102,9 @@
   --success-foreground: oklch(1 0 0);
   /* attention = amber as text: light --warning-foreground (16.09:1 on card) */
   --attention: oklch(0.25 0.05 75);
-  --border: oklch(0.9 0.01 100);
-  --input: oklch(0.9 0.01 100);
+  /* D-022: borders a shade softer — cards separate by shadow, not outline */
+  --border: oklch(0.912 0.008 120);
+  --input: oklch(0.912 0.008 120);
   --ring: oklch(0.52 0.12 155);
   /* Chart palette (green / amber / teal / warm-gray) */
   --chart-1: oklch(0.52 0.12 155);
@@ -172,6 +178,31 @@
 /* Bottom nav safe-area (design-system §5): fixed bar clears iOS home indicator */
 .bottom-nav-safe {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* D-022 — Monty layered elevation: one 1px contact + one 16px diffuse lift.
+   Replaces flat `shadow-sm` on primary surfaces (cards, dock, sidebar chips).
+   Dark mode gets a slightly deeper diffuse pass (shadows die on dark canvases). */
+.nest-card-shadow {
+  box-shadow:
+    0 1px 2px oklch(0.3 0.02 150 / 0.05),
+    0 4px 16px oklch(0.3 0.02 150 / 0.04);
+}
+.dark .nest-card-shadow {
+  box-shadow:
+    0 1px 2px oklch(0 0 0 / 0.4),
+    0 6px 20px oklch(0 0 0 / 0.35);
+}
+/* Stronger variant for floating chrome (bottom dock, popovers on mobile). */
+.nest-float-shadow {
+  box-shadow:
+    0 2px 6px oklch(0.3 0.02 150 / 0.08),
+    0 12px 32px oklch(0.3 0.02 150 / 0.10);
+}
+.dark .nest-float-shadow {
+  box-shadow:
+    0 2px 6px oklch(0 0 0 / 0.45),
+    0 12px 32px oklch(0 0 0 / 0.4);
 }
 
 /* NEST scrollbar (design-system: long lists, max-h + overflow) — thin, theme-aware */

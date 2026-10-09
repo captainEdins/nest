@@ -52,6 +52,7 @@ One plot. Five roles. One record of truth.
 | **Rent Score (tenant + staff views)** — 0–800 from four documented factors, factor breakdown on the card, same engine output on arrears rows | ✅ shipped |
 | **Notification Center** — read state per row, unread badge on the bell (every role), All/Unread filters, mark-one/mark-all read, translated headings for all 11 event types | ✅ shipped |
 | **Move-in** — approved applicant → active tenancy in one transaction: tenant profile (find-or-create), deposit HELD with append-only movement, first rent charge raised, unit flips OCCUPIED, listing closes LET, CONVERTED timeline event, agent + tenant notified, audited | ✅ shipped |
+| **Monty-inspired visual refresh + MoM deltas** — Soft-SaaS execution layer (2xl radius, layered shadows, pastel chips, segmented controls, floating bottom dock, login hero) and month-over-month KPI deltas computed server-side in the same overview call | ✅ shipped |
 | English & Kiswahili, light/dark | ✅ shipped |
 | Consent-gated external Rent Score API, financing & insurance partners, load/security hardening | 🗺 next tail (see [roadmap](#-roadmap)) |
 
@@ -153,6 +154,7 @@ DECISIONS.md        every assumption, trade-off and rejected alternative
 | 6-wedge | **Tenant monthly statement** (portable payment record) + **Rent Score** (0–800, four documented factors, tenant card + staff chips) | ✅ v0.6.0 (this repo) |
 | 7-wedge | **Notification Center** — read state (readAt), unread bell badges, All/Unread filters, mark-read, full template-heading coverage (11 keys, EN+SW) | ✅ v0.7.0 (this repo) |
 | 8-wedge | **Move-in** — the funnel's closing transaction: approved applicant → active, money-ready tenancy (deposit HELD, first charge raised, unit OCCUPIED, listing LET, CONVERTED event, notifications, audit — all in one atomic POST /api/move-ins) | ✅ v0.8.0 (this repo) |
+| 9-wedge | **Monty-inspired visual refresh** — Soft-SaaS execution layer on the dictated green brand (D-022): 2xl cards + layered shadows, pastel status chips, uppercase micro-label KPI cards with 28px tabular values + **server-computed month-over-month deltas** (`monthCollectedPrevMinor`, zero extra queries), Monty SegmentedControl, floating bottom dock, login hero, chart polish | ✅ v0.9.0 (this repo) |
 | 6-tail | Consent-gated external Rent Score API, financing & insurance partners, load/security/a11y hardening, pilot readiness | planned |
 
 ## 📚 Documentation

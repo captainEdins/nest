@@ -85,12 +85,12 @@ export function PaymentRow({
       <button
         type="button"
         onClick={() => openReceipt({ receiptNo: payment.receiptNo!, fallbackPayment: payment })}
-        className="w-full text-left p-4 min-h-14 flex items-center gap-3 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset outline-none"
+        className="w-full text-left p-4 min-h-14 flex items-center gap-3 transition-colors hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset outline-none"
       >
         {content}
       </button>
     );
   }
 
-  return <div className="p-4 min-h-14 flex items-center gap-3">{content}</div>;
+  return <div className="p-4 min-h-14 flex items-center gap-3 transition-colors hover:bg-muted/50">{content}</div>;
 }

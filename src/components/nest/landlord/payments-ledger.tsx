@@ -3,8 +3,8 @@
 /**
  * S-17a · Payments ledger (landlord "Payments" tab / caretaker "Collections"
  * tab). Data = overview.recentPayments (no separate payments endpoint in the
- * Phase 1 backend). Filter chips: All · M-Pesa · Cash · Unmatched (amber).
- * Mobile: stacked cards · ≥sm: table.
+ * Phase 1 backend). Filter: Monty SegmentedControl — All · M-Pesa · Cash ·
+ * Unmatched (amber accent). Mobile: stacked cards · ≥sm: table.
  */
 
 import { useI18n } from "@/lib/i18n";
@@ -15,6 +15,7 @@ import { useCaretakerOverview, useLandlordOverview } from "@/hooks/use-overview"
 import { formatDate } from "@/components/nest/shared/format";
 import { paymentRowLabel, PaymentRow } from "@/components/nest/shared/payment-row";
 import { StatusBadge } from "@/components/nest/shared/status-badge";
+import { SegmentedControl } from "@/components/nest/shared/segmented-control";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
 import { ListSkeleton } from "@/components/nest/shared/skeletons";
@@ -33,11 +34,11 @@ import { Receipt } from "lucide-react";
 
 type Filter = "ALL" | "MPESA" | "CASH" | "UNMATCHED";
 
-const FILTERS: { value: Filter; labelKey: "common.filterAll" | "source.mpesa" | "source.cash" | "status.unmatched" }[] = [
+const FILTERS: { value: Filter; labelKey: "common.filterAll" | "source.mpesa" | "source.cash" | "status.unmatched"; attention?: boolean }[] = [
   { value: "ALL", labelKey: "common.filterAll" },
   { value: "MPESA", labelKey: "source.mpesa" },
   { value: "CASH", labelKey: "source.cash" },
-  { value: "UNMATCHED", labelKey: "status.unmatched" },
+  { value: "UNMATCHED", labelKey: "status.unmatched", attention: true },
 ];
 
 export function PaymentsLedger({ variant }: { variant: "landlord" | "caretaker" }) {
@@ -81,28 +82,18 @@ export function PaymentsLedger({ variant }: { variant: "landlord" | "caretaker" 
         <ListSkeleton rows={5} />
       ) : (
         <div className="space-y-4">
-          {/* Filter chips */}
-          <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label={t("common.status")}>
-            {FILTERS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                aria-pressed={filter === option.value}
-                onClick={() => setFilter(option.value)}
-                className={cn(
-                  "shrink-0 h-11 px-4 rounded-full text-caption font-medium border transition-colors",
-                  "focus-visible:ring-2 focus-visible:ring-ring outline-none",
-                  filter === option.value
-                    ? option.value === "UNMATCHED"
-                      ? "border-warning text-attention bg-warning/15"
-                      : "bg-secondary text-secondary-foreground border-transparent"
-                    : "border-border text-muted-foreground",
-                )}
-              >
-                {t(option.labelKey)}
-              </button>
-            ))}
-          </div>
+          {/* Filter — Monty segmented control (D-022) */}
+          <SegmentedControl
+            ariaLabel={t("common.status")}
+            value={filter}
+            onChange={setFilter}
+            options={FILTERS.map((option) => ({
+              value: option.value,
+              label: t(option.labelKey),
+              attention: option.attention,
+              count: option.value === "UNMATCHED" ? unmatchedCount : undefined,
+            }))}
+          />
 
           {filtered.length === 0 ? (
             <EmptyState

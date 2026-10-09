@@ -429,6 +429,9 @@ export const sw: Record<TranslationKey, string> = {
   "common.stepOf": "Hatua {current} kati ya {total}",
   "common.searchTenantUnit": "Tafuta mpangaji au chumba…",
   "common.ofUnits": "Vyumba {occupied} kati ya {total}",
+  "common.vsLastMonth": "linganisha na mwezi uliopita",
+  "common.lastMonthCollected": "Mwezi uliopita {amount}",
+  "common.noHistoryYet": "Mwezi wa kwanza kwenye NEST",
   "common.filterAll": "Zote",
 
   // ----- Notifications day groups (S-14) --------------------------------------

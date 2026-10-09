@@ -25,6 +25,7 @@ import { EmptyState } from "./empty-state";
 import { ErrorState } from "./error-state";
 import { ListSkeleton } from "./skeletons";
 import { StatusBadge } from "./status-badge";
+import { SegmentedControl } from "./segmented-control";
 import { ResponsiveModal } from "./responsive-modal";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -192,37 +193,21 @@ interface FeedControlsProps {
   marking: boolean;
 }
 
-/** Filter pills + "Mark all read" — shared by the modal and the tenant tab. */
+/** Filter pills + "Mark all read" — shared by the modal and the tenant tab.
+ *  Phase 9 (D-022): Monty SegmentedControl replaces the bespoke pill row. */
 function FeedControls({ filter, setFilter, unreadCount, totalCount, onMarkAll, marking }: FeedControlsProps) {
   const { t } = useI18n();
-  const pills: { value: FeedFilter; labelKey: TranslationKey; count: number }[] = [
-    { value: "ALL", labelKey: "notifications.filterAll", count: totalCount },
-    { value: "UNREAD", labelKey: "notifications.filterUnread", count: unreadCount },
-  ];
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label={t("notifications.title")}>
-        {pills.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            aria-pressed={filter === option.value}
-            onClick={() => setFilter(option.value)}
-            className={cn(
-              "shrink-0 h-11 px-4 rounded-full text-caption font-medium border transition-colors",
-              "focus-visible:ring-2 focus-visible:ring-ring outline-none",
-              filter === option.value
-                ? option.value === "UNREAD"
-                  ? "border-warning text-attention bg-warning/15"
-                  : "bg-secondary text-secondary-foreground border-transparent"
-                : "border-border text-muted-foreground",
-            )}
-          >
-            {t(option.labelKey)}
-            <span className="ml-1.5 tabular-nums">{option.count}</span>
-          </button>
-        ))}
-      </div>
+      <SegmentedControl
+        ariaLabel={t("notifications.title")}
+        value={filter}
+        onChange={setFilter}
+        options={[
+          { value: "ALL", label: t("notifications.filterAll"), count: totalCount },
+          { value: "UNREAD", label: t("notifications.filterUnread"), count: unreadCount, attention: true },
+        ]}
+      />
       <div className="flex-1" />
       {unreadCount > 0 && onMarkAll ? (
         <Button
