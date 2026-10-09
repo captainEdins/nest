@@ -32,6 +32,8 @@ import type {
   ListingApplicationDto,
   ListingDetailDto,
   ListingDto,
+  MoveInRequest,
+  MoveInResultDto,
   RecordApplicationRequest,
 } from "@/lib/types";
 
@@ -180,6 +182,35 @@ export function useApplicationStatus(id: string) {
       void queryClient.invalidateQueries({ queryKey: ["listings"] });
       void queryClient.invalidateQueries({ queryKey: ["overview"] });
       toast.success(t("agent.statusUpdated"));
+    },
+    onError: (error) => {
+      toast.error(mutationErrorMessage(error, t("errors.somethingWrong")));
+    },
+  });
+}
+
+/**
+ * POST /api/move-ins (Phase 8, issue #72) — the landlord's conversion verb:
+ * approved application → active tenancy (deposit held, first charge raised,
+ * unit occupied, listing LET). The success toast carries the accountRef —
+ * the lease's human-stable reference. Invalidations cover the application
+ * timeline, the listing (funnel counts), the landlord overview (vacancy
+ * totals flipped) and the session demo profile list is refreshed on next
+ * login (the new tenant profile appears automatically).
+ */
+export function useMoveIn() {
+  const { t } = useI18n();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (input: MoveInRequest) => apiPost<MoveInResultDto>("/api/move-ins", input),
+    onSuccess: (result) => {
+      void queryClient.invalidateQueries({ queryKey: ["applications"] });
+      void queryClient.invalidateQueries({ queryKey: ["listing", result.applicationId] });
+      void queryClient.invalidateQueries({ queryKey: ["listings"] });
+      void queryClient.invalidateQueries({ queryKey: ["overview"] });
+      toast.success(
+        t("agent.moveInDone", { ref: result.accountRef, name: result.tenantName }),
+      );
     },
     onError: (error) => {
       toast.error(mutationErrorMessage(error, t("errors.somethingWrong")));

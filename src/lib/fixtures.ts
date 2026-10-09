@@ -495,6 +495,7 @@ function pushNotification(profileId: string, channel: "SMS" | "WHATSAPP" | "IN_A
     status: "SENT",
     createdAt: new Date().toISOString(),
     sentAt: new Date().toISOString(),
+    readAt: null,
   }
   NOTIFICATION_OWNER[n.id] = profileId
   NOTIFICATIONS.push(n)

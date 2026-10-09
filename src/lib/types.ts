@@ -588,7 +588,15 @@ export interface SecurityDigestDto {
 export const LISTING_STATUSES = ["DRAFT", "PUBLISHED", "PAUSED", "LET"] as const
 export type ListingStatus = (typeof LISTING_STATUSES)[number]
 
-export const APPLICATION_STATUSES = ["NEW", "CONTACTED", "VIEWING", "APPROVED", "REJECTED", "WITHDRAWN"] as const
+export const APPLICATION_STATUSES = [
+  "NEW",
+  "CONTACTED",
+  "VIEWING",
+  "APPROVED",
+  "REJECTED",
+  "WITHDRAWN",
+  "CONVERTED",
+] as const
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
 
 export const APPLICATION_SOURCES = ["WALK_IN", "PHONE", "WHATSAPP", "FACEBOOK", "OTHER"] as const
@@ -668,6 +676,39 @@ export interface RecordApplicationRequest {
 export interface ApplicationStatusChangeRequest {
   status: ApplicationStatus
   note?: string
+}
+
+// ---------------------------------------------------------------------------
+// Move-in (Phase 8, issue #72) — approved application → active tenancy
+// ---------------------------------------------------------------------------
+
+/** POST /api/move-ins — the landlord's single verified conversion verb. */
+export interface MoveInRequest {
+  applicationId: string
+  /** Monthly rent, integer KES minor (prefilled from the listing). */
+  monthlyRentMinor: number
+  /** Deposit to hold, integer KES minor (prefilled = one month's rent). */
+  depositHeldMinor: number
+  /** Move-in/start date, ISO (yyyy-mm-dd from the date input). */
+  startDate: string
+  note?: string
+}
+
+/** The money-ready tenancy a move-in created — the receipt-of-record shape. */
+export interface MoveInResultDto {
+  tenancyId: string
+  accountRef: string
+  tenantId: string
+  tenantName: string
+  tenantPhone: string
+  unitLabel: string
+  propertyName: string
+  monthlyRentMinor: number
+  depositHeldMinor: number
+  startDate: string
+  /** "YYYY-MM" — the first RENT charge period raised at move-in. */
+  firstChargePeriod: string
+  applicationId: string
 }
 
 // ---------------------------------------------------------------------------

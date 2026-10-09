@@ -838,22 +838,25 @@ async function main(): Promise<void> {
     },
   })
 
-  // Applicants recorded by Wanjiku. statuses: VIEWING (Joyce), NEW (Brian),
-  // CONTACTED (Faith) — the funnel's three live stages.
+  // Applicants recorded by Wanjiku. statuses: APPROVED (Joyce — decided by
+  // Amina, move-in-ready: the Phase 8 demo state), NEW (Brian), CONTACTED
+  // (Faith) — the funnel's stages incl. one awaiting move-in.
   const applicantSeeds = [
     {
       applicantName: "Joyce Muthoni",
       applicantPhone: "+254701555666",
       source: "PHONE",
       note: "Called after seeing the Facebook post. Works at Kenyatta University library, wants to move in with her sister.",
-      status: "VIEWING",
+      status: "APPROVED",
+      decided: true,
       createdAt: daysAgo(2),
-      // Timeline: recorded (NEW) → called back (CONTACTED) → viewed today —
-      // timestamps align with the gate register entry (3.2h ago).
+      // Timeline: recorded (NEW) → called back (CONTACTED) → viewed → APPROVED
+      // by the landlord (the decision of record — move-in-ready).
       events: [
         { toStatus: "NEW", note: "Phone lead from the Facebook post.", at: daysAgo(2) },
         { toStatus: "CONTACTED", note: "Called back — very interested, asked about water billing.", at: daysAgo(1.5) },
         { toStatus: "VIEWING", note: "Viewed the unit with the caretaker. Gate entry logged by Peter.", at: hoursAgo(3.2) },
+        { toStatus: "APPROVED", note: "Approved — collect deposit and open the tenancy.", at: hoursAgo(1.4) },
       ],
     },
     {
@@ -862,6 +865,7 @@ async function main(): Promise<void> {
       source: "WHATSAPP",
       note: "WhatsApped the number on the poster. Relocating from Kisumu in January, needs 6+ months.",
       status: "NEW",
+      decided: false,
       createdAt: hoursAgo(5),
       events: [{ toStatus: "NEW", note: "WhatsApp lead — requested photos first.", at: hoursAgo(5) }],
     },
@@ -871,6 +875,7 @@ async function main(): Promise<void> {
       source: "FACEBOOK",
       note: "Facebook Marketplace enquiry. Family of three, asked if the court is child-friendly.",
       status: "CONTACTED",
+      decided: false,
       createdAt: daysAgo(1),
       events: [
         { toStatus: "NEW", note: "Facebook Marketplace enquiry.", at: daysAgo(1) },
@@ -890,17 +895,21 @@ async function main(): Promise<void> {
         note: a.note,
         status: a.status,
         handledById: wanjiku.id,
+        ...(a.decided
+          ? { decidedById: amina.id, decidedAt: a.events[a.events.length - 1].at }
+          : {}),
         createdAt: a.createdAt,
         updatedAt: a.events[a.events.length - 1].at,
       },
     })
     applications[a.applicantName] = row
     for (const ev of a.events) {
+      const actorId = ev.toStatus === "APPROVED" ? amina.id : wanjiku.id
       await db.listingApplicationEvent.create({
         data: {
           applicationId: row.id,
           toStatus: ev.toStatus,
-          actorId: wanjiku.id,
+          actorId,
           note: ev.note,
           createdAt: ev.at,
         },

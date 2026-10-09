@@ -61,6 +61,7 @@ const TEMPLATE_KEY_TO_I18N: Record<string, TranslationKey> = {
   INCIDENT_ACKED: "notifications.incidentAcked",
   TICKET_CREATED: "notifications.ticketCreated",
   TICKET_UPDATED: "notifications.ticketUpdated",
+  MOVE_IN: "notifications.moveIn",
 };
 
 function templateLine(templateKey: string, t: ReturnType<typeof useI18n>["t"]): string | null {

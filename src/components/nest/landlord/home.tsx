@@ -282,6 +282,13 @@ function VacancyFunnelCard() {
   }
 
   // 1. Live applicants await the landlord's decision — amber attention.
+  //    Then: approved applicants on still-live listings — green, Phase 8's
+  //    move-in-ready state (the funnel's happiest moment).
+  const approvedReady = (applications ?? []).filter(
+    (application) =>
+      application.status === "APPROVED" && liveListingIds.has(application.listingId),
+  );
+
   if (pending.length > 0) {
     const primary = liveListings.find((listing) => pending.some((a) => a.listingId === listing.id));
     const pendingUnits = [...new Set(pending.map((application) => application.unitLabel))];
@@ -315,6 +322,55 @@ function VacancyFunnelCard() {
             <p className="text-caption text-muted-foreground truncate">{summary}</p>
             <p className="flex items-center justify-end gap-1 text-label font-medium text-attention">
               {t("agent.viewApplicants")}
+              <ChevronRight className="size-4" aria-hidden />
+            </p>
+          </CardContent>
+        </Card>
+      </button>
+    );
+  }
+
+  // 1b. Phase 8: approved + unit still live — the move-in-ready moment
+  //     (green; the landlord's next verified action is one tap away).
+  if (approvedReady.length > 0) {
+    const primary = liveListings.find((listing) =>
+      approvedReady.some((a) => a.listingId === listing.id),
+    );
+    const readyUnits = [...new Set(approvedReady.map((application) => application.unitLabel))];
+    const summary =
+      primary != null && readyUnits.length === 1
+        ? t("agent.moveInReadySummary", {
+            unit: primary.unitLabel,
+            rent: formatKes(primary.rentAmountMinor),
+          })
+        : readyUnits.join(" · ");
+    return (
+      <button
+        type="button"
+        onClick={() => openListings("applicants")}
+        aria-label={`${t("agent.funnelCardTitle")} — ${t("agent.moveInReadyCard", {
+          count: approvedReady.length,
+        })}`}
+        className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition active:scale-[0.99]"
+      >
+        <Card className="border-l-4 border-l-success/70 bg-success/10 dark:bg-success/10 animate-in fade-in duration-300">
+          <CardContent className="p-4 sm:p-6 space-y-2.5">
+            <div className="flex items-center gap-2 min-w-0">
+              <CheckCircle2 className="size-4 text-success shrink-0" aria-hidden />
+              <p className="text-label font-medium text-success truncate flex-1 min-w-0">
+                {t("agent.funnelCardTitle")}
+              </p>
+              {/* success badge — the move-in-ready count */}
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-success/50 bg-success/10 px-2 py-0.5 text-caption font-semibold text-success tabular-nums shrink-0">
+                {approvedReady.length}
+              </span>
+            </div>
+            <p className="text-body font-medium text-success">
+              {t("agent.moveInReadyCard", { count: approvedReady.length })}
+            </p>
+            <p className="text-caption text-muted-foreground truncate">{summary}</p>
+            <p className="flex items-center justify-end gap-1 text-label font-medium text-success">
+              {t("agent.moveInView")}
               <ChevronRight className="size-4" aria-hidden />
             </p>
           </CardContent>

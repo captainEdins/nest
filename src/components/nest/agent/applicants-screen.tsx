@@ -24,6 +24,8 @@ type ApplicantsSegment = "all" | "new" | "contacted" | "viewing" | "decided";
 const DECIDED_STATUSES: ReadonlySet<ListingApplicationDto["status"]> = new Set([
   "APPROVED",
   "REJECTED",
+  // Phase 8: a converted applicant is post-decision history.
+  "CONVERTED",
 ]);
 
 function segmentMatches(segment: ApplicantsSegment, application: ListingApplicationDto): boolean {

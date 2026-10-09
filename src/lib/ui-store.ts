@@ -122,6 +122,12 @@ interface UIState {
   recordApplicantListingId: string | null;
   openRecordApplicant: (listingId?: string) => void;
   closeRecordApplicant: () => void;
+  /** Move-in sheet (Phase 8, issue #72), landlord — anchored to an APPROVED
+   *  application; prefills rent/deposit from the listing of record. */
+  moveInOpen: boolean;
+  moveInApplicationId: string | null;
+  openMoveIn: (applicationId: string) => void;
+  closeMoveIn: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -185,4 +191,8 @@ export const useUIStore = create<UIState>((set) => ({
     set({ recordApplicantOpen: true, recordApplicantListingId: listingId ?? null }),
   closeRecordApplicant: () =>
     set({ recordApplicantOpen: false, recordApplicantListingId: null }),
+  moveInOpen: false,
+  moveInApplicationId: null,
+  openMoveIn: (applicationId) => set({ moveInOpen: true, moveInApplicationId: applicationId }),
+  closeMoveIn: () => set({ moveInOpen: false, moveInApplicationId: null }),
 }));

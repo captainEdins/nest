@@ -14,7 +14,7 @@
  */
 
 import * as React from "react";
-import { CheckCircle2, ChevronRight, Megaphone, Users, XCircle } from "lucide-react";
+import { CheckCircle2, ChevronRight, Home, Megaphone, Users, XCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { formatKes } from "@/lib/money";
 import type { ListingApplicationDto, ListingDto } from "@/lib/types";
@@ -216,7 +216,8 @@ function LandlordApplicantRow({ application }: { application: ListingApplication
 
   const live = LIVE_APPLICATION_STATUSES.has(application.status);
   const approved = application.status === "APPROVED";
-  const decided = approved || application.status === "REJECTED";
+  const converted = application.status === "CONVERTED";
+  const decided = approved || application.status === "REJECTED" || converted;
 
   const meta: string[] = [formatPhone(application.applicantPhone)];
   meta.unshift(application.unitLabel);
@@ -247,7 +248,19 @@ function LandlordApplicantRow({ application }: { application: ListingApplication
             {t("landlord.awaitingDecision")}
           </p>
         ) : null}
-        {decided && application.decidedByName ? (
+        {approved ? (
+          <p className="text-caption font-medium text-success flex items-center gap-1.5 mt-1.5">
+            <Home className="size-3.5 shrink-0" aria-hidden />
+            {t("agent.moveInView")}
+          </p>
+        ) : null}
+        {converted ? (
+          <p className="text-caption font-medium text-primary flex items-center gap-1.5 mt-1.5">
+            <Home className="size-3.5 shrink-0" aria-hidden />
+            {t("applicant.converted")}
+          </p>
+        ) : null}
+        {!converted && decided && application.decidedByName ? (
           <p
             className={cn(
               "text-caption font-medium flex items-center gap-1.5 mt-1.5 tabular-nums",

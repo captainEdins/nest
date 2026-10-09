@@ -50,6 +50,7 @@ import { AgentListingsScreen } from "@/components/nest/agent/listings-screen";
 import { AgentApplicantsScreen } from "@/components/nest/agent/applicants-screen";
 import { CreateListingSheet } from "@/components/nest/agent/create-listing-sheet";
 import { RecordApplicantSheet } from "@/components/nest/agent/record-applicant-sheet";
+import { MoveInSheet } from "@/components/nest/shared/move-in-sheet";
 import { ListingDetailScreen } from "@/components/nest/shared/listing-detail-screen";
 import { ApplicationDetailScreen } from "@/components/nest/shared/application-detail-screen";
 import { GuardHome } from "@/components/nest/guard/home";
@@ -325,6 +326,9 @@ function Shell({ session }: { session: SessionDto }) {
           <RecordApplicantSheet />
         </>
       ) : null}
+
+      {/* Phase 8: the landlord's move-in sheet (landlord only). */}
+      {role === "LANDLORD" ? <MoveInSheet /> : null}
 
       {/* Mobile "More" drawer (S-15) */}
       <Drawer open={moreOpen} onOpenChange={setMoreOpen}>
