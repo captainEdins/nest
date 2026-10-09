@@ -11,17 +11,20 @@
  * never colour-only (design-system §9.2).
  */
 
-import { CheckCircle2, ScrollText } from "lucide-react";
+import { CheckCircle2, DoorOpen, ScrollText } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { StatementDto, StatementMonthDto } from "@/lib/types";
 import type { TranslationKey } from "@/lib/i18n/en";
 import { formatKes } from "@/lib/money";
-import { useStatement } from "@/hooks/use-overview";
+import { useStatement, useTenantOverview } from "@/hooks/use-overview";
+import { useUIStore } from "@/lib/ui-store";
 import { formatDate, formatMonthKey } from "@/components/nest/shared/format";
+import { NoticeBanner } from "@/components/nest/shared/give-notice-sheet";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
 import { HeroSkeleton, ListSkeleton } from "@/components/nest/shared/skeletons";
 import { StatusBadge } from "@/components/nest/shared/status-badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +60,12 @@ function MonthNode({ month }: { month: StatementMonthDto }) {
 export function TenantStatementScreen() {
   const { t } = useI18n();
   const { data, isPending, error, refetch } = useStatement();
+  // Phase 11: the tenancy's lifecycle state rides the overview call — the
+  // banner (NOTICE) and the give-notice entry (ACTIVE) hang off it.
+  const { data: overview } = useTenantOverview();
+  const setGiveNoticeOpen = useUIStore((s) => s.setGiveNoticeOpen);
+  const onNotice = overview?.tenancy.status === "NOTICE";
+  const tenancyActive = overview?.tenancy.status === "ACTIVE";
 
   if (error != null) {
     return (
@@ -80,6 +89,18 @@ export function TenantStatementScreen() {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      {/* Phase 11 — the exit banner: the notice made visible where the lease
+       *  story is told. */}
+      {onNotice && overview ? (
+        <NoticeBanner
+          tenancy={{
+            id: overview.tenancy.id,
+            unitLabel: overview.tenancy.unitLabel,
+            moveOutDate: overview.tenancy.moveOutDate,
+          }}
+        />
+      ) : null}
+
       {/* Head */}
       <div>
         <h1 className="text-h3 font-semibold">{t("statement.title")}</h1>
@@ -90,6 +111,17 @@ export function TenantStatementScreen() {
           <span className="rounded-full border px-2 py-0.5">{data.accountRef}</span>
           {t("statement.generated", { date: formatDate(data.generatedAt) })}
         </p>
+        {tenancyActive ? (
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-11 mt-3"
+            onClick={() => setGiveNoticeOpen(true)}
+          >
+            <DoorOpen className="size-4" aria-hidden />
+            {t("notice.giveNotice")}
+          </Button>
+        ) : null}
       </div>
 
       {/* Summary strip */}

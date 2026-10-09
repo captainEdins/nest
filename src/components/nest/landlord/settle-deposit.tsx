@@ -24,6 +24,7 @@ import * as React from "react";
 import {
   AlertCircle,
   CheckCircle2,
+  ClipboardCheck,
   Loader2,
   Plus,
   TriangleAlert,
@@ -77,6 +78,7 @@ export function SettleDepositModal() {
   const online = useOnline();
   const settleDeposit = useUIStore((s) => s.settleDeposit);
   const closeSettleDeposit = useUIStore((s) => s.closeSettleDeposit);
+  const openInspection = useUIStore((s) => s.openInspection);
 
   const tenancyId =
     typeof settleDeposit.tenancyId === "string" && settleDeposit.tenancyId.length > 0
@@ -261,12 +263,30 @@ export function SettleDepositModal() {
             </p>
           </div>
 
-          {/* Missing MOVE_OUT condition report — pre-empted client-side */}
+          {/* Missing MOVE_OUT condition report — pre-empted client-side.
+           *  Phase 11: the warning is now actionable — record the inspection
+           *  without leaving the settle flow (InspectionSheet). */}
           {!hasMoveOutReport ? (
             <Card className="border-warning/40 bg-warning/15 dark:bg-warning/10">
-              <CardContent className="p-4 flex items-start gap-2.5">
-                <TriangleAlert className="size-4 text-attention shrink-0 mt-0.5" aria-hidden />
-                <p className="text-body text-attention">{t("deposit.needsMoveOut")}</p>
+              <CardContent className="p-4 space-y-3">
+                <div className="flex items-start gap-2.5">
+                  <TriangleAlert className="size-4 text-attention shrink-0 mt-0.5" aria-hidden />
+                  <p className="text-body text-attention">{t("deposit.needsMoveOut")}</p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-11"
+                  onClick={() =>
+                    openInspection(tenancyId, {
+                      unitLabel: deposit.unitLabel,
+                      tenantName: deposit.tenantName,
+                    })
+                  }
+                >
+                  <ClipboardCheck className="size-4" aria-hidden />
+                  {t("notice.inspectionAction")}
+                </Button>
               </CardContent>
             </Card>
           ) : null}

@@ -76,7 +76,8 @@ export interface UnitDto {
   status: UnitStatus
   rentAmountMinor: number
   depositAmountMinor: number
-  /** Present when occupied */
+  /** Present when occupied — or when the lease ENDED with the deposit still
+   *  HELD (Phase 11): the settle action stays reachable after move-out. */
   tenancy?: {
     id: string
     tenantId: string
@@ -86,6 +87,10 @@ export interface UnitDto {
     monthlyRentMinor: number
     startDate: string
     balanceMinor: number // unpaid charges total
+    /** Phase 11: the notice's move-out day — set when the unit is on NOTICE. */
+    moveOutDate: string | null
+    /** Phase 11: ACTIVE | NOTICE | ENDED (ENDED ⇒ deposit still HELD). */
+    tenancyStatus: "ACTIVE" | "NOTICE" | "ENDED"
   } | null
 }
 
@@ -366,6 +371,33 @@ export interface CreateConditionReportRequest {
 }
 
 // ---------------------------------------------------------------------------
+// Lease exit arc (Phase 11, issue #78) — notice → move-out state transitions
+// ---------------------------------------------------------------------------
+
+export interface NoticeRequest {
+  /** YYYY-MM-DD — the move-out day (inclusive), ≥ today, ≤ 120 days out. */
+  moveOutDate: string
+  reason: string
+}
+
+export interface MoveOutRequest {
+  note?: string
+}
+
+/** Post-transition snapshot — one small row, low-end-phone friendly. */
+export interface TenancyLifecycleDto {
+  tenancyId: string
+  tenancyStatus: TenancyStatus
+  unitId: string
+  unitStatus: UnitStatus
+  unitLabel: string
+  propertyName: string
+  /** The notice's move-out day (ISO) — null once back to ACTIVE. */
+  moveOutDate: string | null
+  tenantName: string
+}
+
+// ---------------------------------------------------------------------------
 // Dashboards — one small payload per role home screen (low-end phones)
 // ---------------------------------------------------------------------------
 
@@ -444,6 +476,10 @@ export interface TenantOverviewDto {
     monthlyRentMinor: number
     depositHeldMinor: number
     startDate: string
+    /** Phase 11: ACTIVE while the lease runs; NOTICE once notice is given. */
+    status: TenancyStatus
+    /** Phase 11: the notice's move-out day (ISO) — null when ACTIVE. */
+    moveOutDate: string | null
   }
   totals: {
     balanceMinor: number

@@ -8,6 +8,7 @@
  */
 
 import { Bell, ChevronRight, Receipt, Users, Wrench } from "lucide-react";
+import { ApiError } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import type { ChargeDto, ChargeKind } from "@/lib/types";
 import { formatKes } from "@/lib/money";
@@ -17,6 +18,7 @@ import { useTickets } from "@/hooks/use-tickets";
 import { RentScoreCard } from "@/components/nest/tenant/rent-score-card";
 import { useOnline } from "@/components/nest/offline-banner";
 import { formatDate, formatMonthKey, formatTime } from "@/components/nest/shared/format";
+import { NoticeBanner } from "@/components/nest/shared/give-notice-sheet";
 import { AvatarInitials } from "@/components/nest/shared/avatar-initials";
 import { visitorPurposeLabel } from "@/components/nest/shared/security/visitor-row";
 import { SectionHeader } from "@/components/nest/shared/section-header";
@@ -55,6 +57,19 @@ export function TenantHome() {
   const { data: rentScore, isPending: rentScorePending } = useRentScore(true);
 
   if (error != null) {
+    // Phase 11: a tenant whose lease ENDED (the exit arc now reaches it) gets
+    // an honest empty state, not a retry-forever error — the overview's 404
+    // "no active tenancy" is a normal end-of-lease state, not a failure.
+    const endedLease =
+      error instanceof ApiError && error.code === "NOT_FOUND"
+    if (endedLease) {
+      return (
+        <section aria-label={t("tenant.yourRent")} className="space-y-4">
+          <h1 className="text-h3 font-semibold">{t("common.greeting", { name: session?.profile.fullName.split(" ")[0] ?? "" })}</h1>
+          <EmptyState icon={Receipt} title={t("tenant.noTenancyTitle")} hint={t("tenant.noTenancyBody")} />
+        </section>
+      )
+    }
     return (
       <section aria-label={t("tenant.yourRent")}>
         <ErrorState onRetry={() => refetch()} />
@@ -114,6 +129,17 @@ export function TenantHome() {
               ) : null}
             </CardContent>
           </Card>
+
+          {/* Phase 11 — the notice state, made visible at the top of the day */}
+          {tenancy.status === "NOTICE" ? (
+            <NoticeBanner
+              tenancy={{
+                id: tenancy.id,
+                unitLabel: tenancy.unitLabel,
+                moveOutDate: tenancy.moveOutDate,
+              }}
+            />
+          ) : null}
 
           {/* Pay now */}
           {balance > 0 ? (

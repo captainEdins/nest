@@ -157,7 +157,7 @@ primitive above, e.g. caretaker:
 | profiles | WRITE | `profile.id = SELF` — `fullName`, `language` only |
 | properties | READ | `property.caretakerId = SELF`. WRITE: NONE — a caretaker can never change `landlordId`/`agentId`/`caretakerId`. |
 | units | READ | `unit.property.caretakerId = SELF`. WRITE: `status` only (VACANT/OCCUPIED/NOTICE) — never `rentAmountMinor`. |
-| tenancies | READ, WRITE | `tenancy.unit.property.caretakerId = SELF` (create at move-in, mark NOTICE/ENDED at move-out) |
+| tenancies | READ, WRITE | `tenancy.unit.property.caretakerId = SELF` (create at move-in, **execute move-out → ENDED** at move-out — Phase 11; notice INITIATION is the lease parties' decision: TENANT or LANDLORD only, D-024) |
 | charges | READ | `charge.tenancy.unit.property.caretakerId = SELF` |
 | charges | WRITE (generate only) | monthly generation for `tenancy.unit.property.caretakerId = SELF`. Never `paidMinor`. |
 | payments | READ | `payment.tenancy.unit.property.caretakerId = SELF` OR scoped unmatched (below) |
@@ -169,6 +169,7 @@ primitive above, e.g. caretaker:
 | audit log | NONE | |
 | deposits, movements (P2) | READ | `deposit.tenancy.unit.property.caretakerId = SELF`. WRITE: append-only `REFUND`/`DEDUCT`/`ADJUST` movements with `actorId = SELF` via the release flow. |
 | maintenance tickets, updates (P2) | READ, WRITE | `ticket.propertyId IN (Properties WHERE caretakerId = SELF)` — caretaker's core Phase 2 module |
+| lease exit (P11) | WRITE (execute only) | `POST /api/tenancies/[id]/move-out` on NOTICE tenancies in scope, on/after the date on record; `DELETE notice` + `POST notice` → 403 (initiation is the parties') |
 | condition reports (P2) | READ, WRITE | `report.tenancy.unit.property.caretakerId = SELF` (`recordedById = SELF`) |
 | visitor logs, incident reports, guard shifts (P3) | READ | `record.propertyId IN (Properties WHERE caretakerId = SELF)` |
 | listings (P4) | NONE | |

@@ -113,7 +113,7 @@ interface RequestOptions {
 const REQUEST_TIMEOUT_MS = 30_000
 
 async function request<T>(
-  method: "GET" | "POST",
+  method: "GET" | "POST" | "DELETE",
   path: string,
   body?: unknown,
   opts: RequestOptions = {},
@@ -184,6 +184,11 @@ export function apiGet<T>(path: string): Promise<T> {
 /** Typed POST returning a DTO. */
 export function apiPost<T>(path: string, body?: unknown): Promise<T> {
   return request<T>("POST", path, body)
+}
+
+/** Typed DELETE returning a DTO (Phase 11 — notice withdraw). */
+export function apiDelete<T>(path: string): Promise<T> {
+  return request<T>("DELETE", path)
 }
 
 /**

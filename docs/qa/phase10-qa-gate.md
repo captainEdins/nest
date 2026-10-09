@@ -57,7 +57,7 @@
 | 30 | Session-expiry during palette use | 401 → global reset closes the palette (cannot stay open signed-out) | code audit |
 | 31 | Footer | "Phase 10 · v0.10.0" |
 | 32 | Phase 9 surfaces (spot) | KPI cards + MoM delta, dock, SegmentedControl, notifications — untouched, render intact |
-| 33 | Reseed stability | seed counts unchanged (8 profiles, 4 payments, 13 notifications, 33 audit logs) |
+| 33 | Reseed stability | seed counts unchanged (8 profiles, 4 payments, 13 notifications, 33 audit logs) — *superseded by Phase 11 (issue #78): the Kevin/B1 notice story adds +2 notifications, +1 audit → 15/34 per reseed* |
 
 **Known non-defects (documented to avoid re-triage):**
 - Setting the input value programmatically (agent-browser eval) does not trigger React onChange — real keystrokes were used for all typed queries; not a product defect.

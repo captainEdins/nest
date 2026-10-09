@@ -51,6 +51,9 @@ import { AgentApplicantsScreen } from "@/components/nest/agent/applicants-screen
 import { CreateListingSheet } from "@/components/nest/agent/create-listing-sheet";
 import { RecordApplicantSheet } from "@/components/nest/agent/record-applicant-sheet";
 import { MoveInSheet } from "@/components/nest/shared/move-in-sheet";
+import { GiveNoticeSheet } from "@/components/nest/shared/give-notice-sheet";
+import { MoveOutDialog } from "@/components/nest/shared/move-out-dialog";
+import { InspectionSheet } from "@/components/nest/shared/inspection-sheet";
 import { ListingDetailScreen } from "@/components/nest/shared/listing-detail-screen";
 import { ApplicationDetailScreen } from "@/components/nest/shared/application-detail-screen";
 import { GuardHome } from "@/components/nest/guard/home";
@@ -134,6 +137,11 @@ function useUnauthorizedHandler() {
         recordApplicantListingId: null,
         listingViewId: null,
         applicationViewId: null,
+        // Phase 11: exit-arc flows reset with everything else.
+        giveNoticeOpen: false,
+        moveOutFlow: { open: false },
+        moveOutContext: null,
+        inspectionFlow: { open: false },
       });
       if (hadSession) {
         // Neutral toast outside React — read the persisted language directly.
@@ -334,6 +342,12 @@ function Shell({ session }: { session: SessionDto }) {
 
       {/* Phase 8: the landlord's move-in sheet (landlord only). */}
       {role === "LANDLORD" ? <MoveInSheet /> : null}
+
+      {/* Phase 11: the exit arc — tenant gives notice; landlord/caretaker
+       *  complete the move-out. Deposit settlement stays the Phase 2 modal. */}
+      {role === "TENANT" ? <GiveNoticeSheet /> : null}
+      {role === "LANDLORD" || role === "CARETAKER" ? <MoveOutDialog /> : null}
+      {role === "LANDLORD" || role === "CARETAKER" ? <InspectionSheet /> : null}
 
       {/* Mobile "More" drawer (S-15) */}
       <Drawer open={moreOpen} onOpenChange={setMoreOpen}>

@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     // Scope on the target tenancy: fetched WITH the role's scope condition —
     // an out-of-scope tenancy is a 404 (existence must not leak, §1).
     const tenancy = await db.tenancy.findFirst({
-      where: { id: body.tenancyId, status: "ACTIVE", ...tenancyScopeWhere(profile) },
+      where: { id: body.tenancyId, status: { in: ["ACTIVE", "NOTICE"] }, ...tenancyScopeWhere(profile) },
       include: { tenant: true, unit: true },
     })
     if (!tenancy) throw notFound("Tenancy not found")

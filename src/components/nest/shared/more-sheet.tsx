@@ -10,11 +10,12 @@ import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTheme } from "next-themes";
 import { toast } from "sonner";
-import { Check, Download } from "lucide-react";
+import { Check, DoorOpen, Download } from "lucide-react";
 import { apiPost } from "@/lib/api";
 import { useI18n, LANGS } from "@/lib/i18n";
 import type { SessionDto } from "@/lib/types";
 import { useOutboxCount } from "@/hooks/use-outbox";
+import { useTenantOverview } from "@/hooks/use-overview";
 import { useUIStore } from "@/lib/ui-store";
 import { MORE_TABS, roleLabelKey } from "@/components/nest/nav";
 import { AvatarInitials } from "@/components/nest/shared/avatar-initials";
@@ -121,6 +122,12 @@ export function MoreSheetContent({ session }: { session: SessionDto }) {
   const queryClient = useQueryClient();
   const outboxCount = useOutboxCount();
   const install = useInstallState();
+  const setGiveNoticeOpen = useUIStore((s) => s.setGiveNoticeOpen);
+  // Phase 11: the give-notice entry only appears for a tenant with a live
+  // (ACTIVE) lease — NOTICE/ENDED states surface the banner instead.
+  const { data: tenantOverview } = useTenantOverview();
+  const tenantCanGiveNotice =
+    session.profile.role === "TENANT" && tenantOverview?.tenancy.status === "ACTIVE";
 
   const signOut = useMutation({
     mutationFn: () => apiPost("/api/auth/logout"),
@@ -146,6 +153,11 @@ export function MoreSheetContent({ session }: { session: SessionDto }) {
         startShiftOpen: false,
         endShiftOpen: false,
         securitySegment: "visitors",
+        // Phase 11: exit-arc flows reset on sign-out too.
+        giveNoticeOpen: false,
+        moveOutFlow: { open: false },
+        moveOutContext: null,
+        inspectionFlow: { open: false },
       });
     },
     onError: () => toast.error(t("errors.somethingWrong")),
@@ -245,6 +257,21 @@ export function MoreSheetContent({ session }: { session: SessionDto }) {
             {outboxCount}
           </Badge>
         </div>
+      ) : null}
+
+      {/* Phase 11 — the tenant's exit arc entry (live leases only). */}
+      {tenantCanGiveNotice ? (
+        <Button
+          variant="outline"
+          className="w-full h-11 sm:h-10 justify-start"
+          onClick={() => {
+            setMoreOpen(false);
+            setGiveNoticeOpen(true);
+          }}
+        >
+          <DoorOpen className="size-4" aria-hidden />
+          {t("notice.giveNotice")}
+        </Button>
       ) : null}
 
       <Separator />

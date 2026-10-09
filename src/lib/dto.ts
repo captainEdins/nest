@@ -43,6 +43,8 @@ import type {
   PropertyDto,
   ReceiptDto,
   Role,
+  TenancyLifecycleDto,
+  TenancyStatus,
   TicketDto,
   TicketPriority,
   TicketStatus,
@@ -188,6 +190,9 @@ export function toUnitDto(
           startDate: activeTenancy.startDate.toISOString(),
           // Outstanding balance (negative = tenant credit from over-payment).
           balanceMinor: balances.get(activeTenancy.id) ?? 0,
+          // Phase 11: the notice's move-out day (null while ACTIVE).
+          moveOutDate: activeTenancy.endDate ? activeTenancy.endDate.toISOString() : null,
+          tenancyStatus: activeTenancy.status as "ACTIVE" | "NOTICE" | "ENDED",
         }
       : null,
   }
@@ -322,6 +327,46 @@ export const conditionReportInclude = {
 export type ConditionReportWithRelations = Prisma.ConditionReportGetPayload<{
   include: typeof conditionReportInclude
 }>
+
+// ---------------------------------------------------------------------------
+// Lease exit arc (Phase 11, issue #78)
+// ---------------------------------------------------------------------------
+
+/** Everything TenancyLifecycleDto needs (tenant + unit + property chain). */
+export const tenancyLifecycleInclude = {
+  tenant: { select: { fullName: true } },
+  unit: {
+    include: {
+      property: {
+        // landlordId/caretakerId feed the notice notifications (Phase 11).
+        select: { name: true, landlordId: true, caretakerId: true },
+      },
+    },
+  },
+  // Deposit STATUS ONLY (never money fields): the withdraw guard refuses to
+  // revert a tenancy whose deposit is already RELEASED (Phase 11).
+  deposit: { select: { status: true } },
+} satisfies Prisma.TenancyInclude
+
+export type TenancyWithLifecycleRelations = Prisma.TenancyGetPayload<{
+  include: typeof tenancyLifecycleInclude
+}>
+
+/** Post-transition snapshot for notice / move-out responses. */
+export function toTenancyLifecycleDto(
+  tenancy: TenancyWithLifecycleRelations
+): TenancyLifecycleDto {
+  return {
+    tenancyId: tenancy.id,
+    tenancyStatus: tenancy.status as TenancyStatus,
+    unitId: tenancy.unitId,
+    unitStatus: tenancy.unit.status as UnitStatus,
+    unitLabel: tenancy.unit.label,
+    propertyName: tenancy.unit.property.name,
+    moveOutDate: tenancy.endDate ? tenancy.endDate.toISOString() : null,
+    tenantName: tenancy.tenant.fullName,
+  }
+}
 
 export function toConditionReportDto(report: ConditionReportWithRelations): ConditionReportDto {
   let photoUrls: string[] = []
