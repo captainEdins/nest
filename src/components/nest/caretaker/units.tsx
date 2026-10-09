@@ -22,7 +22,7 @@ import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
 import { ListSkeleton } from "@/components/nest/shared/skeletons";
 import { StatusBadge } from "@/components/nest/shared/status-badge";
-import { formatDate } from "@/components/nest/shared/format";
+import { formatDate, calendarDayReached } from "@/components/nest/shared/format";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -149,10 +149,13 @@ function UnitRow({
 }) {
   const { t } = useI18n();
   const tenancy = unit.tenancy;
-  const canCollect = unit.status === "OCCUPIED" && tenancy !== null && tenancy !== undefined;
+  // Phase 11: collection stays available through the notice window — the
+  // final month's rent is very much still due (money-in accepts NOTICE).
+  const canCollect =
+    (unit.status === "OCCUPIED" || unit.status === "NOTICE") && tenancy !== null && tenancy !== undefined;
   const onNotice = unit.status === "NOTICE" && tenancy != null;
   const moveOutReached =
-    tenancy?.moveOutDate != null && new Date(tenancy.moveOutDate).getTime() <= Date.now();
+    tenancy?.moveOutDate != null && calendarDayReached(tenancy.moveOutDate);
 
   return (
     <div className="p-4 animate-in fade-in duration-300 fill-mode-both">
@@ -178,7 +181,7 @@ function UnitRow({
                 · {t("money.balance")} {formatKes(tenancy.balanceMinor)}
               </span>
             ) : null}
-            {tenancy?.moveOutDate ? (
+            {tenancy?.tenancyStatus === "NOTICE" && tenancy.moveOutDate ? (
               <span className="text-attention tabular-nums">
                 {" "}· {t("notice.onNoticeChip", { date: formatDate(tenancy.moveOutDate) })}
               </span>
@@ -204,22 +207,27 @@ function UnitRow({
       </div>
       {/* Phase 11 — the field worker's exit executor on notice rows */}
       {onNotice && tenancy ? (
-        <Button
-          variant={moveOutReached ? "default" : "secondary"}
-          size="sm"
-          className="h-11 mt-3"
-          disabled={!moveOutReached}
-          onClick={() =>
-            onMoveOut(tenancy.id, {
-              unitLabel: unit.label,
-              tenantName: tenancy.tenantName,
-              moveOutDate: tenancy.moveOutDate,
-            })
-          }
-        >
-          <LogOut className="size-4" aria-hidden />
-          {t("notice.moveOutAction")}
-        </Button>
+        <div className="mt-3 space-y-2">
+          <Button
+            variant={moveOutReached ? "default" : "secondary"}
+            size="sm"
+            className="h-11"
+            disabled={!moveOutReached}
+            onClick={() =>
+              onMoveOut(tenancy.id, {
+                unitLabel: unit.label,
+                tenantName: tenancy.tenantName,
+                moveOutDate: tenancy.moveOutDate,
+              })
+            }
+          >
+            <LogOut className="size-4" aria-hidden />
+            {t("notice.moveOutAction")}
+          </Button>
+          {!moveOutReached ? (
+            <p className="text-caption text-muted-foreground">{t("notice.moveOutNotReached")}</p>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );

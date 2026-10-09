@@ -91,3 +91,20 @@ export function timeAgo(iso: string, t: Translate, now: Date = new Date()): stri
   }
   return formatDate(iso)
 }
+
+/**
+ * Phase 11: has the move-out CALENDAR DAY arrived (inclusive)? The notice is
+ * a day commitment — compare UTC calendar days, never instants, so a
+ * time-of-day component on the stored date can never shift the boundary.
+ * This is the client twin of the move-out route's calendarDayUtc gate.
+ */
+export function calendarDayReached(iso: string, now: Date = new Date()): boolean {
+  try {
+    const day = parseISO(iso)
+    const dayUtc = Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate())
+    const todayUtc = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
+    return dayUtc <= todayUtc
+  } catch {
+    return false
+  }
+}

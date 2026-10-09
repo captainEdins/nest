@@ -25,8 +25,11 @@ export async function GET() {
       throw forbidden("Guard role may not list tenancies")
     }
 
+    // Phase 11: the picker keeps NOTICE tenancies — final rent is still
+    // collectable through the whole notice window (money-in paths accept
+    // ACTIVE + NOTICE; only ENDED goes dark).
     const tenancies = await db.tenancy.findMany({
-      where: { status: "ACTIVE", ...tenancyScopeWhere(profile) },
+      where: { status: { in: ["ACTIVE", "NOTICE"] }, ...tenancyScopeWhere(profile) },
       include: { tenant: true, unit: { include: { property: true } } },
       orderBy: { accountRef: "asc" },
     })

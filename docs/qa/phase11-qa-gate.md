@@ -67,4 +67,35 @@
 
 ## Part 4 — Independent review round (QA + PE agents, PR #79)
 
-Two-pass independent review (QA reviewer, then Principal Engineer) against the first revision. Verdicts and findings are recorded in the PR thread; all blockers fixed and re-verified in-branch before merge. Review verdict after fixes: **see PR #79** (recorded there).
+Two-pass independent review (QA reviewer, then Principal Engineer) against the first revision. Verdicts: **QA REQUEST CHANGES** (1 major, 8 minor, 4 nits) · **PE REQUEST CHANGES** (2 major, 4 minor, 6 nits). All majors + actionable minors fixed in-branch:
+
+| # | Finding (severity) | Fix | Re-verified |
+|---|---|---|---|
+| R1 | **[PE major]** NOTICE severed every money-in path (STK/cash/match filtered `status:"ACTIVE"`; picker dropped notice tenancies) — final rent unpayable | widened to `status in [ACTIVE, NOTICE]` in the 3 write paths + tenancies picker; caretaker `canCollect` includes NOTICE units | probe below (P13) |
+| R2 | **[both major]** Seed wrote an INSTANT (`daysAgo(0)`) as endDate; route compares UTC midnight → Kevin/B1 demo move-out server-blocked (client gate disagreed) | seed writes UTC-midnight calendar day; route compares CALENDAR DAYS (`calendarDayUtc`, robust to any legacy instant); client gates use the shared `calendarDayReached` twin | Kevin/B1 move-out probe + E2E |
+| R3 | [PE minor] Caretaker-executed move-out never notified the landlord | move-out fans out to tenant + the OTHER staff party (landlord when caretaker executes, vice versa) | probe P14 |
+| R4 | [PE minor] settle-at-NOTICE → withdraw would leave ACTIVE lease with RELEASED deposit | withdraw guard: deposit RELEASED → 409 "complete the move-out instead" | probe P15 |
+| R5 | [both minor] tenancy flips were blind updates + dead post-checks; real guard misattributed | real compare-and-set (`updateMany` keyed on prior status) on all three transitions; dead checks removed | code + replay probes |
+| R6 | [QA minor] withdraw failure fully silent | `toast.error` with the server message | code |
+| R7 | [QA minor] notice toast interpolated raw ISO | `formatDate` (design-system: no ISO in UI) | code |
+| R8 | [QA minor] "On notice · date" chip rendered on ENDED rows | chip gated on `tenancyStatus === "NOTICE"` | E2E |
+| R9 | [QA minor] impossible dates ("2026-11-31") rolled silently to Dec 1 | zod round-trip refine (parsed day === typed day) | probe P16 |
+| R10 | [QA minor] caretaker move-out disabled without explanation | `notice.moveOutNotReached` caption under the button (parity with landlord row) | E2E |
+| R11 | [QA minor] ENDED-tenant home 404 rendered retry-forever error state | dedicated "No active tenancy" empty state (receipts/history stay honest) | probe P17 |
+| R12 | [PE minor] `tenancies[0]` fallback nondeterministic | include `orderBy: { startDate: "desc" }` | code |
+| R13 | [QA nits] dead i18n keys; inspection success toast unwired; move-out dialog offline caption; inspection sheet context null from settle modal | `unitsOnNotice` dropped; `inspectionRecordedToast` wired; offline caption added; `openInspection` takes its own context (set by both entry points) | E2E |
+| R14 | [PE nit] `accountRef` dead weight on TenancyLifecycleDto | removed | code |
+| R15 | [QA nit] phase10 gate row 33 counts stale | annotated as superseded (15/34) | doc |
+
+**Post-fix probes:**
+
+| # | Probe | Expected | Actual | Verdict |
+|---|---|---|---|---|
+| P13 | Kevin (NOTICE tenancy) STK push | STK session created (final rent payable through the notice window) | 200, checkoutRequestId issued | PASS |
+| P14 | Caretaker-executed move-out → landlord notifications | TENANCY_ENDED IN_APP rows for tenant + landlord + caretaker (minus actor) | exact | PASS |
+| P15 | Withdraw after deposit RELEASED | 409 "Deposit already settled — complete the move-out instead" | exact | PASS |
+| P16 | Notice with "2026-11-31" | 400 VALIDATION "must be a real calendar date" | exact | PASS |
+| P17 | Tenant with ENDED lease: GET /api/overview → home | 404 "no active tenancy" → friendly empty state (no retry loop) | exact | PASS |
+| P18 | Kevin/B1 seeded demo move-out (the R2 regression) | move-out executable on the reseed day; settle then works | 200 → ENDED → VACANT → settle 200 | PASS |
+
+Review verdict after fixes: **QA APPROVE · PE APPROVE — mergeable** (PE follow-ups recorded in the PR thread + worklog backlog).

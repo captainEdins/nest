@@ -55,7 +55,17 @@ const noticeSchema = z.object({
   /** YYYY-MM-DD — the move-out day (inclusive). */
   moveOutDate: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "moveOutDate must be a calendar date (YYYY-MM-DD)"),
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "moveOutDate must be a calendar date (YYYY-MM-DD)")
+    // Round-trip check: "2026-11-31" passes the regex but Date.UTC rolls it
+    // to Dec 1 — a different day than typed, on a record of record. The
+    // refine guarantees the parsed day IS the typed day.
+    .refine(
+      (raw) => {
+        const [y, m, d] = raw.split("-").map(Number)
+        return new Date(Date.UTC(y, m - 1, d)).toISOString().slice(0, 10) === raw
+      },
+      { message: "moveOutDate must be a real calendar date" },
+    ),
   reason: z.string().trim().min(3).max(400),
 })
 
@@ -112,12 +122,16 @@ export async function POST(
     if (tenancy.status === "ENDED") throw conflict("Tenancy has already ended")
 
     // ---- One transaction: tenancy + unit flip + audit ------------------------
+    // The tenancy flip is a REAL compare-and-set (updateMany keyed on the
+    // prior status): a concurrent second notice finds zero matching rows and
+    // rolls back; the unit flip below is the second serializer for the
+    // unit⟷tenancy invariant. Together: replay-safe, wrong-order-safe.
     await db.$transaction(async (tx) => {
-      const updated = await tx.tenancy.update({
-        where: { id: tenancy.id },
+      const flippedTenancy = await tx.tenancy.updateMany({
+        where: { id: tenancy.id, status: "ACTIVE" },
         data: { status: "NOTICE", endDate: moveOutDate },
       })
-      if (updated.status !== "NOTICE") throw conflict("Notice already given")
+      if (flippedTenancy.count === 0) throw conflict("Notice already given for this tenancy")
       // Compare-and-set: only an OCCUPIED unit flips to NOTICE (a VACANT unit
       // with a live tenancy would be a data bug — refuse loudly, roll back).
       const flipped = await tx.unit.updateMany({
@@ -197,12 +211,19 @@ export async function DELETE(
     if (tenancy.status === "ACTIVE") throw conflict("No notice to withdraw")
     if (tenancy.status === "ENDED") throw conflict("Tenancy has already ended")
 
+    // A settled deposit is irreversible money history: withdrawing back to
+    // ACTIVE would leave a continuing lease with a RELEASED deposit. The
+    // exit must complete instead (settle-then-withdraw → 409, by design).
+    if (tenancy.deposit?.status === "RELEASED") {
+      throw conflict("Deposit already settled — complete the move-out instead")
+    }
+
     await db.$transaction(async (tx) => {
-      const updated = await tx.tenancy.update({
-        where: { id: tenancy.id },
+      const flippedTenancy = await tx.tenancy.updateMany({
+        where: { id: tenancy.id, status: "NOTICE" },
         data: { status: "ACTIVE", endDate: null },
       })
-      if (updated.status !== "ACTIVE") throw conflict("Notice already withdrawn")
+      if (flippedTenancy.count === 0) throw conflict("Notice already withdrawn")
       const flipped = await tx.unit.updateMany({
         where: { id: tenancy.unitId, status: "NOTICE" },
         data: { status: "OCCUPIED" },

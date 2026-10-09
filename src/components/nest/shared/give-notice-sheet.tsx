@@ -18,6 +18,7 @@
 
 import * as React from "react";
 import { CalendarDays, DoorOpen, Loader2, ShieldCheck, Undo2 } from "lucide-react";
+import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { useUIStore } from "@/lib/ui-store";
 import { useTenantOverview } from "@/hooks/use-overview";
@@ -275,8 +276,10 @@ export function NoticeBanner({ tenancy }: { tenancy: { id: string; unitLabel: st
               <AlertDialogAction
                 onClick={() =>
                   withdraw.mutate(tenancy.id, {
-                    onError: () => {
-                      /* server is the guard; toast surfaces the refusal */
+                    onError: (error) => {
+                      // The server is the guard of record (exit executed
+                      // elsewhere, deposit settled…) — never silent.
+                      toast.error(lifecycleErrorMessage(error) ?? t("notice.errorGeneric"));
                     },
                   })
                 }

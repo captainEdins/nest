@@ -27,7 +27,7 @@ import { ErrorState } from "@/components/nest/shared/error-state";
 import { ListSkeleton } from "@/components/nest/shared/skeletons";
 import { SectionHeader } from "@/components/nest/shared/section-header";
 import { StatusBadge } from "@/components/nest/shared/status-badge";
-import { formatDate } from "@/components/nest/shared/format";
+import { formatDate, calendarDayReached } from "@/components/nest/shared/format";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -139,7 +139,7 @@ function UnitRow({
   // action after the move-out — the money decision survives the exit.
   const endedWithDeposit = tenancy?.tenancyStatus === "ENDED";
   const moveOutReached =
-    tenancy?.moveOutDate != null && new Date(tenancy.moveOutDate).getTime() <= Date.now();
+    tenancy?.moveOutDate != null && calendarDayReached(tenancy.moveOutDate);
 
   return (
     <div className="p-4 animate-in fade-in duration-300 fill-mode-both">
@@ -159,7 +159,7 @@ function UnitRow({
                 · {t("money.balance")} {formatKes(tenancy.balanceMinor)}
               </span>
             ) : null}
-            {tenancy?.moveOutDate ? (
+            {tenancy?.tenancyStatus === "NOTICE" && tenancy.moveOutDate ? (
               <span className="text-attention tabular-nums">
                 {" "}· {t("notice.onNoticeChip", { date: formatDate(tenancy.moveOutDate) })}
               </span>

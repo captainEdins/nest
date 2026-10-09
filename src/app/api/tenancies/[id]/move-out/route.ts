@@ -58,6 +58,13 @@ function startOfTodayUtc(): Date {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
 }
 
+/** The endDate as a CALENDAR DAY (UTC midnight) — robust to any legacy row
+ *  that stored an instant: the notice is a day commitment, so the day
+ *  component is the gate, never the time-of-day. */
+function calendarDayUtc(date: Date): Date {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()))
+}
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -87,19 +94,22 @@ export async function POST(
     if (tenancy.status === "ENDED") throw conflict("Tenancy has already ended")
 
     // The notice date is the commitment — the exit can be executed on it
-    // or any day after, never before.
+    // or any day after, never before. Compare CALENDAR DAYS (UTC midnight):
+    // an endDate stored with time-of-day can never shift the boundary.
     const moveOutDate = tenancy.endDate
-    if (!moveOutDate || moveOutDate > startOfTodayUtc()) {
+    if (!moveOutDate || calendarDayUtc(moveOutDate) > startOfTodayUtc()) {
       throw ruleViolation("Move-out date has not been reached yet")
     }
 
     // ---- One transaction: tenancy ends, unit frees, audit ---------------------
+    // Real compare-and-set on both flips (updateMany keyed on prior status):
+    // replay/concurrent paths find zero rows and roll back — atomic.
     await db.$transaction(async (tx) => {
-      const updated = await tx.tenancy.update({
-        where: { id: tenancy.id },
+      const endedTenancy = await tx.tenancy.updateMany({
+        where: { id: tenancy.id, status: "NOTICE" },
         data: { status: "ENDED" },
       })
-      if (updated.status !== "ENDED") throw conflict("Tenancy already ended")
+      if (endedTenancy.count === 0) throw conflict("Tenancy already ended")
       // Compare-and-set: only a NOTICE unit flips VACANT (replay-safe).
       const freed = await tx.unit.updateMany({
         where: { id: tenancy.unitId, status: "NOTICE" },
@@ -121,17 +131,31 @@ export async function POST(
       )
     })
 
-    // ---- Notify the tenant: exit recorded, settlement next --------------------
+    // ---- Notify: the tenant always; the OTHER staff party learns the unit
+    //  freed (a caretaker-executed exit must reach the landlord — the
+    //  settlement actor — and vice versa; the actor already knows). ----------
     const property = tenancy.unit.property
     const unitLabel = tenancy.unit.label
     const notificationBody =
       `NEST: Move-out completed for unit ${unitLabel}, ${property.name}. The tenancy has ended. ` +
-      `Your deposit settlement follows the move-out inspection.` +
+      `The deposit settlement follows the move-out inspection.` +
       (body.note ? ` Note: ${body.note}.` : "")
-    await Promise.all([
-      queueNotification(tenancy.tenantId, "IN_APP", "TENANCY_ENDED", notificationBody),
-      queueNotification(tenancy.tenantId, "SMS", "TENANCY_ENDED", notificationBody),
-    ])
+    const recipients: { profileId: string; channels: ("IN_APP" | "SMS")[] }[] = [
+      { profileId: tenancy.tenantId, channels: ["IN_APP", "SMS"] },
+    ]
+    if (property.landlordId && property.landlordId !== profile.id) {
+      recipients.push({ profileId: property.landlordId, channels: ["IN_APP"] })
+    }
+    if (property.caretakerId && property.caretakerId !== profile.id) {
+      recipients.push({ profileId: property.caretakerId, channels: ["IN_APP"] })
+    }
+    await Promise.all(
+      recipients.flatMap((r) =>
+        r.channels.map((channel) =>
+          queueNotification(r.profileId, channel, "TENANCY_ENDED", notificationBody)
+        )
+      )
+    )
 
     const fresh = await db.tenancy.findUniqueOrThrow({
       where: { id: tenancy.id },

@@ -8,6 +8,7 @@
  */
 
 import { Bell, ChevronRight, Receipt, Users, Wrench } from "lucide-react";
+import { ApiError } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import type { ChargeDto, ChargeKind } from "@/lib/types";
 import { formatKes } from "@/lib/money";
@@ -56,6 +57,19 @@ export function TenantHome() {
   const { data: rentScore, isPending: rentScorePending } = useRentScore(true);
 
   if (error != null) {
+    // Phase 11: a tenant whose lease ENDED (the exit arc now reaches it) gets
+    // an honest empty state, not a retry-forever error — the overview's 404
+    // "no active tenancy" is a normal end-of-lease state, not a failure.
+    const endedLease =
+      error instanceof ApiError && error.code === "NOT_FOUND"
+    if (endedLease) {
+      return (
+        <section aria-label={t("tenant.yourRent")} className="space-y-4">
+          <h1 className="text-h3 font-semibold">{t("common.greeting", { name: session?.profile.fullName.split(" ")[0] ?? "" })}</h1>
+          <EmptyState icon={Receipt} title={t("tenant.noTenancyTitle")} hint={t("tenant.noTenancyBody")} />
+        </section>
+      )
+    }
     return (
       <section aria-label={t("tenant.yourRent")}>
         <ErrorState onRetry={() => refetch()} />

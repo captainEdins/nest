@@ -343,6 +343,9 @@ export const tenancyLifecycleInclude = {
       },
     },
   },
+  // Deposit STATUS ONLY (never money fields): the withdraw guard refuses to
+  // revert a tenancy whose deposit is already RELEASED (Phase 11).
+  deposit: { select: { status: true } },
 } satisfies Prisma.TenancyInclude
 
 export type TenancyWithLifecycleRelations = Prisma.TenancyGetPayload<{
@@ -362,7 +365,6 @@ export function toTenancyLifecycleDto(
     propertyName: tenancy.unit.property.name,
     moveOutDate: tenancy.endDate ? tenancy.endDate.toISOString() : null,
     tenantName: tenancy.tenant.fullName,
-    accountRef: tenancy.accountRef,
   }
 }
 

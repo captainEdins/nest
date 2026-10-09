@@ -110,7 +110,14 @@ export function MoveOutDialog() {
           {/* The inspection step — one tap away while executing the exit */}
           <button
             type="button"
-            onClick={() => tenancyId && openInspection(tenancyId)}
+            onClick={() =>
+              tenancyId &&
+              context &&
+              openInspection(tenancyId, {
+                unitLabel: context.unitLabel,
+                tenantName: context.tenantName,
+              })
+            }
             className="w-full rounded-lg border border-primary/30 bg-primary/5 dark:bg-primary/10 p-3 space-y-1.5 text-left focus-visible:ring-2 focus-visible:ring-ring outline-none transition-colors hover:bg-primary/10 dark:hover:bg-primary/15"
           >
             <p className="text-caption font-medium text-primary flex items-center gap-1.5">
@@ -141,6 +148,9 @@ export function MoveOutDialog() {
             {t("notice.moveOutAction")}
           </Button>
         </DialogFooter>
+        {!online ? (
+          <p className="text-caption text-muted-foreground text-center">{t("errors.needOnline")}</p>
+        ) : null}
       </DialogContent>
     </Dialog>
   );

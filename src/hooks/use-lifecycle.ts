@@ -19,6 +19,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { apiPost, apiDelete, ApiError } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
+import { formatDate } from "@/components/nest/shared/format";
 import type { TenancyLifecycleDto } from "@/lib/types";
 
 /** Queries whose data depends on tenancy/unit lifecycle state. */
@@ -43,7 +44,13 @@ export function useGiveNotice() {
       }),
     onSuccess: (data) => {
       invalidateLifecycle(queryClient);
-      toast.success(t("notice.givenToast", { unit: data.unitLabel, date: data.moveOutDate ?? "" }));
+      toast.success(
+        t("notice.givenToast", {
+          unit: data.unitLabel,
+          // A human day, never the raw ISO (design-system: no ISO in UI).
+          date: data.moveOutDate ? formatDate(data.moveOutDate) : "—",
+        }),
+      );
     },
     // Server rule violations (409 replay, past date…) surface inline — the
     // caller renders `error.message` next to the submit button.

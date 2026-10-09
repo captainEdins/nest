@@ -42,7 +42,7 @@ export async function POST(request: Request) {
     const body: CashCollectionRequest = await parseJsonBody(request, cashSchema)
 
     const tenancy = await db.tenancy.findFirst({
-      where: { id: body.tenancyId, status: "ACTIVE", ...tenancyScopeWhere(profile) },
+      where: { id: body.tenancyId, status: { in: ["ACTIVE", "NOTICE"] }, ...tenancyScopeWhere(profile) },
     })
     if (!tenancy) throw notFound("Tenancy not found")
 

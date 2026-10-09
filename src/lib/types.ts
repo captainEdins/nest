@@ -395,7 +395,6 @@ export interface TenancyLifecycleDto {
   /** The notice's move-out day (ISO) — null once back to ACTIVE. */
   moveOutDate: string | null
   tenantName: string
-  accountRef: string
 }
 
 // ---------------------------------------------------------------------------

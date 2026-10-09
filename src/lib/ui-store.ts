@@ -146,9 +146,11 @@ interface UIState {
   ) => void;
   closeMoveOut: () => void;
   /** Move-out inspection sheet (Phase 11, issue #78), landlord + caretaker —
-   *  records the MOVE_OUT condition report the deposit settlement requires. */
+   *  records the MOVE_OUT condition report the deposit settlement requires.
+   *  Own context (whose inspection) — set by both entry points. */
   inspectionFlow: { open: boolean; tenancyId?: string };
-  openInspection: (tenancyId: string) => void;
+  inspectionContext: { unitLabel: string; tenantName: string } | null;
+  openInspection: (tenancyId: string, context?: { unitLabel: string; tenantName: string }) => void;
   closeInspection: () => void;
 }
 
@@ -227,6 +229,8 @@ export const useUIStore = create<UIState>((set) => ({
     set({ moveOutFlow: { open: true, tenancyId }, moveOutContext: context }),
   closeMoveOut: () => set({ moveOutFlow: { open: false }, moveOutContext: null }),
   inspectionFlow: { open: false },
-  openInspection: (tenancyId) => set({ inspectionFlow: { open: true, tenancyId } }),
-  closeInspection: () => set({ inspectionFlow: { open: false } }),
+  inspectionContext: null,
+  openInspection: (tenancyId, context) =>
+    set({ inspectionFlow: { open: true, tenancyId }, inspectionContext: context ?? null }),
+  closeInspection: () => set({ inspectionFlow: { open: false }, inspectionContext: null }),
 }));

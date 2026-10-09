@@ -38,7 +38,7 @@ export async function POST(request: Request) {
 
     // Target tenancy must be in the actor's scope chain (matrix §4.1/§4.3).
     const tenancy = await db.tenancy.findFirst({
-      where: { id: body.tenancyId, status: "ACTIVE", ...tenancyScopeWhere(profile) },
+      where: { id: body.tenancyId, status: { in: ["ACTIVE", "NOTICE"] }, ...tenancyScopeWhere(profile) },
     })
     if (!tenancy) throw notFound("Target tenancy not found")
 

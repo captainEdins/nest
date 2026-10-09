@@ -184,10 +184,11 @@ async function main(): Promise<void> {
       monthlyRentMinor: 850_000,
       depositHeldMinor: 850_000,
       status: "NOTICE",
-      // Phase 11: the notice's move-out day — already reached (today), so the
-      // "Complete move-out" action on B1 is live for the demo, and the Phase 2
-      // deposit settlement (MOVE_OUT report already seeded) follows it.
-      endDate: daysAgo(0),
+      // Phase 11: the notice's move-out day — TODAY as a calendar day
+      // (UTC midnight, the contract D-024 froze: endDate is a day, never an
+      // instant). Seeding daysAgo(0) would write the seeding INSTANT, which
+      // the route's UTC-midnight gate treats as "not reached" until tomorrow.
+      endDate: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())),
       accountRef: "NEST-B1-1004",
     },
   })
@@ -1010,7 +1011,11 @@ async function main(): Promise<void> {
 
   // --- Phase 11 story: Kevin's notice-to-vacate record ----------------------
   // The audit row + notifications that accompany the seeded NOTICE tenancy —
-  // 30 days notice given, move-out day reached, settlement pending.
+  // 30 days notice given, move-out day reached, settlement pending. The date
+  // string matches the tenancy's endDate (UTC calendar day) exactly.
+  const kevinMoveOutDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+    .toISOString()
+    .slice(0, 10)
   await db.auditLog.create({
     data: {
       actorId: kevin.id,
@@ -1018,7 +1023,7 @@ async function main(): Promise<void> {
       entity: "Tenancy",
       entityId: kevinTenancy.id,
       detailJson: JSON.stringify({
-        moveOutDate: daysAgo(0).toISOString().slice(0, 10),
+        moveOutDate: kevinMoveOutDay,
         reason: "Relocating to Nakuru for work",
         givenBy: "TENANT",
         unitLabel: "B1",
@@ -1028,7 +1033,7 @@ async function main(): Promise<void> {
   })
   const noticeBody =
     `NEST: Notice to vacate for unit B1, ${property.name} — move-out on ` +
-    `${daysAgo(0).toISOString().slice(0, 10)}. Reason: Relocating to Nakuru for work.`
+    `${kevinMoveOutDay}. Reason: Relocating to Nakuru for work.`
   await db.notification.create({
     data: {
       profileId: amina.id, templateKey: "NOTICE_GIVEN", channel: "IN_APP",

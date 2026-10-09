@@ -277,7 +277,12 @@ export function SettleDepositModal() {
                   variant="outline"
                   size="sm"
                   className="h-11"
-                  onClick={() => openInspection(tenancyId)}
+                  onClick={() =>
+                    openInspection(tenancyId, {
+                      unitLabel: deposit.unitLabel,
+                      tenantName: deposit.tenantName,
+                    })
+                  }
                 >
                   <ClipboardCheck className="size-4" aria-hidden />
                   {t("notice.inspectionAction")}

@@ -50,6 +50,7 @@ export async function GET() {
             ],
           },
           include: { tenant: true },
+          orderBy: { startDate: "desc" },
         },
       },
       orderBy: [{ property: { name: "asc" } }, { label: "asc" }],

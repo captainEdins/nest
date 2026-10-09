@@ -16,6 +16,7 @@
 
 import * as React from "react";
 import { ClipboardCheck, Loader2, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
 import { ApiError } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { useUIStore } from "@/lib/ui-store";
@@ -36,7 +37,7 @@ export function InspectionSheet() {
   const online = useOnline();
   const open = useUIStore((s) => s.inspectionFlow.open);
   const tenancyId = useUIStore((s) => s.inspectionFlow.tenancyId);
-  const context = useUIStore((s) => s.moveOutContext);
+  const context = useUIStore((s) => s.inspectionContext);
   const close = useUIStore((s) => s.closeInspection);
   const createReport = useCreateConditionReport();
 
@@ -54,7 +55,12 @@ export function InspectionSheet() {
     if (createReport.isPending || !online || !notesValid || !tenancyId) return;
     createReport.mutate(
       { tenancyId, kind: "MOVE_OUT", notes: notes.trim() },
-      { onSuccess: () => close() },
+      {
+        onSuccess: () => {
+          toast.success(t("notice.inspectionRecordedToast"));
+          close();
+        },
+      },
     );
   }
 
@@ -82,11 +88,6 @@ export function InspectionSheet() {
             <div className="min-w-0 flex-1">
               <p className="text-body font-semibold truncate">
                 {context.unitLabel} · {context.tenantName}
-              </p>
-              <p className="text-caption text-muted-foreground tabular-nums truncate">
-                {context.moveOutDate
-                  ? t("notice.onNoticeChip", { date: formatDate(context.moveOutDate) })
-                  : null}
               </p>
             </div>
           </div>
