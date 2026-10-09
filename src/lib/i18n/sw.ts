@@ -800,6 +800,7 @@ export const sw: Record<TranslationKey, string> = {
   "search.placeholder": "Tafuta wapangaji, risiti, maombi…",
   "search.hint": "Andika herufi 2 au zaidi",
   "search.searching": "Inatafuta…",
+  "search.error": "Utafutaji umeshindikana — angalia mtandao wako kisha ujaribu tena",
   "search.noResults": "Hakuna kilichopatikana kwa “{query}”",
   "search.group.TENANT": "Wapangaji",
   "search.group.RECEIPT": "Risiti",

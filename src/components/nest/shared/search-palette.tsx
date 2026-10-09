@@ -9,12 +9,19 @@
  *
  * Deep-linking: a row never renders its own record view; it routes into the
  * EXISTING surfaces (tab switch + detail-modal/pushed-screen open), so search
- * results stay consistent with the screens users already trust. Caretaker's
- * arrears is a pushed screen (not a tab) — mapped via role, not the server hint.
+ * results stay consistent with the screens users already trust. Routing is
+ * owned HERE, keyed by kind + role (PE review, PR #77 — the server sends no
+ * tab hint): caretaker's money tab is "collections", agent has none (the
+ * receipt modal opens over whatever tab they're on).
  *
- * Keyboard: Ctrl/⌘+K opens (global listener), ↑/↓ move, Enter picks, Esc closes.
- * Touch: every row is 44px min-height (design-system §8). Rows scroll in a
- * max-h-[60vh] list with the .nest-scrollbar treatment (§9 long lists).
+ * Keyboard: Ctrl/⌘+K TOGGLES (global listener), ↑/↓ move (with
+ * aria-activedescendant so screen readers follow the cursor), Enter picks,
+ * Esc closes. Touch: every row is 44px min-height (design-system §8). Rows
+ * scroll in a max-h-[60vh] list with the .nest-scrollbar treatment.
+ *
+ * Network honesty: a failed search renders an error state with a retry
+ * affordance — never "no results" on a dead network (the palette is a rural
+ * 2G surface by persona). The input is maxLength 64 (the API's Zod ceiling).
  */
 
 import * as React from "react";
@@ -70,19 +77,25 @@ const GROUP_ORDER: SearchKind[] = ["TENANT", "RECEIPT", "TICKET", "LISTING", "AP
  *  guard/incidents.tsx). The dictionaries cover every SearchKind. */
 const groupKey = (kind: SearchKind) => `search.group.${kind}` as TranslationKey;
 
+/** macOS users see ⌘ K; everyone else Ctrl K (the physical key is the same). */
+function isApplePlatform(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+}
+
 export function SearchPalette({ role }: { role: Role }) {
   const isDesktop = useMediaQuery("(min-width: 640px)");
   const { t } = useI18n();
   const searchOpen = useUIStore((s) => s.searchOpen);
   const setSearchOpen = useUIStore((s) => s.setSearchOpen);
 
-  // Global ⌘K / Ctrl+K — opens from anywhere (even while another modal is
-  // closed). Only when signed in (the palette mounts inside RoleShell).
+  // Global ⌘K / Ctrl+K — TOGGLES from anywhere while signed in (the palette
+  // mounts inside RoleShell, so the login screen never hears it).
   React.useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
-        setSearchOpen(true);
+        setSearchOpen(!useUIStore.getState().searchOpen);
       }
     }
     window.addEventListener("keydown", onKeyDown);
@@ -125,11 +138,12 @@ function PaletteBody({ role, onClose }: { role: Role; onClose: () => void }) {
   const [activeIndex, setActiveIndex] = React.useState(0);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const listRef = React.useRef<HTMLDivElement>(null);
-  const { data: results, isFetching } = useSearch(query);
+  const { data: results, isFetching, isError, refetch } = useSearch(query);
 
   const flat = React.useMemo(() => results ?? [], [results]);
   const trimmed = query.trim();
   const showResults = trimmed.length >= 2;
+  const activeRowId = flat.length > 0 ? `nest-search-option-${activeIndex}` : undefined;
 
   // Reset the cursor whenever the result set changes (new query / refetch).
   React.useEffect(() => {
@@ -151,7 +165,8 @@ function PaletteBody({ role, onClose }: { role: Role; onClose: () => void }) {
   function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key === "ArrowDown") {
       event.preventDefault();
-      setActiveIndex((i) => Math.min(i + 1, flat.length - 1));
+      // Clamp at both ends — an empty list must never move the cursor to -1.
+      setActiveIndex((i) => Math.min(Math.max(i + 1, 0), Math.max(flat.length - 1, 0)));
     } else if (event.key === "ArrowUp") {
       event.preventDefault();
       setActiveIndex((i) => Math.max(i - 1, 0));
@@ -164,13 +179,15 @@ function PaletteBody({ role, onClose }: { role: Role; onClose: () => void }) {
     }
   }
 
-  // Keep the active row in view during keyboard nav (the row is 44px+; the
-  // list scrolls inside max-h — scrollIntoView(block:"nearest") is enough).
+  // Keep the active row in view during keyboard nav (the list scrolls inside
+  // max-h — scrollIntoView(block:"nearest") is enough).
   React.useEffect(() => {
     listRef.current
       ?.querySelector<HTMLElement>(`[data-idx="${activeIndex}"]`)
       ?.scrollIntoView({ block: "nearest" });
   }, [activeIndex]);
+
+  const kbdHint = isApplePlatform() ? "⌘ K" : "Ctrl K";
 
   return (
     <div className="flex flex-col" role="search">
@@ -187,12 +204,14 @@ function PaletteBody({ role, onClose }: { role: Role; onClose: () => void }) {
           role="combobox"
           aria-expanded={showResults}
           aria-controls="nest-search-results"
+          aria-activedescendant={activeRowId}
           aria-autocomplete="list"
           aria-label={t("search.trigger")}
           placeholder={t("search.placeholder")}
+          maxLength={64}
           autoComplete="off"
           spellCheck={false}
-          className="flex-1 h-11 bg-transparent outline-none text-body placeholder:text-muted-foreground focus-visible:none [&::-webkit-search-cancel-button]:hidden"
+          className="flex-1 h-11 bg-transparent outline-none text-body placeholder:text-muted-foreground focus-visible:outline-none [&::-webkit-search-cancel-button]:hidden"
         />
         {isFetching ? (
           <Loader2 size={16} aria-hidden className="animate-spin text-muted-foreground shrink-0" />
@@ -221,6 +240,19 @@ function PaletteBody({ role, onClose }: { role: Role; onClose: () => void }) {
       >
         {!showResults ? (
           <p className="px-4 py-8 text-center text-body-sm text-muted-foreground">{t("search.hint")}</p>
+        ) : isError ? (
+          /* Dead network ≠ no results — the honest state, with retry (the
+           * palette is a rural 2G surface by persona). */
+          <div className="px-4 py-8 text-center space-y-3">
+            <p className="text-body-sm text-destructive">{t("search.error")}</p>
+            <button
+              type="button"
+              onClick={() => void refetch()}
+              className="h-11 px-4 rounded-xl border text-body-sm font-medium hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {t("common.retry")}
+            </button>
+          </div>
         ) : flat.length === 0 && !isFetching ? (
           <p className="px-4 py-8 text-center text-body-sm text-muted-foreground">
             {t("search.noResults", { query: trimmed })}
@@ -230,7 +262,7 @@ function PaletteBody({ role, onClose }: { role: Role; onClose: () => void }) {
             const rows = flat.filter((r) => r.kind === kind);
             if (rows.length === 0) return null;
             return (
-              <section key={kind} aria-label={t(groupKey(kind))}>
+              <section key={kind} role="group" aria-label={t(groupKey(kind))}>
                 {/* Monty micro-label group header (D-022 uppercase tracked caption). */}
                 <h3 className="px-4 pt-3 pb-1 text-caption uppercase tracking-wider text-muted-foreground font-medium">
                   {t(groupKey(kind))}
@@ -258,7 +290,7 @@ function PaletteBody({ role, onClose }: { role: Role; onClose: () => void }) {
       {/* Footnote — the honest sandbox hint + keyboard affordance (desktop). */}
       <p className="px-4 py-2.5 border-t text-caption text-muted-foreground flex items-center justify-between">
         <span>{t("footer.sandbox")}</span>
-        <span className="hidden sm:inline">↑↓ · Enter · Esc</span>
+        <span className="hidden sm:inline">↑↓ · Enter · Esc · {kbdHint}</span>
       </p>
     </div>
   );
@@ -285,12 +317,13 @@ function ResultRow({
       type="button"
       role="option"
       aria-selected={active}
+      id={`nest-search-option-${index}`}
       data-idx={index}
       onClick={() => onPick(result)}
       onMouseMove={() => onHover(index)}
       className={cn(
         "w-full min-h-11 px-3 py-2 flex items-center gap-3 text-left transition-colors",
-        "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring outline-none",
+        "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring focus-visible:outline-none",
         active ? "bg-primary/10" : "hover:bg-muted",
       )}
     >
@@ -319,6 +352,7 @@ function ResultRow({
 
 // ---------------------------------------------------------------------------
 // Deep-link routing — the ONLY place search results map to app surfaces.
+// Keyed by kind + ROLE (the server sends no tab hint; PE review, PR #77).
 // ---------------------------------------------------------------------------
 
 function navigateTo(result: SearchResultDto, role: Role) {
@@ -326,7 +360,8 @@ function navigateTo(result: SearchResultDto, role: Role) {
 
   // ORDER MATTERS: setTab clears pushedScreen (ui-store §tab), so every
   // deep-link that pushes a detail screen must switch the tab FIRST, then
-  // open the detail. Receipts open a modal (receiptView), order-independent.
+  // open the detail. Receipts open a modal (receiptView), order-independent —
+  // but the tab beneath it must exist for the role.
 
   switch (result.kind) {
     case "TENANT":
@@ -339,7 +374,13 @@ function navigateTo(result: SearchResultDto, role: Role) {
       }
       break;
     case "RECEIPT":
-      store.setTab(result.tab === "receipts" ? "receipts" : "payments");
+      // Money tab per role: landlord "payments", caretaker "collections",
+      // tenant "receipts". Agent has NO money tab — the receipt modal opens
+      // over whatever tab they are on (searching a receipt from the funnel
+      // is a lookup, not a ledger visit).
+      if (role === "LANDLORD") store.setTab("payments");
+      else if (role === "CARETAKER") store.setTab("collections");
+      else if (role === "TENANT") store.setTab("receipts");
       store.openReceipt({ receiptNo: result.id });
       break;
     case "TICKET":

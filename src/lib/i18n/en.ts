@@ -799,6 +799,7 @@ export const en = {
   "search.placeholder": "Search tenants, receipts, tickets…",
   "search.hint": "Type at least 2 letters",
   "search.searching": "Searching…",
+  "search.error": "Search failed — check your connection and try again",
   "search.noResults": "No matches for “{query}”",
   "search.group.TENANT": "Tenants",
   "search.group.RECEIPT": "Receipts",

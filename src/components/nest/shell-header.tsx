@@ -62,17 +62,23 @@ export function ShellHeader({ session }: { session: SessionDto }) {
         <div className="flex-1" />
 
         {/* Global search (Phase 10, issue #76) — Monty top-bar search pattern.
-         *  Mobile: 44px icon button. Desktop: labelled pill with the Ctrl K hint. */}
+         *  Mobile: 44px icon button. Desktop: labelled pill with the platform
+         *  kbd hint (⌘ K on Apple, Ctrl K elsewhere — same physical chord). */}
         <Button
           variant="ghost"
           onClick={() => setSearchOpen(true)}
           aria-label={t("search.trigger")}
+          aria-keyshortcuts="Control+K Meta+K"
           className="h-11 gap-2 px-2.5 sm:px-3 text-muted-foreground"
         >
           <Search size={18} aria-hidden />
           <span className="hidden md:inline text-body-sm">{t("search.trigger")}…</span>
           <kbd className="hidden md:inline text-caption px-1.5 py-0.5 rounded-md border bg-muted tabular-nums">
-            Ctrl K
+            {/Mac|iPhone|iPad/.test(
+              typeof navigator === "undefined" ? "" : navigator.platform || navigator.userAgent,
+            )
+              ? "⌘ K"
+              : "Ctrl K"}
           </kbd>
         </Button>
 

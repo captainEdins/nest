@@ -63,3 +63,28 @@
 - Setting the input value programmatically (agent-browser eval) does not trigger React onChange — real keystrokes were used for all typed queries; not a product defect.
 - The palette intentionally shows the sandbox footnote on every query (honest-by-design, matches login/footer).
 - Money meta arrives server-formatted ("KSh 9,000") — the client never formats search money (D-023 decision).
+
+---
+
+## Part 5 — Independent review round (QA + PE agents, PR #77)
+
+A two-pass independent review (QA reviewer, then Principal Engineer) ran against the first revision. Verdicts: **QA REQUEST CHANGES** (3 major, 3 minor, 4 nits) · **PE APPROVE with follow-ups** (merge gated on the QA majors). All blockers fixed and re-verified in-branch:
+
+| # | Finding (severity) | Fix | Re-verified |
+|---|---|---|---|
+| R1 | **[major]** RECEIPT deep-link sent CARETAKER/AGENT to a tab they don't have ("payments") | `navigateTo` owns routing by kind+role: landlord→payments, caretaker→collections, tenant→receipts, agent→no tab switch (modal over current surface) | caretaker search NEST-R → Enter → modal closes on **Collections** tab (a11y tree: region "Collections") |
+| R2 | **[major]** docstring claimed a 350ms debounce that did not exist (per-keystroke requests; route runs up to 5 Prisma reads) | real debounce implemented in `useSearch` (useEffect + setTimeout, 350ms) | code + typed "David" — one settled request in dev.log |
+| R3 | **[major]** failed fetch indistinguishable from "no results"; no maxLength | `isError` branch + Retry button (`search.error` EN+SW), `maxLength={64}` | fetch monkey-patched to reject → "Search failed — check your connection and try again" + Retry; restore + Retry → results return |
+| R4 | [minor] listbox children wrapped in `region` (ARIA contract) | sections now `role="group"` | a11y tree: `group "Tenants"` |
+| R5 | [minor] no `aria-activedescendant` on the combobox | active row id + `aria-activedescendant` wired | a11y tree: option carries `[selected]` |
+| R6 | [minor] per-kind caps summed 26 > 24 (later kinds starved) | caps rebalanced — widest branch sums exactly 24 (6/6/4/3/5) | code audit |
+| R7 | [nit] `focus-visible:none` invalid utility | `focus-visible:outline-none` | code |
+| R8 | [nit] ⌘K open-only; hardcoded "Ctrl K" | toggles; platform-aware kbd hint (⌘ K / Ctrl K) + `aria-keyshortcuts` | Ctrl+K toggle drill |
+| R9 | [nit] ArrowDown on empty list → index −1 | double clamp | code |
+| R10 | [nit] `receiptNo!` relied on implicit SQL NULL semantics | explicit `receiptNo: { not: null, contains: q }` | code |
+| R11 | [PE, minor] branch queries serial | `Promise.all` per branch (one round-trip batch) | dev.log timing |
+| R12 | [PE, minor] hand-rolled param parsing | `parseSearchParams` (the shared auth-guard seam) | code |
+| R13 | [PE, minor] kind-set asymmetry undocumented | deliberate scoping documented in route header + D-023 (gate book = guard's domain; staff see digests) | docs |
+| R14 | [PE, minor] `tab` field contract fuzzy (server hint vs client role reality — the very seam that caused R1) | **field removed** from DTO + route; `navigateTo` owns routing entirely | curl: `tab` absent from response |
+
+Review verdict after fixes: **QA APPROVE · PE APPROVE — mergeable.**
