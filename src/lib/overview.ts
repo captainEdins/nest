@@ -77,6 +77,11 @@ function startOfMonth(now = new Date()): Date {
   return new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0)
 }
 
+/** Start of the month BEFORE `now` (Jan → Dec of previous year). */
+function startOfPrevMonth(now = new Date()): Date {
+  return new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0)
+}
+
 function startOfDay(now = new Date()): Date {
   return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
 }
@@ -105,6 +110,9 @@ interface MoneyRollup {
   month: string
   monthExpectedMinor: number
   monthCollectedMinor: number
+  /** D-022 (Phase 9): matched COMPLETED money that landed LAST calendar month —
+   *  the KPI MoM delta's denominator. Same payments array, zero extra queries. */
+  monthCollectedPrevMinor: number
   todayCollectedMinor: number
   arrearsMinor: number
   arrearsTenantCount: number
@@ -128,6 +136,7 @@ async function computeMoneyRollup(profile: Profile, tenancies: TenancyWithChain[
       month,
       monthExpectedMinor: 0,
       monthCollectedMinor: 0,
+      monthCollectedPrevMinor: 0,
       todayCollectedMinor: 0,
       arrearsMinor: 0,
       arrearsTenantCount: 0,
@@ -144,10 +153,12 @@ async function computeMoneyRollup(profile: Profile, tenancies: TenancyWithChain[
   ])
 
   const monthStart = startOfMonth(now)
+  const prevMonthStart = startOfPrevMonth(now)
   const dayStart = startOfDay(now)
 
   let monthExpectedMinor = 0
   let monthCollectedMinor = 0
+  let monthCollectedPrevMinor = 0
   let todayCollectedMinor = 0
   let arrearsMinor = 0
   const chargeTotals = new Map<string, number>() // tenancyId → Σ charge.amountMinor
@@ -172,6 +183,7 @@ async function computeMoneyRollup(profile: Profile, tenancies: TenancyWithChain[
 
   for (const payment of payments) {
     if (payment.receivedAt >= monthStart) monthCollectedMinor += payment.amountMinor
+    else if (payment.receivedAt >= prevMonthStart) monthCollectedPrevMinor += payment.amountMinor
     if (payment.receivedAt >= dayStart) todayCollectedMinor += payment.amountMinor
     if (payment.tenancyId) {
       paymentTotals.set(payment.tenancyId, (paymentTotals.get(payment.tenancyId) ?? 0) + payment.amountMinor)
@@ -205,6 +217,7 @@ async function computeMoneyRollup(profile: Profile, tenancies: TenancyWithChain[
     month,
     monthExpectedMinor,
     monthCollectedMinor,
+    monthCollectedPrevMinor,
     todayCollectedMinor,
     arrearsMinor,
     arrearsTenantCount: arrears.length,
@@ -308,6 +321,7 @@ export async function getLandlordOverview(profile: Profile): Promise<LandlordOve
       occupancyRatePct: pct(occupied, totalUnits),
       monthExpectedMinor: rollup.monthExpectedMinor,
       monthCollectedMinor: rollup.monthCollectedMinor,
+      monthCollectedPrevMinor: rollup.monthCollectedPrevMinor,
       todayCollectedMinor: rollup.todayCollectedMinor,
       collectionRatePct: pct(rollup.monthCollectedMinor, rollup.monthExpectedMinor),
       arrearsMinor: rollup.arrearsMinor,
@@ -364,6 +378,7 @@ export async function getCaretakerOverview(profile: Profile): Promise<CaretakerO
     totals: {
       monthExpectedMinor: rollup.monthExpectedMinor,
       monthCollectedMinor: rollup.monthCollectedMinor,
+      monthCollectedPrevMinor: rollup.monthCollectedPrevMinor,
       todayCollectedMinor: rollup.todayCollectedMinor,
       arrearsMinor: rollup.arrearsMinor,
       arrearsTenantCount: rollup.arrearsTenantCount,

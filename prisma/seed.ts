@@ -60,6 +60,9 @@ const prevMonthKey = monthKey(PREV)
 const curMonthKey = monthKey(CUR)
 const tenancyStart = new Date(now.getFullYear(), now.getMonth() - MONTHS_TENANCY_AGE, 1)
 
+/** Late in the previous month (day 26, 15:30) — the MoM-delta baseline stamp. */
+const prevMonthLate = new Date(PREV.y, PREV.m, 26, 15, 30, 0)
+
 // Fixed service-charge amounts (KES minor units).
 const WATER_MINOR = 30_000 // KSh 300 / month
 const GARBAGE_MINOR = 20_000 // KSh 200 / month
@@ -250,6 +253,27 @@ async function main(): Promise<void> {
       phone: sarah.phone,
       allocations: {
         create: [{ chargeId: charges[`NEST-A2-1002:RENT:${curMonthKey}`].id, amountMinor: 600_000 }],
+      },
+    },
+  })
+
+  // Sarah — LAST month's partial (Phase 9, D-022): the same honest pattern a
+  // month earlier. This gives the landlord/caretaker KPI MoM delta a real
+  // baseline (prev 600000 vs current 1500000 => +150% on the hero card) and
+  // keeps Sarah's "partial payer across months" arrears story intact.
+  await db.payment.create({
+    data: {
+      receiptNo: "NEST-R-000000",
+      amountMinor: 600_000,
+      source: "MPESA",
+      status: "COMPLETED",
+      receivedAt: prevMonthLate,
+      tenancyId: tenancies["NEST-A2-1002"].id,
+      accountReference: "NEST-A2-1002",
+      phone: sarah.phone,
+      note: "Part ya mwezi uliopita",
+      allocations: {
+        create: [{ chargeId: charges[`NEST-A2-1002:RENT:${prevMonthKey}`].id, amountMinor: 600_000 }],
       },
     },
   })

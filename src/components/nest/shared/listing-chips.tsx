@@ -62,17 +62,18 @@ export function ListingStatusChip({
 
 // ---------------------------------------------------------------------------
 // Applicants — NEW amber + pulse · CONTACTED muted · VIEWING green tint ·
-// APPROVED green solid · REJECTED destructive · WITHDRAWN gray outline
+// APPROVED green pastel · REJECTED destructive · WITHDRAWN gray outline
 // ---------------------------------------------------------------------------
 
 const APPLICATION_STATUS_STYLES: Record<ApplicationStatus, string> = {
   NEW: "border-warning/60 bg-warning/15 dark:bg-warning/10 text-attention",
   CONTACTED: "border-border bg-muted text-muted-foreground",
   VIEWING: "border-primary/40 bg-primary/10 dark:bg-primary/15 text-primary",
-  APPROVED: "border-transparent bg-success text-success-foreground",
+  // D-022 pastel pass: APPROVED/CONVERTED were the last solid chips.
+  APPROVED: "border-success/40 bg-success/15 text-success",
   REJECTED: "border-destructive/50 bg-destructive/10 text-destructive",
   WITHDRAWN: "border-border bg-transparent text-muted-foreground",
-  CONVERTED: "border-transparent bg-primary text-primary-foreground",
+  CONVERTED: "border-primary/40 bg-primary/15 text-primary",
 };
 
 export const APPLICATION_STATUS_LABEL_KEYS: Record<ApplicationStatus, TranslationKey> = {
@@ -119,7 +120,7 @@ export function NewBadge({ count }: { count?: number }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 text-caption font-medium whitespace-nowrap shrink-0 transition-colors duration-300",
+        "inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-caption font-medium whitespace-nowrap shrink-0 transition-colors duration-300",
         "border-warning/60 bg-warning/15 dark:bg-warning/10 text-attention",
       )}
     >

@@ -426,6 +426,9 @@ export const en = {
   "common.stepOf": "Step {current} of {total}",
   "common.searchTenantUnit": "Search tenant or unit…",
   "common.ofUnits": "{occupied} of {total} units",
+  "common.vsLastMonth": "vs last month",
+  "common.lastMonthCollected": "Last month {amount}",
+  "common.noHistoryYet": "First full month on NEST",
   "common.filterAll": "All",
 
   // ----- Notifications day groups (S-14) --------------------------------------

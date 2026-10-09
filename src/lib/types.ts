@@ -391,6 +391,8 @@ export interface LandlordOverviewDto {
     occupancyRatePct: number // 0-100, rounded
     monthExpectedMinor: number
     monthCollectedMinor: number
+    /** Phase 9 (D-022): matched money that landed LAST calendar month — MoM KPI delta. */
+    monthCollectedPrevMinor: number
     /** Payments received since midnight today (all sources) */
     todayCollectedMinor: number
     collectionRatePct: number // 0-100 of expected collected
@@ -414,6 +416,8 @@ export interface CaretakerOverviewDto {
   totals: {
     monthExpectedMinor: number
     monthCollectedMinor: number
+    /** Phase 9 (D-022): matched money that landed LAST calendar month — MoM KPI delta. */
+    monthCollectedPrevMinor: number
     /** Payments received since midnight today (all sources) */
     todayCollectedMinor: number
     arrearsMinor: number

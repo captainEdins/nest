@@ -127,7 +127,8 @@ function niceAxisMaxMinor(maxMinor: number): number {
 
 /** Bar path with rounded TOP only, so the base sits flat on the baseline. */
 function topRoundedBarPath(x: number, top: number, width: number, bottom: number): string {
-  const radius = Math.min(3, bottom - top, width / 2);
+  // D-022: radius 4 — Monty's soft bar geometry (was 3).
+  const radius = Math.min(4, bottom - top, width / 2);
   return [
     `M ${x} ${bottom}`,
     `L ${x} ${top + radius}`,
@@ -182,7 +183,9 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
           role="group"
           aria-label={t("analytics.collectionTrend")}
         >
-          {/* Gridlines + tick labels (decorative — exact values live in the table) */}
+          {/* Gridlines + tick labels (decorative — exact values live in the
+              table). D-022: non-baseline gridlines dashed + lighter — Monty's
+              quiet grid. */}
           {ticks.map((tick) => (
             <g key={tick}>
               <line
@@ -192,6 +195,7 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
                 y2={gridY(tick)}
                 className={tick === 0 ? "stroke-foreground/25" : "stroke-border"}
                 strokeWidth={1}
+                strokeDasharray={tick === 0 ? undefined : "3 4"}
               />
               <text
                 x={PLOT_LEFT - 8}
@@ -228,8 +232,7 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
                 <title>{summary}</title>
                 <path
                   d={topRoundedBarPath(pairX, PLOT_BOTTOM - billedH, BAR_W, PLOT_BOTTOM)}
-                  className="fill-muted stroke-border"
-                  strokeWidth={1}
+                  className="fill-muted"
                 />
                 <path
                   d={topRoundedBarPath(

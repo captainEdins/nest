@@ -12,6 +12,8 @@ import {
   ChevronRight,
   DoorOpen,
   Smartphone,
+  TrendingDown,
+  TrendingUp,
   TriangleAlert,
   Wrench,
 } from "lucide-react";
@@ -22,6 +24,7 @@ import { useCaretakerOverview, useSession } from "@/hooks/use-overview";
 import { formatMonthKey } from "@/components/nest/shared/format";
 import { SecurityCard } from "@/components/nest/shared/security/security-card";
 import { SectionHeader } from "@/components/nest/shared/section-header";
+import { formatDeltaPct, momDeltaPct } from "@/components/nest/shared/kpi-card";
 import { PaymentRow } from "@/components/nest/shared/payment-row";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
@@ -31,6 +34,31 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Receipt } from "lucide-react";
+
+/** MoM delta chip (compact, inline) — used inside the caretaker hero's month row. */
+function CaretakerDelta({ current, prev }: { current: number; prev: number }) {
+  const { t } = useI18n();
+  const deltaPct = momDeltaPct(current, prev);
+  if (deltaPct == null) return null;
+  const up = deltaPct >= 0;
+  return (
+    <>
+      <span
+        className={`inline-flex items-center gap-1 rounded-full px-1.5 py-px font-semibold ${
+          up ? "bg-success/15 text-success" : "bg-destructive/10 text-destructive"
+        }`}
+      >
+        {up ? (
+          <TrendingUp className="size-3 shrink-0" aria-hidden />
+        ) : (
+          <TrendingDown className="size-3 shrink-0" aria-hidden />
+        )}
+        {formatDeltaPct(deltaPct)}
+      </span>
+      {t("common.vsLastMonth")}
+    </>
+  );
+}
 
 export function CaretakerHome() {
   const { t } = useI18n();
@@ -89,10 +117,11 @@ export function CaretakerHome() {
       ) : (
         <>
           {/* Hero — today + month progress (todayExpected not in the DTO:
-              month numbers labelled this-month per screen-specs fallback). */}
+              month numbers labelled this-month per screen-specs fallback).
+              Phase 9 (D-022): Monty micro-label + MoM delta under the month row. */}
           <Card className="bg-secondary">
             <CardContent className="p-4 sm:p-6 space-y-3">
-              <p className="text-label font-medium text-muted-foreground">
+              <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                 {t("caretaker.todaysCollections")}
               </p>
               <p className="text-kpi font-bold tabular-nums">
@@ -105,6 +134,11 @@ export function CaretakerHome() {
                     {formatKes(totals.monthCollectedMinor)} / {formatKes(totals.monthExpectedMinor)}
                   </p>
                 </div>
+                {totals.monthCollectedPrevMinor > 0 ? (
+                  <p className="text-caption tabular-nums text-muted-foreground flex items-center gap-1.5">
+                    <CaretakerDelta current={totals.monthCollectedMinor} prev={totals.monthCollectedPrevMinor} />
+                  </p>
+                ) : null}
                 <Progress className="h-2" value={monthProgressPct} aria-label={t("landlord.collectionRate")} />
               </div>
               {totals.arrearsTenantCount > 0 ? (
@@ -149,10 +183,9 @@ export function CaretakerHome() {
             </CardContent>
           </Card>
 
-          {/* Security digest (Phase 3) — same card as the landlord's home. */}
-          {data ? <SecurityCard security={data.security} /> : null}
-
-          {/* Quick actions 2×2 */}
+          {/* Quick actions 2×2 — ABOVE the fold, straight under the hero
+              (Phase 9: the caretaker's primary money actions must never land
+              bisected behind the floating dock on first paint). */}
           <div className="grid grid-cols-2 gap-4">
             <Button
               className="h-20 flex-col gap-1.5 text-body font-semibold"
@@ -186,6 +219,9 @@ export function CaretakerHome() {
               {t("nav.arrears")}
             </Button>
           </div>
+
+          {/* Security digest (Phase 3) — same card as the landlord's home. */}
+          {data ? <SecurityCard security={data.security} /> : null}
 
           {/* Units */}
           <section aria-label={t("nav.units")}>

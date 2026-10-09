@@ -6,8 +6,10 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card"
+      // D-022 (Monty Soft-SaaS): 20px radius, hairline border, layered diffuse
+      // shadow — cards lift off the canvas instead of outlining themselves.
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-2xl border py-6 nest-card-shadow",
         className
       )}
       {...props}

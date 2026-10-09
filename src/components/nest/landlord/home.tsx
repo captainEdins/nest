@@ -14,7 +14,7 @@ import { useLandlordOverview, useSession } from "@/hooks/use-overview";
 import { useApplications, useListings } from "@/hooks/use-listings";
 import { formatMonthKey } from "@/components/nest/shared/format";
 import { SecurityCard } from "@/components/nest/shared/security/security-card";
-import { KpiCard } from "@/components/nest/shared/kpi-card";
+import { KpiCard, momDeltaPct } from "@/components/nest/shared/kpi-card";
 import { SectionHeader } from "@/components/nest/shared/section-header";
 import { PaymentRow } from "@/components/nest/shared/payment-row";
 import { ArrearsRow } from "@/components/nest/shared/arrears-row";
@@ -74,11 +74,22 @@ export function LandlordHome() {
       ) : totals ? (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-            {/* KPI 1 — collected this month */}
+            {/* KPI 1 — collected this month (Monty hero: solid primary, MoM delta) */}
             <KpiCard
               className="sm:col-span-2"
               label={t("landlord.collectedThisMonth")}
               value={formatKes(totals.monthCollectedMinor)}
+              highlight
+              delta={{
+                deltaPct: momDeltaPct(totals.monthCollectedMinor, totals.monthCollectedPrevMinor),
+              }}
+              lastMonthValue={
+                totals.monthCollectedPrevMinor > 0
+                  ? t("common.lastMonthCollected", {
+                      amount: formatKes(totals.monthCollectedPrevMinor),
+                    })
+                  : t("common.noHistoryYet")
+              }
               sub={
                 <span className="tabular-nums">
                   {t("money.expected")} {formatKes(totals.monthExpectedMinor)} ·{" "}

@@ -668,6 +668,10 @@ function propertyTotals() {
     (s, p) => s + p.allocations.filter((a) => a.chargePeriod === CUR).reduce((x, a) => x + a.amountMinor, 0),
     0,
   )
+  const monthCollectedPrev = PAYMENTS.filter((p) => p.status === "COMPLETED").reduce(
+    (s, p) => s + p.allocations.filter((a) => a.chargePeriod === PREV).reduce((x, a) => x + a.amountMinor, 0),
+    0,
+  )
   const todayIso = format(now, "yyyy-MM-dd")
   const todayCollected = PAYMENTS.filter((p) => p.status === "COMPLETED" && format(p.receivedAt, "yyyy-MM-dd") === todayIso).reduce(
     (s, p) => s + p.amountMinor,
@@ -681,6 +685,7 @@ function propertyTotals() {
     vacant,
     monthExpected,
     monthCollected,
+    monthCollectedPrev,
     todayCollected,
     unmatched,
     arrearsMinor: arrears.reduce((s, r) => s + r.balanceMinor, 0),
@@ -699,6 +704,7 @@ function landlordOverview(): LandlordOverviewDto {
       occupancyRatePct: Math.round((t.occupied / t.units) * 100),
       monthExpectedMinor: t.monthExpected,
       monthCollectedMinor: t.monthCollected,
+      monthCollectedPrevMinor: t.monthCollectedPrev,
       todayCollectedMinor: t.todayCollected,
       collectionRatePct: t.monthExpected > 0 ? Math.round((t.monthCollected / t.monthExpected) * 100) : 0,
       arrearsMinor: t.arrearsMinor,
@@ -724,6 +730,7 @@ function caretakerOverview(): CaretakerOverviewDto {
     totals: {
       monthExpectedMinor: t.monthExpected,
       monthCollectedMinor: t.monthCollected,
+      monthCollectedPrevMinor: t.monthCollectedPrev,
       todayCollectedMinor: t.todayCollected,
       arrearsMinor: t.arrearsMinor,
       arrearsTenantCount: t.arrearsTenantCount,

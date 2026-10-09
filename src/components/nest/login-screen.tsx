@@ -113,8 +113,16 @@ export function LoginScreen() {
   }
 
   return (
-    <div className="min-h-dvh flex flex-col bg-background">
-      <main className="flex-1 w-full max-w-lg mx-auto px-4 py-8 sm:py-12 flex flex-col">
+    <div className="min-h-dvh flex flex-col bg-background relative">
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            "radial-gradient(90% 42% at 50% -8%, color-mix(in oklab, var(--primary) 9%, transparent) 0%, transparent 62%), radial-gradient(55% 28% at 8% 10%, color-mix(in oklab, var(--primary) 7%, transparent) 0%, transparent 60%)",
+        }}
+      />
+      <main className="relative flex-1 w-full max-w-lg mx-auto px-4 py-8 sm:py-12 flex flex-col">
         {/* Language switcher — top right */}
         <div className="flex justify-end">
           <DropdownMenu>
@@ -138,10 +146,14 @@ export function LoginScreen() {
           </DropdownMenu>
         </div>
 
-        {/* Brand + tagline (the screen's h1) */}
+        {/* Brand + tagline (the screen's h1) — Monty display scale */}
         <div className="flex flex-col items-center text-center gap-3 mt-2">
-          <NestLogo className="size-16" />
-          <h1 className="text-display font-bold">{t("app.tagline")}</h1>
+          <span className="grid place-items-center size-20 rounded-3xl bg-primary/10">
+            <NestLogo className="size-14" />
+          </span>
+          <h1 className="text-[2rem] sm:text-[2.375rem] font-bold leading-tight tracking-tight">
+            {t("app.tagline")}
+          </h1>
           <p className="text-body-lg sm:text-body text-muted-foreground">{t("login.heading")}</p>
           <p className="text-caption text-muted-foreground max-w-xs">{t("login.demoNote")}</p>
         </div>
@@ -154,14 +166,14 @@ export function LoginScreen() {
             const isBusy = busyPhone === profile.phone;
             const roleLabel = t(ROLE_KEY[profile.role]);
             return (
-              <Card key={profile.id} className="border">
+              <Card key={profile.id} className="border transition-transform duration-200 hover:-translate-y-0.5">
                 <CardContent className="p-0">
                   <button
                     type="button"
                     disabled={login.isPending}
                     onClick={() => signInWithCard(profile)}
                     aria-label={`${profile.fullName}, ${roleLabel}`}
-                    className="w-full min-h-16 text-left p-4 flex items-center gap-4 rounded-xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-60 transition-opacity"
+                    className="w-full min-h-16 text-left p-4 flex items-center gap-4 rounded-2xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:opacity-60 transition-opacity"
                   >
                     {isBusy ? (
                       <span className="size-10 rounded-full bg-primary text-primary-foreground grid place-items-center shrink-0">
@@ -173,7 +185,10 @@ export function LoginScreen() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-h3 font-semibold truncate">{profile.fullName}</span>
-                        <Badge variant="secondary" className="text-caption">
+                        <Badge
+                          variant="secondary"
+                          className="text-caption rounded-full bg-primary/10 text-primary border-transparent dark:bg-primary/15"
+                        >
                           {roleLabel}
                         </Badge>
                       </div>
