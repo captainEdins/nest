@@ -704,6 +704,22 @@ Three list screens share one pattern: `h1` + search/filter + Card rows (mobile) 
 
 ---
 
+## S-18 · Global Search Palette (all roles, Phase 10 — D-023)
+
+Monty's top-bar global search, translated onto the NEST shell.
+
+- **Trigger**: header search button (44px; ≥md labelled pill + `Ctrl K` kbd hint) · global `Ctrl/⌘+K` · opens from any tab.
+- **Data**: `SearchResultDto[]` (≤24 rows, per-kind caps). **(hint)** `GET /api/search?q=` — role-scoped via the same `*ScopeWhere` fragments as the list endpoints (a record you cannot list, you cannot find). Debounce 350ms; `keepPreviousData` between keystrokes.
+- **Presentation**: one palette, two surfaces — Radix Dialog ≥sm (top-anchored 10vh, 2xl radius, `.nest-card-shadow`) · vaul Drawer <sm (thumb-reachable, rounded-t-2xl). No dialog chrome: the input is the header (flush, hairline divider); sr-only `DialogTitle` satisfies the Radix a11y contract.
+- **Input row**: `h-14` · Search icon · `role=combobox aria-expanded aria-controls aria-autocomplete=list` · loading spinner replaces the clear (X) button while fetching.
+- **Results**: grouped by kind under uppercase micro-label headers (D-022) — Tenants · Receipts · Repairs · Listings · Applicants · Visitors · Incidents. Row: 44px min, pastel icon tile (hue per domain) + title (semibold, truncate) + subtitle (unit · property · date, `formatDate`) + right meta chip (status / `formatKes` amount / On-site). Active row = `bg-primary/10` (the sidebar pill treatment); keyboard `↑↓` move (cursor resets per result set), `Enter` picks, `Esc` closes.
+- **States**: <2 chars → `search.hint`; no rows → `search.noResults` with the query interpolated; list scrolls `max-h-[60vh]` + `.nest-scrollbar`.
+- **Deep-links** (routing hints, never record views): TENANT → arrears tab (landlord) / pushed arrears (caretaker) · RECEIPT → receipt modal + payments/receipts tab · TICKET → ticket detail pushed screen + repairs tab · LISTING/APPLICANT → detail pushed screen + listings tab (segment preset) · VISITOR → visitors tab · INCIDENT → incidents tab. **Order matters**: `setTab` clears `pushedScreen` — tab first, detail second.
+- **Footnote row**: sandbox notice · `↑↓ · Enter · Esc` hint (≥sm only).
+- **i18n**: `search.*` (19 keys, EN+SW). Copy: `search.trigger`, `search.placeholder`, `search.hint`, `search.noResults`, `search.group.*`.
+
+---
+
 ## Appendix A · Copy gaps → proposed i18n keys
 
 These keys are referenced above but don't exist in `src/lib/i18n/en.ts` yet. Task 1-b (or frontend with 1-b review) must add them **with Kiswahili twins** (`Record<TranslationKey, string>` enforces parity):
@@ -776,3 +792,4 @@ Note: no `{count}`-pluralization machinery exists — `arrears.monthBehind`/`arr
 | S-17a Payments/Collections | `PaymentDto[]` | Match unmatched |
 | S-17b Properties | `PropertyDto[]` | — |
 | S-17c Units | `UnitDto[]` | Record cash (via row) |
+| S-18 Search palette | `SearchResultDto[]` | Deep-link to record |

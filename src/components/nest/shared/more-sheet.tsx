@@ -131,6 +131,7 @@ export function MoreSheetContent({ session }: { session: SessionDto }) {
         tab: "home",
         pushedScreen: null,
         moreOpen: false,
+        searchOpen: false,
         notificationsOpen: false,
         matchPayment: null,
         receiptView: null,

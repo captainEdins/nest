@@ -793,4 +793,20 @@ export const sw: Record<TranslationKey, string> = {
   "score.explain.RECENT_TREND": "Kati ya miezi 3 ya mwisho, ngapi imelipwa kwa wakati.",
   "score.disclaimer": "Inaonyesha rekodi yako ya malipo ya NEST pekee.",
   "score.howBuilt": "Hii ilivyojengwa",
+
+  // ----- Global search (Phase 10, issue #76) -------------------------------
+  "search.trigger": "Tafuta",
+  "search.clear": "Futa utafutaji",
+  "search.placeholder": "Tafuta wapangaji, risiti, maombi…",
+  "search.hint": "Andika herufi 2 au zaidi",
+  "search.searching": "Inatafuta…",
+  "search.noResults": "Hakuna kilichopatikana kwa “{query}”",
+  "search.group.TENANT": "Wapangaji",
+  "search.group.RECEIPT": "Risiti",
+  "search.group.TICKET": "Matengenezo",
+  "search.group.LISTING": "Matangazo",
+  "search.group.APPLICANT": "Wanaotafuta nyumba",
+  "search.group.VISITOR": "Wageni",
+  "search.group.INCIDENT": "Matukio",
+  "search.openHint": "Tafuta rekodi · Ctrl K",
 }

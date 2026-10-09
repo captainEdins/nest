@@ -5,7 +5,7 @@
  * Logo (mobile) · role badge · language · theme · notification bell.
  */
 
-import { Bell, Globe, Moon, Sun } from "lucide-react";
+import { Bell, Globe, Moon, Search, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useI18n, LANGS } from "@/lib/i18n";
 import type { SessionDto } from "@/lib/types";
@@ -28,6 +28,7 @@ export function ShellHeader({ session }: { session: SessionDto }) {
   const { resolvedTheme, setTheme } = useTheme();
   const setTab = useUIStore((s) => s.setTab);
   const setNotificationsOpen = useUIStore((s) => s.setNotificationsOpen);
+  const setSearchOpen = useUIStore((s) => s.setSearchOpen);
 
   // Tenant: the bell navigates to the Notifications tab. Phase 7: every role
   // gets a numeric unread badge from the cheap 30s poll (read-state, not
@@ -59,6 +60,21 @@ export function ShellHeader({ session }: { session: SessionDto }) {
         </Badge>
 
         <div className="flex-1" />
+
+        {/* Global search (Phase 10, issue #76) — Monty top-bar search pattern.
+         *  Mobile: 44px icon button. Desktop: labelled pill with the Ctrl K hint. */}
+        <Button
+          variant="ghost"
+          onClick={() => setSearchOpen(true)}
+          aria-label={t("search.trigger")}
+          className="h-11 gap-2 px-2.5 sm:px-3 text-muted-foreground"
+        >
+          <Search size={18} aria-hidden />
+          <span className="hidden md:inline text-body-sm">{t("search.trigger")}…</span>
+          <kbd className="hidden md:inline text-caption px-1.5 py-0.5 rounded-md border bg-muted tabular-nums">
+            Ctrl K
+          </kbd>
+        </Button>
 
         {/* Language */}
         <DropdownMenu>
