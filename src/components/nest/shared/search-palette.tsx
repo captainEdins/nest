@@ -372,12 +372,16 @@ function navigateTo(result: SearchResultDto, role: Role) {
 
   switch (result.kind) {
     case "TENANT":
-      // Landlord: arrears tab. Caretaker: the pushed arrears screen (S-18a).
+      // Phase 15: a tenant result IS a tenancy id — open that tenant's
+      // statement (the reconciliation view). Searching "David" now lands on
+      // David's record, not on the arrears tab where David might be.
+      // setTab first (it clears pushedScreen — see ORDER MATTERS above).
       if (role === "CARETAKER") {
         store.setTab("home");
-        store.pushArrears();
+        store.openStatement(result.id);
       } else {
         store.setTab("arrears");
+        store.openStatement(result.id);
       }
       break;
     case "RECEIPT":

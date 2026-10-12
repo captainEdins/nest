@@ -10,11 +10,16 @@
  * kra.ts seam pattern, D-018).
  *
  * Scope + money rules (mirrors kra.ts / analytics.ts — the same seam):
- * - TENANT → own ACTIVE tenancy (matrix §4.4). LANDLORD/CARETAKER → tenancies
+ * - TENANT → own live tenancy (matrix §4.4). LANDLORD/CARETAKER → tenancies
  *   in their scope via tenancyScopeWhere, ?tenancyId= required. GUARD/AGENT →
  *   403 at the route.
  * - Money is ALWAYS integer KES minor units — no floats on the wire.
  * - Read-only: this module never writes (no AuditLog rows, D-018).
+ *
+ * Phase 15 (issue #88): "live" now includes NOTICE — a tenant who has given
+ * notice keeps their statement through the exit window (final-month rent +
+ * the deposit conversation are exactly when the record matters). ENDED stays
+ * out: the exit arc ends at the deposit settlement, which has its own screen.
  *
  * Month bucketing (the honest part):
  * - A month appears if a charge was raised in it OR a payment allocation
@@ -40,9 +45,12 @@ export const statementQuerySchema = z.object({
   tenancyId: z.string().min(1).optional(),
 })
 
+/** A tenancy with a live statement: ACTIVE, or on notice (Phase 15). */
+const LIVE_STATUSES: string[] = ["ACTIVE", "NOTICE"]
+
 /**
  * Resolve the tenancy a statement may be built for:
- * - TENANT → their ACTIVE tenancy (a ?tenancyId= pointing anywhere else is
+ * - TENANT → their own live tenancy (a ?tenancyId= pointing anywhere else is
  *   ignored — the client is never trusted, matrix §7.2).
  * - LANDLORD/CARETAKER → the ?tenancyId= row re-fetched WITH the scope
  *   condition (a miss ⇒ 404 — existence must not leak).
@@ -52,8 +60,8 @@ export async function resolveStatementTenancy(profile: Profile, request: Request
 
   const where =
     profile.role === "TENANT"
-      ? { tenantId: profile.id, status: "ACTIVE" as const }
-      : { id: tenancyId ?? "__never__", status: "ACTIVE" as const, ...tenancyScopeWhere(profile) }
+      ? { tenantId: profile.id, status: { in: LIVE_STATUSES } }
+      : { id: tenancyId ?? "__never__", status: { in: LIVE_STATUSES }, ...tenancyScopeWhere(profile) }
 
   const tenancy = await db.tenancy.findFirst({
     where,

@@ -813,6 +813,11 @@ export const en = {
   "statement.printFootnote":
     "Every figure on this statement traces to a NEST charge row or a receipted payment.",
   "statement.printPaybill": "Pay via M-Pesa · account ref {ref}",
+  // Phase 15 — the staff reconciliation view (issue #88).
+  "statement.staffTitle": "Tenant statement",
+  "statement.staffOneRecord":
+    "This is the exact record {name} sees on their own phone — print it for the meeting.",
+  "statement.openAria": "Open {name}'s statement",
 
   // ----- Rent Score (Phase 6-b, issue #66) -----------------------------------
   "score.title": "Rent score",

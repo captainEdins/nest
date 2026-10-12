@@ -10,6 +10,9 @@
  * Phase 11 (issue #78): NOTICE rows carry the move-out date chip and the
  * "Complete move-out" action — the caretaker is the field worker who
  * confirms the unit is actually empty on the day.
+ * Phase 15 (issue #88): every live tenancy row carries the statement opener
+ * — the tenant's full payment record, one tap from the unit he is standing
+ * in front of (collect → reconcile → print, without leaving the screen).
  */
 
 import * as React from "react";
@@ -18,6 +21,7 @@ import { useI18n } from "@/lib/i18n";
 import { formatKes } from "@/lib/money";
 import { useUIStore } from "@/lib/ui-store";
 import { useUnits } from "@/hooks/use-deposits";
+import { OpenStatementButton } from "@/components/nest/shared/statement-screen";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
 import { ListSkeleton } from "@/components/nest/shared/skeletons";
@@ -202,6 +206,10 @@ function UnitRow({
               {formatKes(unit.depositAmountMinor)} · {t("deposit.kind.HOLD")}
             </span>
           </button>
+        ) : null}
+        {/* Phase 15 — the unit's money story, one tap away */}
+        {canCollect && tenancy != null ? (
+          <OpenStatementButton tenancyId={tenancy.id} tenantName={tenancy.tenantName} />
         ) : null}
         <StatusBadge status={unit.status} className="shrink-0" />
       </div>

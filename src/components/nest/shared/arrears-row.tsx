@@ -5,6 +5,8 @@
  * balance, one-tap Send reminder (60s cooldown to prevent spam).
  * Phase 6-b: optional rent-score chip — the same engine output the tenant's
  * own card shows, so "who usually pays" is data, not gossip.
+ * Phase 15: per-row statement opener — the reconciliation view is one tap
+ * from the arrears list (the money conversation starts where the debt is).
  */
 
 import * as React from "react";
@@ -15,6 +17,7 @@ import { useI18n } from "@/lib/i18n";
 import type { ArrearsRowDto, RentScoreBand } from "@/lib/types";
 import { formatKes } from "@/lib/money";
 import { useOnline } from "@/components/nest/offline-banner";
+import { OpenStatementButton } from "@/components/nest/shared/statement-screen";
 import { RentScoreChip } from "@/components/nest/shared/rent-score-chip";
 import { Button } from "@/components/ui/button";
 
@@ -95,7 +98,8 @@ export function ArrearsRow({
           {formatKes(row.balanceMinor)}
         </p>
       </div>
-      <div className="mt-2 flex justify-end">
+      <div className="mt-2 flex justify-end gap-1">
+        <OpenStatementButton tenancyId={row.tenancyId} tenantName={row.tenantName} />
         <SendReminderButton row={row} compact />
       </div>
     </div>

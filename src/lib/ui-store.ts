@@ -43,8 +43,10 @@ interface UIState {
   /** Active bottom-nav / sidebar tab. */
   tab: TabId;
   setTab: (tab: TabId) => void;
-  /** Secondary screen pushed over the tab content (caretaker arrears; Phase 2: ticket + deposit detail; Phase 3: guard shift log; Phase 4: listing + application detail). */
-  pushedScreen: "arrears" | "ticket" | "deposit" | "shift" | "listing" | "application" | null;
+  /** Secondary screen pushed over the tab content (caretaker arrears; Phase 2: ticket + deposit detail; Phase 3: guard shift log; Phase 4: listing + application detail; Phase 15: staff statement). */
+  pushedScreen: "arrears" | "ticket" | "deposit" | "shift" | "listing" | "application" | "statement" | null;
+  /** Tenancy whose statement the pushed screen shows (Phase 15, landlord + caretaker — the same record the tenant sees). */
+  statementTenancyId: string | null;
   /** Tenancy whose deposit the pushed screen shows (caretaker, Phase 3); tenants use /api/deposits/mine. */
   depositTenancyId: string | null;
   /** Listing whose detail the pushed screen shows (Phase 4, agent + landlord). */
@@ -53,6 +55,8 @@ interface UIState {
   applicationViewId: string | null;
   pushArrears: () => void;
   pushDeposit: (tenancyId?: string) => void;
+  /** Phase 15 — open a tenancy's statement (landlord + caretaker). */
+  openStatement: (tenancyId: string) => void;
   pushShiftLog: () => void;
   openListing: (id: string) => void;
   openApplication: (id: string) => void;
@@ -173,15 +177,17 @@ export const useUIStore = create<UIState>((set) => ({
   setTab: (tab) => set({ tab, pushedScreen: null }),
   pushedScreen: null,
   depositTenancyId: null,
+  statementTenancyId: null,
   listingViewId: null,
   applicationViewId: null,
   pushArrears: () => set({ pushedScreen: "arrears" }),
   pushDeposit: (tenancyId) => set({ pushedScreen: "deposit", depositTenancyId: tenancyId ?? null }),
+  openStatement: (tenancyId) => set({ pushedScreen: "statement", statementTenancyId: tenancyId }),
   pushShiftLog: () => set({ pushedScreen: "shift" }),
   openListing: (id) => set({ pushedScreen: "listing", listingViewId: id }),
   openApplication: (id) => set({ pushedScreen: "application", applicationViewId: id }),
   popScreen: () =>
-    set({ pushedScreen: null, depositTenancyId: null, listingViewId: null, applicationViewId: null }),
+    set({ pushedScreen: null, depositTenancyId: null, statementTenancyId: null, listingViewId: null, applicationViewId: null, ticketViewId: null }),
   paymentsFilter: "ALL",
   setPaymentsFilter: (paymentsFilter) => set({ paymentsFilter }),
   paymentsPropertyFilter: null,
