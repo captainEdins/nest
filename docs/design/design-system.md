@@ -57,20 +57,25 @@ Body sets `font-family: var(--font-poppins)`. `--radius: 0.625rem` is already co
 
 ### 1.2 Light mode (dictated)
 
+> **D-030 (Phase 17, the warm canvas)**: the light mode moved to the user's
+> reference — warm cream canvas, warm-sand surfaces, borderless cards. Green
+> stays the only accent; positive deltas stay green; active nav is the NEUTRAL
+> foreground pill (see §6). Dark mode (§1.3) is untouched.
+
 | Token | Value | Primary use |
 |---|---|---|
-| `--background` | `oklch(0.985 0.005 95)` | Page background (warm off-white) |
-| `--foreground` | `oklch(0.22 0.02 150)` | Body text, headings |
-| `--card` | `oklch(1 0 0)` | Cards, sheets, popovers surface |
-| `--card-foreground` | `oklch(0.22 0.02 150)` | Text on card |
+| `--background` | `oklch(0.98 0.007 96)` | Page background (warm cream, #F9F7F2 family) |
+| `--foreground` | `oklch(0.24 0.02 120)` | Body text, headings, active nav pill |
+| `--card` | `oklch(1 0 0)` | Cards, sheets, popovers surface (borderless — shadow separates) |
+| `--card-foreground` | `oklch(0.24 0.02 120)` | Text on card |
 | `--popover` | `oklch(1 0 0)` | Popover/dialog surface |
-| `--popover-foreground` | `oklch(0.22 0.02 150)` | Text on popover |
-| `--primary` | `oklch(0.52 0.12 155)` | Actions, active nav, focus ring, links |
+| `--popover-foreground` | `oklch(0.24 0.02 120)` | Text on popover |
+| `--primary` | `oklch(0.52 0.12 155)` | Actions, focus ring, links, chart primary (NOT active nav) |
 | `--primary-foreground` | `oklch(0.985 0.01 95)` | Text/icons on primary |
-| `--secondary` | `oklch(0.95 0.015 120)` | Soft fills, secondary buttons, nav active bg |
-| `--secondary-foreground` | `oklch(0.32 0.03 150)` | Text on secondary |
-| `--muted` | `oklch(0.955 0.01 100)` | Muted chips, skeleton base |
-| `--muted-foreground` | `oklch(0.52 0.02 120)` | Captions, secondary labels, empty icons |
+| `--secondary` | `oklch(0.95 0.012 100)` | Soft fills, secondary buttons (warm sand) |
+| `--secondary-foreground` | `oklch(0.34 0.03 120)` | Text on secondary |
+| `--muted` | `oklch(0.95 0.008 95)` | Muted chips, skeleton base (warm sand) |
+| `--muted-foreground` | `oklch(0.5 0.015 100)` | Captions, secondary labels, empty icons |
 | `--accent` | `oklch(0.93 0.04 85)` | Selected/hover fill (warm tan) |
 | `--accent-foreground` | `oklch(0.3 0.04 85)` | Text on accent |
 | `--destructive` | `oklch(0.55 0.19 27)` | Destructive buttons, error alerts |
@@ -242,7 +247,7 @@ Bottom nav sits **outside** scroll (fixed) with `padding-bottom: env(safe-area-i
 
 ### 6.2 Desktop — left sidebar (≥ lg)
 
-- Fixed left, **264px**, `bg-background` `border-r`; logo + role badge on top; nav items `h-10 px-3 rounded-md` (icon 20 + `text-body`), active = `bg-secondary text-secondary-foreground`; unread badge count on Notifications.
+- Fixed left, **264px**, `bg-background` `border-r` (warm hairline); logo + role badge on top; nav items `h-10 px-3 rounded-xl` (icon 20 + `text-body`), active = **solid neutral pill `bg-foreground text-background`** (D-030 — the reference's near-black chip; green is reserved for data + actions); unread badge count on Notifications.
 - Bottom of sidebar: user chip (avatar initials + name + role caption) → opens More sheet.
 - Content area gets `lg:pl-[264px]`.
 
@@ -287,7 +292,9 @@ All icon-only buttons: `h-11 w-11` (44px target) with `sr-only` labels. The offl
 
 ### 9.1 Card / Table / lists
 
+- **Card is borderless** (D-030): white surface, 16px radius, separation by the layered diffuse shadow alone (`.nest-card-shadow`). Explicit `border-*` utilities only for deliberate edges (dashed receipt divider, left accent bars on funnel cards).
 - **Card** is the universal container for KPIs and rows. Money rows: label (`text-label text-muted-foreground`) left, value (`text-body font-semibold tabular-nums`) right.
+- KPI cards may carry a **sparkline** (D-030): decorative SVG gradient trend beside the value, `currentColor`-tinted, aria-hidden — exact numbers stay in text.
 - **Table only ≥sm.** The same data renders as stacked cards on mobile (one list component, two presentations — never a horizontally-scrolling table).
 - Lists: `divide-y` inside a `Card`, rows `min-h-14 p-4`, chevron/tap affordance right-aligned when rows navigate.
 

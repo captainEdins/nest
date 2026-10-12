@@ -9,7 +9,7 @@
 
 import { Bell, ChevronRight, Receipt, Users, Wrench } from "lucide-react";
 import { ApiError } from "@/lib/api";
-import { useI18n } from "@/lib/i18n";
+import { greetingKeyForHour, useI18n } from "@/lib/i18n";
 import type { ChargeDto, ChargeKind } from "@/lib/types";
 import { formatKes } from "@/lib/money";
 import { useUIStore } from "@/lib/ui-store";
@@ -65,7 +65,7 @@ export function TenantHome() {
     if (endedLease) {
       return (
         <section aria-label={t("tenant.yourRent")} className="space-y-4">
-          <h1 className="text-h2 font-semibold tracking-tight">{t("common.greeting", { name: session?.profile.fullName.split(" ")[0] ?? "" })}</h1>
+          <h1 className="text-h2 font-semibold tracking-tight">{t(greetingKeyForHour(), { name: session?.profile.fullName.split(" ")[0] ?? "" })}</h1>
           <EmptyState icon={Receipt} title={t("tenant.noTenancyTitle")} hint={t("tenant.noTenancyBody")} />
         </section>
       )
@@ -92,7 +92,7 @@ export function TenantHome() {
 
   return (
     <div className="space-y-4 sm:space-y-6 nest-stagger">
-      <h1 className="text-h2 font-semibold tracking-tight">{t("common.greeting", { name })}</h1>
+      <h1 className="text-h2 font-semibold tracking-tight">{t(greetingKeyForHour(), { name })}</h1>
 
       {isPending || !tenancy || !totals ? (
         <div className="space-y-4 sm:space-y-6" aria-busy>

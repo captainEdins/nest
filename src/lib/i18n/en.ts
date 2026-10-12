@@ -80,6 +80,11 @@ export const en = {
   "common.signOut": "Sign out",
   "common.installApp": "Install app",
   "common.greeting": "Hi, {name}",
+  // Phase 17 (D-030): time-aware greeting — the reference dashboard's
+  // "Good morning, Alex" warmth. Picked by greetingKeyForHour().
+  "common.greetingMorning": "Good morning, {name}",
+  "common.greetingAfternoon": "Good afternoon, {name}",
+  "common.greetingEvening": "Good evening, {name}",
 
   // ----- Money labels -------------------------------------------------------
   "money.rent": "Rent",
@@ -111,6 +116,9 @@ export const en = {
 
   // ----- Landlord dashboard & KPIs ------------------------------------------
   "landlord.collectedThisMonth": "Collected this month",
+  // Phase 17 (D-030) — the warm-canvas hero band (greeting panel context line).
+  "landlord.heroContext": "{plots} plots · {units} units · {amount} expected this month",
+  "landlord.viewAnalytics": "View analytics",
   "landlord.expectedThisMonth": "Expected this month",
   "landlord.collectionRate": "Collection rate",
   "landlord.arrears": "Arrears",

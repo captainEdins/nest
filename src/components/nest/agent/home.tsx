@@ -9,7 +9,7 @@
  */
 
 import { Building2, CheckCircle2, ChevronRight, Megaphone, Plus } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { greetingKeyForHour, useI18n } from "@/lib/i18n";
 import { useAgentOverview, useSession } from "@/hooks/use-overview";
 import { useUIStore } from "@/lib/ui-store";
 import { formatKes } from "@/lib/money";
@@ -50,7 +50,7 @@ export function AgentHome() {
 
   return (
     <div className="space-y-4 sm:space-y-6 nest-stagger">
-      <h1 className="text-h2 font-semibold tracking-tight">{t("common.greeting", { name })}</h1>
+      <h1 className="text-h2 font-semibold tracking-tight">{t(greetingKeyForHour(), { name })}</h1>
 
       {isPending || !totals ? (
         <div className="space-y-4 sm:space-y-6" aria-busy>

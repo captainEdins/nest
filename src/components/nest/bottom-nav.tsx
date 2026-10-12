@@ -5,9 +5,12 @@
  * always the "More" tab (opens the S-15 sheet).
  *
  * Phase 9 (D-022): Monty floating dock — the bar detaches from the screen
- * edge (inset + 20px radius + layered shadow), and the active tab sits in a
- * soft primary-tint pill instead of a top hairline. Still 44px targets and
- * a solid bg-card surface (no backdrop-blur — caretaker low-end Android).
+ * edge (inset + 20px radius + layered shadow).
+ * Phase 17 (D-030, warm canvas): the active tab sits in a SOLID foreground
+ * pill — the reference's near-black active chip (light: near-black pill /
+ * dark: near-white pill). Green stays reserved for data + actions, so the
+ * dock reads neutral and modern. Still 44px targets and a solid bg-card
+ * surface (no backdrop-blur — caretaker low-end Android).
  */
 
 import { MoreHorizontal } from "lucide-react";
@@ -44,14 +47,14 @@ export function BottomNav({ tabs }: { tabs: TabDef[] }) {
               aria-current={active ? "page" : undefined}
               className={cn(
                 "relative flex-1 min-h-11 min-w-16 flex flex-col items-center justify-center gap-1",
-                "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card outline-none",
-                active ? "text-primary" : "text-muted-foreground",
+                "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card outline-none transition-colors",
+                active ? "text-background" : "text-muted-foreground",
               )}
             >
               {active ? (
                 <span
                   aria-hidden
-                  className="absolute inset-x-2 inset-y-1.5 -z-10 rounded-xl bg-primary/10 animate-in fade-in zoom-in-95 duration-200"
+                  className="absolute inset-x-1.5 inset-y-1.5 -z-10 rounded-xl bg-foreground animate-in fade-in zoom-in-95 duration-200"
                 />
               ) : null}
               <Icon size={20} aria-hidden />
@@ -65,14 +68,14 @@ export function BottomNav({ tabs }: { tabs: TabDef[] }) {
           aria-expanded={moreOpen}
           className={cn(
             "relative flex-1 min-h-11 min-w-16 flex flex-col items-center justify-center gap-1",
-            "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card outline-none",
-            moreOpen ? "text-primary" : "text-muted-foreground",
+            "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card outline-none transition-colors",
+            moreOpen ? "text-background" : "text-muted-foreground",
           )}
         >
           {moreOpen ? (
             <span
               aria-hidden
-              className="absolute inset-x-2 inset-y-1.5 -z-10 rounded-xl bg-primary/10"
+              className="absolute inset-x-1.5 inset-y-1.5 -z-10 rounded-xl bg-foreground"
             />
           ) : null}
           <MoreHorizontal size={20} aria-hidden />

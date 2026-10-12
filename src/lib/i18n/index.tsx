@@ -62,6 +62,18 @@ export const LANGS: { value: Lang; label: string }[] = [
 
 const DICTS: Record<Lang, Record<TranslationKey, string>> = { en, sw }
 
+/**
+ * Phase 17 (D-030) — the reference dashboard's time-aware greeting
+ * ("Good morning, Alex"). Pure key picker: the caller formats with the
+ * profile's first name. Africa/Nairobi local time (the visitor's clock) is
+ * the honest source — no server round trip for a greeting.
+ */
+export function greetingKeyForHour(hour = new Date().getHours()): TranslationKey {
+  if (hour < 12) return "common.greetingMorning"
+  if (hour < 17) return "common.greetingAfternoon"
+  return "common.greetingEvening"
+}
+
 /** localStorage key for the persisted language preference. */
 const STORAGE_KEY = "nest-lang"
 
