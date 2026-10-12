@@ -249,7 +249,7 @@ export function NotificationsList({
           <h2 className="text-label font-medium text-muted-foreground uppercase tracking-wide mb-2">
             {group.label}
           </h2>
-          <Card className="divide-y">
+          <Card className="divide-y gap-0 py-0">
             {group.items.map((notification) => (
               <NotificationRow
                 key={notification.id}
@@ -313,7 +313,7 @@ export function NotificationsFeed({
             <h2 className="text-label font-medium text-muted-foreground uppercase tracking-wide mb-2">
               {group.label}
             </h2>
-            <Card className="divide-y">
+            <Card className="divide-y gap-0 py-0">
               {group.items.map((notification) => (
                 <NotificationRow
                   key={notification.id}

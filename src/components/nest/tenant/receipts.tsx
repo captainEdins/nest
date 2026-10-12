@@ -33,7 +33,7 @@ export function TenantReceiptsScreen() {
       ) : receipts.length === 0 ? (
         <EmptyState icon={Receipt} title={t("empty.receipts")} />
       ) : (
-        <Card className="divide-y">
+        <Card className="divide-y gap-0 py-0">
           {receipts.map((receipt) => (
             <button
               key={receipt.receiptNo}

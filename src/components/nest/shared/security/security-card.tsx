@@ -45,7 +45,9 @@ export function SecurityCard({ security }: { security: SecurityDigestDto }) {
         <CardContent className="p-4 sm:p-6 space-y-3">
           <div className="flex items-center gap-2">
             <Shield className="size-4 text-muted-foreground shrink-0" aria-hidden />
-            <p className="text-label font-medium text-muted-foreground">{t("security.cardTitle")}</p>
+            <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              {t("security.cardTitle")}
+            </p>
             <ChevronRight className="size-4 text-muted-foreground ml-auto shrink-0" aria-hidden />
           </div>
 
@@ -57,8 +59,13 @@ export function SecurityCard({ security }: { security: SecurityDigestDto }) {
               {t("security.onSiteNow", { count: security.onSiteNow })}
             </p>
             {highUnacked > 0 ? (
-              <p className="text-body font-semibold text-destructive sm:col-span-2">
-                {t("security.highSeverityFlag", { count: highUnacked })}
+              // Phase 18 (D-031): soft badge treatment — bare red text
+              // clashed with the warm canvas (the palette stays cream +
+              // green; urgency reads through the tinted chip, not raw red).
+              <p className="sm:col-span-2">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-destructive/10 dark:bg-destructive/20 text-destructive px-2.5 py-0.5 text-label font-semibold">
+                  {t("security.highSeverityFlag", { count: highUnacked })}
+                </span>
               </p>
             ) : (
               <p

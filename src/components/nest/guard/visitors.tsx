@@ -123,7 +123,7 @@ export function GuardVisitors() {
             <h2 className="text-label font-medium text-muted-foreground uppercase tracking-wide">
               {group.label}
             </h2>
-            <Card className="divide-y">
+            <Card className="divide-y gap-0 py-0">
               {group.rows.map((row) => (
                 <VisitorRow
                   key={row.id}

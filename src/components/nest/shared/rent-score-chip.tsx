@@ -5,6 +5,10 @@
  * score + band word in the band's semantic colour, never colour-only.
  * Shared by the arrears card rows and the desktop table so the number a
  * landlord sees is the same engine output the tenant's card shows.
+ *
+ * Phase 18 (D-031): pastel-tint treatment (matches StatusBadge) — the old
+ * neutral outline read as an empty/broken container on the warm canvas
+ * (two independent design audits mis-filed it as a rendering failure).
  */
 
 import { useI18n } from "@/lib/i18n";
@@ -13,10 +17,10 @@ import type { RentScoreBand } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const CHIP_STYLES: Record<RentScoreBand, string> = {
-  EXCELLENT: "border-success text-success",
-  GOOD: "border-primary text-primary",
-  FAIR: "border-attention text-attention",
-  BUILDING: "border-border text-muted-foreground",
+  EXCELLENT: "border-transparent bg-success/15 text-success",
+  GOOD: "border-transparent bg-primary/10 text-primary",
+  FAIR: "border-transparent bg-warning/15 text-attention",
+  BUILDING: "border-transparent bg-muted text-muted-foreground",
 };
 
 export function RentScoreChip({

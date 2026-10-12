@@ -138,6 +138,7 @@ export const sw: Record<TranslationKey, string> = {
   "caretaker.todaysCollections": "Makusanyo ya leo",
   "caretaker.expectedToday": "Inayotarajiwa leo",
   "caretaker.collectedToday": "Yaliyokusanywa leo",
+  "caretaker.heroContext": "Vitengo {units} · {amount} inayotarajiwa mwezi huu",
   "caretaker.recordCash": "Rekodi pesa taslimu",
   "caretaker.requestMpesa": "Omba M-Pesa",
   "caretaker.units": "Vyumba",

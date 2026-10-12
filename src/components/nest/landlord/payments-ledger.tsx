@@ -104,10 +104,11 @@ export function PaymentsLedger({ variant }: { variant: "landlord" | "caretaker" 
                 onClick={() => setPropertyFilter(null)}
                 aria-pressed={propertyFilter === null}
                 className={cn(
-                  "shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-caption font-medium transition-colors",
+                  // Phase 18 (D-031): the v2 pill — tint, not border.
+                  "shrink-0 inline-flex items-center gap-1.5 rounded-full px-3.5 h-8 text-caption font-medium transition-colors",
                   propertyFilter === null
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border text-muted-foreground hover:bg-muted/50",
+                    ? "bg-primary/10 text-primary"
+                    : "bg-muted text-muted-foreground hover:bg-muted/70",
                 )}
               >
                 {t("payments.allPlots")}
@@ -119,10 +120,10 @@ export function PaymentsLedger({ variant }: { variant: "landlord" | "caretaker" 
                   onClick={() => setPropertyFilter(name)}
                   aria-pressed={propertyFilter === name}
                   className={cn(
-                    "shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-caption font-medium transition-colors",
+                    "shrink-0 inline-flex items-center gap-1.5 rounded-full px-3.5 h-8 text-caption font-medium transition-colors",
                     propertyFilter === name
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-border text-muted-foreground hover:bg-muted/50",
+                      ? "bg-primary/10 text-primary"
+                      : "bg-muted text-muted-foreground hover:bg-muted/70",
                   )}
                 >
                   {name}

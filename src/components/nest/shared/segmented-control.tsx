@@ -62,7 +62,10 @@ export function SegmentedControl<T extends string>({
               "transition-all duration-200",
               selected
                 ? option.attention
-                  ? "bg-card text-attention nest-card-shadow"
+                  ? // Phase 18 (D-031): the urgent filter, visibly ON —
+                    // amber tint beats a white pill (the audit read the
+                    // selected UNMATCHED state as near-invisible).
+                    "bg-warning/15 dark:bg-warning/20 text-attention nest-card-shadow"
                   : "bg-card text-foreground nest-card-shadow"
                 : option.attention && option.count
                   ? "text-attention/85 hover:text-attention"

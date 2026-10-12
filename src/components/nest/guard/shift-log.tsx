@@ -47,7 +47,7 @@ export function GuardShiftLog() {
           {past.length > 0 ? (
             <section aria-label={t("guard.pastShifts")}>
               <SectionHeader title={t("guard.pastShifts")} count={past.length} className="mb-3" />
-              <Card className="divide-y">
+              <Card className="divide-y gap-0 py-0">
                 {past.map((shift) => (
                   <PastShiftRow key={shift.id} shift={shift} />
                 ))}

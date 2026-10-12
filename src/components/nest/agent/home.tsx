@@ -65,7 +65,10 @@ export function AgentHome() {
         </div>
       ) : (
         <>
-          {/* Funnel KPIs — 2×2 on mobile, 4 across from sm */}
+          {/* Funnel KPIs — 2×2 on mobile, 4 across from sm.
+              Phase 18 (D-031): the v2 stat cell — borderless white card,
+              soft shadow, uppercase micro-label (the bordered divs were the
+              last pre-v2 pattern on any desk). */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <KpiCell label={t("agent.vacantUnits")} value={String(totals.vacantUnits)} />
             <KpiCell label={t("agent.liveListings")} value={String(totals.liveListings)} />
@@ -90,7 +93,7 @@ export function AgentHome() {
                 onAction={() => setTab("listings")}
                 className="mb-3"
               />
-              <Card className="divide-y">
+              <Card className="divide-y gap-0 py-0">
                 {liveListings.slice(0, 2).map((listing) => (
                   <ListingPreviewRow key={listing.id} listing={listing} />
                 ))}
@@ -218,10 +221,11 @@ function FunnelCard({
     );
   }
 
-  // 2. Vacant units with no live listing — the funnel starts here.
+  // 2. Vacant units with no live listing — the funnel starts here
+  //    (Phase 18 D-031: tinted surface, no left rail — v2 canvas).
   if (unlistedCount > 0) {
     return (
-      <Card className="border-l-4 border-l-warning/70 bg-warning/5 dark:bg-warning/10 animate-in fade-in duration-300">
+      <Card className="bg-warning/10 dark:bg-warning/10 animate-in fade-in duration-300">
         <CardContent className="p-4 sm:p-6 space-y-3">
           <p className="text-label font-medium text-muted-foreground">
             {t("agent.funnelCardTitle")}
@@ -238,7 +242,7 @@ function FunnelCard({
 
   // 3. Nothing vacant — the portfolio is full (the quiet success state).
   return (
-    <Card className="bg-muted/40 animate-in fade-in duration-300">
+    <Card className="bg-muted/30 dark:bg-muted/20 animate-in fade-in duration-300">
       <CardContent className="p-4 sm:p-6 flex items-center gap-3 text-muted-foreground">
         <CheckCircle2 className="size-5 text-success shrink-0" aria-hidden />
         <p className="text-body">{t("agent.emptyVacancies")}</p>
@@ -290,8 +294,10 @@ function ListingPreviewRow({ listing }: { listing: ListingDto }) {
 
 function KpiCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border p-3 min-w-0">
-      <p className="text-caption text-muted-foreground truncate">{label}</p>
+    <div className="rounded-xl bg-card nest-card-shadow p-3 min-w-0">
+      <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground truncate">
+        {label}
+      </p>
       <p className="text-kpi font-bold tabular-nums mt-1 truncate">{value}</p>
     </div>
   );
@@ -300,7 +306,7 @@ function KpiCell({ label, value }: { label: string; value: string }) {
 /** Compact 2-line cell skeleton for the 2×2 / 4-up KPI grid. */
 function KpiCellSkeleton() {
   return (
-    <div className="rounded-lg border p-3 space-y-2" aria-hidden>
+    <div className="rounded-xl bg-card nest-card-shadow p-3 space-y-2" aria-hidden>
       <Skeleton className="h-3 w-2/3" />
       <Skeleton className="h-7 w-1/2" />
     </div>

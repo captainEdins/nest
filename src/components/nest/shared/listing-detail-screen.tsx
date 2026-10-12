@@ -88,7 +88,7 @@ export function ListingDetailScreen({ listingId }: { listingId: string }) {
         {listing.applications.length === 0 ? (
           <EmptyState icon={Users} title={t("agent.emptyApplicants")} />
         ) : (
-          <Card className="divide-y">
+          <Card className="divide-y gap-0 py-0">
             {listing.applications.map((application) => (
               <ApplicantRow key={application.id} application={application} />
             ))}
@@ -257,7 +257,7 @@ function ListingDetailSkeleton() {
       </div>
       <div className="space-y-3">
         <Skeleton className="h-6 w-40" />
-        <Card className="divide-y">
+        <Card className="divide-y gap-0 py-0">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex items-center gap-3 p-4">
               <Skeleton className="size-9 rounded-full shrink-0" />

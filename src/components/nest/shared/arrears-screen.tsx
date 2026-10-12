@@ -90,7 +90,9 @@ export function ArrearsScreen({
     <section aria-label={t("landlord.arrears")}>
       <div className="flex items-baseline justify-between gap-2 mb-1">
         <h1 className="text-h2 font-semibold">{t("landlord.arrears")}</h1>
-        <p className="text-attention font-semibold tabular-nums">{formatKes(totalMinor)}</p>
+        {/* Phase 18 (D-031): the total is the page's primary number —
+            display weight, amber, tabular. */}
+        <p className="text-h3 font-bold text-attention tabular-nums">{formatKes(totalMinor)}</p>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <p className="text-caption text-muted-foreground">
@@ -104,12 +106,12 @@ export function ArrearsScreen({
         <div className="space-y-4" aria-busy>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="h-24 animate-pulse bg-muted" />
+              <Card key={i} className="h-24 nest-skeleton bg-muted" />
             ))}
           </div>
-          <Card className="divide-y">
+          <Card className="divide-y gap-0 py-0">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="p-4 min-h-16 animate-pulse bg-muted/50" />
+              <div key={i} className="p-4 min-h-16 nest-skeleton bg-muted/50" />
             ))}
           </Card>
         </div>
@@ -117,29 +119,43 @@ export function ArrearsScreen({
         <EmptyState icon={CheckCircle2} title={t("empty.arrears")} success />
       ) : (
         <div className="space-y-4">
-          {/* Aging chips */}
+          {/* Aging buckets — Phase 18 (D-031): borderless v2 mini-cards
+              (the outlined divs read as broken/empty boxes in the warm
+              canvas); the DEEPEST non-empty bucket owns the warning tint
+              so urgency lives where the oldest debt actually is. */}
           <div className="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:overflow-visible">
-            {BUCKET_ORDER.map((bucket) => {
-              const bucketRows = byBucket.get(bucket) ?? [];
-              const amount = bucketRows.reduce((sum, r) => sum + r.balanceMinor, 0);
-              return (
-                <div
-                  key={bucket}
-                  className={cn(
-                    "shrink-0 w-32 rounded-lg border p-3",
-                    bucket === "61plus" ? "border-warning" : "border-border",
-                  )}
-                >
-                  <p className="text-caption text-muted-foreground">{t(BUCKET_KEY[bucket])}</p>
-                  <p className="text-attention font-semibold tabular-nums text-body mt-0.5">
-                    {formatKes(amount)}
-                  </p>
-                  <p className="text-caption text-muted-foreground">
-                    {t("arrears.bucketTenants", { count: bucketRows.length })}
-                  </p>
-                </div>
-              );
-            })}
+            {(() => {
+              const deepest = [...BUCKET_ORDER].reverse().find((b) => (byBucket.get(b) ?? []).length > 0);
+              return BUCKET_ORDER.map((bucket) => {
+                const bucketRows = byBucket.get(bucket) ?? [];
+                const amount = bucketRows.reduce((sum, r) => sum + r.balanceMinor, 0);
+                const urgent = bucket === deepest;
+                return (
+                  <Card
+                    key={bucket}
+                    className={cn(
+                      "shrink-0 w-32 sm:w-auto rounded-xl p-3",
+                      urgent && "bg-warning/10 dark:bg-warning/10",
+                    )}
+                  >
+                    <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                      {t(BUCKET_KEY[bucket])}
+                    </p>
+                    <p
+                      className={cn(
+                        "font-semibold tabular-nums text-body mt-1",
+                        urgent ? "text-attention" : "text-foreground",
+                      )}
+                    >
+                      {formatKes(amount)}
+                    </p>
+                    <p className="text-caption text-muted-foreground">
+                      {t("arrears.bucketTenants", { count: bucketRows.length })}
+                    </p>
+                  </Card>
+                );
+              });
+            })()}
           </div>
 
           {/* Mobile: grouped cards · ≥sm: table */}
@@ -152,7 +168,7 @@ export function ArrearsScreen({
                   <h2 className="text-label font-medium text-muted-foreground uppercase tracking-wide mb-2">
                     {t(BUCKET_KEY[bucket])} ({bucketRows.length})
                   </h2>
-                  <Card className="divide-y">
+                  <Card className="divide-y gap-0 py-0">
                     {bucketRows.map((row) => {
                       const score = scoreByTenancy.get(row.tenancyId);
                       return (

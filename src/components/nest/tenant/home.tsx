@@ -197,7 +197,7 @@ export function TenantHome() {
             {data.receipts.length === 0 ? (
               <EmptyState icon={Receipt} title={t("empty.receipts")} />
             ) : (
-              <Card className="divide-y">
+              <Card className="divide-y gap-0 py-0">
                 {data.receipts.slice(0, 3).map((receipt) => (
                   <button
                     key={receipt.receiptNo}
@@ -232,7 +232,7 @@ export function TenantHome() {
                 className="mb-3"
               />
               {ticketsPending ? (
-                <Card className="divide-y" aria-busy>
+                <Card className="divide-y gap-0 py-0" aria-busy>
                   <RowSkeleton />
                   <RowSkeleton />
                 </Card>
@@ -245,7 +245,7 @@ export function TenantHome() {
                   onAction={() => setReportIssueOpen(true)}
                 />
               ) : (
-                <Card className="divide-y">
+                <Card className="divide-y gap-0 py-0">
                   {(tickets ?? []).slice(0, 2).map((ticket) => (
                     <TicketRow key={ticket.id} ticket={ticket} />
                   ))}
@@ -264,7 +264,7 @@ export function TenantHome() {
             {data.recentVisitors.length === 0 ? (
               <EmptyState icon={Users} title={t("tenant.visitors.empty")} />
             ) : (
-              <Card className="divide-y">
+              <Card className="divide-y gap-0 py-0">
                 {data.recentVisitors.slice(0, 3).map((visitor) => (
                   <div key={visitor.id} className="p-4 min-h-14 flex items-center gap-3">
                     <AvatarInitials fullName={visitor.visitorName} size="sm" />
