@@ -146,6 +146,8 @@ export async function getLandlordAnalytics(profile: Profile): Promise<LandlordAn
     label: m.label,
     billedMinor: 0,
     collectedMinor: 0,
+    expensesMinor: 0,
+    netMinor: 0,
   }))
 
   for (const charge of charges) {
@@ -160,6 +162,23 @@ export async function getLandlordAnalytics(profile: Profile): Promise<LandlordAn
     const index = monthIndex.get(monthKeyOf(receivedAt))
     if (index !== undefined) monthly[index].collectedMinor += allocation.amountMinor
   }
+
+  // --- Phase 12: money-out — expenses bucket by occurredAt month, signed
+  //        (a reversal is −amount and nets its month back out). P&L is
+  //        collected − expenses per month; billed is NOT netted (a charge
+  //        is a claim, not cash). -------------------------------------------
+  const propertyIds = properties.map((p) => p.id)
+  const expenseRows = propertyIds.length
+    ? await db.expense.findMany({
+        where: { propertyId: { in: propertyIds }, occurredAt: { gte: months[0]!.start } },
+        select: { amountMinor: true, occurredAt: true },
+      })
+    : []
+  for (const expense of expenseRows) {
+    const index = monthIndex.get(monthKeyOf(expense.occurredAt))
+    if (index !== undefined) monthly[index].expensesMinor += expense.amountMinor
+  }
+  for (const m of monthly) m.netMinor = m.collectedMinor - m.expensesMinor
 
   // --- 2) Arrears aging: balance + oldest unpaid charge per tenancy -------
   // Balance = Σ charges − Σ matched COMPLETED payments (overview.ts math);

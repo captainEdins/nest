@@ -27,6 +27,8 @@ import type {
   DepositDto,
   DepositMovementKind,
   DepositStatus,
+  ExpenseCategory,
+  ExpenseDto,
   GuardShiftDto,
   IncidentCategory,
   IncidentReportDto,
@@ -599,5 +601,35 @@ export function toApplicationDto(row: ApplicationWithRelations): ListingApplicat
       note: ev.note,
       createdAt: ev.createdAt.toISOString(),
     })),
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 12 — money-out (expenses)
+// ---------------------------------------------------------------------------
+
+/** Everything ExpenseDto needs (property name, recorder, reversal link). */
+export const expenseInclude = {
+  property: { select: { id: true, name: true } },
+  recordedBy: { select: { id: true, fullName: true } },
+  /** Present on original rows after a reversal exists (null otherwise). */
+  reversal: { select: { id: true } },
+} satisfies Prisma.ExpenseInclude
+
+export type ExpenseWithRelations = Prisma.ExpenseGetPayload<{ include: typeof expenseInclude }>
+
+export function toExpenseDto(row: ExpenseWithRelations): ExpenseDto {
+  return {
+    id: row.id,
+    propertyId: row.propertyId,
+    propertyName: row.property.name,
+    category: row.category as ExpenseCategory,
+    amountMinor: row.amountMinor,
+    occurredAt: row.occurredAt.toISOString(),
+    note: row.note,
+    recordedByName: row.recordedBy.fullName,
+    reversalOfId: row.reversalOfId,
+    reversedById: row.reversal ? row.reversal.id : null,
+    createdAt: row.createdAt.toISOString(),
   }
 }

@@ -200,6 +200,12 @@ export function LandlordKraScreen() {
                   <CalendarClock className="size-4 shrink-0" aria-hidden />
                   <span>{t("kra.filingHint")}</span>
                 </p>
+                {/* Phase 12: money-out records exist for DEDUCTION bookkeeping;
+                    the MRI math itself stays on gross (the regime's rule). */}
+                <p className="text-caption text-muted-foreground flex items-start gap-2 pt-1">
+                  <FileSpreadsheet className="size-4 shrink-0 mt-px" aria-hidden />
+                  <span>{t("kra.expensesNote")}</span>
+                </p>
               </CardContent>
             </Card>
           </section>

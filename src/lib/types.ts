@@ -767,6 +767,10 @@ export interface AnalyticsMonthDto {
   label: string
   billedMinor: number
   collectedMinor: number
+  /** Phase 12: money-out landed in the month (reversals net out by sign). */
+  expensesMinor: number
+  /** Collected − expenses: what the plot actually made that month. */
+  netMinor: number
 }
 
 /** One arrears-aging bucket: tenant count + outstanding total. */
@@ -803,6 +807,76 @@ export interface LandlordAnalyticsDto {
   occupancy: OccupancyRowDto[]
   /** ISO timestamp of the server computation. */
   generatedAt: string
+}
+
+// ---------------------------------------------------------------------------
+// Money-out: the expense ledger (Phase 12, issue #82)
+// ---------------------------------------------------------------------------
+
+/** Kenyan plot money-out categories (matrix §9 — the caretaker's world). */
+export const EXPENSE_CATEGORIES = [
+  "REPAIRS",
+  "WATER",
+  "GARBAGE",
+  "SECURITY",
+  "SALARY",
+  "UTILITIES",
+  "OTHER",
+] as const
+export type ExpenseCategory = (typeof EXPENSE_CATEGORIES)[number]
+
+/**
+ * One money-out row. Append-only: a correction is a NEW row with negative
+ * amountMinor and reversalOfId set (the deposit-movement trust pattern);
+ * amountMinor on an existing row is never mutated.
+ */
+export interface ExpenseDto {
+  id: string
+  propertyId: string
+  propertyName: string
+  category: ExpenseCategory
+  /** Integer KES minor units. Negative ⇒ this row REVERSES `reversalOfId`. */
+  amountMinor: number
+  /** The calendar day the spend happened (ISO date). */
+  occurredAt: string
+  note: string | null
+  /** Who keyed the row in (display name). */
+  recordedByName: string
+  /** Set on reversing rows only — the original expense id. */
+  reversalOfId: string | null
+  /** Set on original rows that have been reversed — the reversing row id. */
+  reversedById: string | null
+  createdAt: string
+}
+
+export interface CreateExpenseRequest {
+  propertyId: string
+  category: ExpenseCategory
+  /** Positive integer minor units (reversals are never created via this API). */
+  amountMinor: number
+  /** ISO date — the calendar day the spend happened. */
+  occurredAt: string
+  /** Optional context (≤ 140 chars). */
+  note?: string
+}
+
+/** POST /api/expenses/[id]/reverse — note REQUIRED: a correction says why. */
+export interface ReverseExpenseRequest {
+  note: string
+}
+
+/** Category totals for the requested month (zero categories omitted). */
+export interface ExpenseMonthTotalsDto {
+  monthKey: string
+  totalMinor: number
+  byCategory: Partial<Record<ExpenseCategory, number>>
+}
+
+/** GET /api/expenses?month=YYYY-MM — role-scoped money-out list + totals. */
+export interface ExpensesResponseDto {
+  monthKey: string
+  expenses: ExpenseDto[]
+  totals: ExpenseMonthTotalsDto
 }
 
 // ---------------------------------------------------------------------------

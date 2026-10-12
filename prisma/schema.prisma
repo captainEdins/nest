@@ -72,6 +72,8 @@ model Profile {
   applicationsHandled  ListingApplication[] @relation("ApplicationsHandled")
   applicationsDecided  ListingApplication[] @relation("ApplicationsDecided")
   applicationEvents    ListingApplicationEvent[] @relation("ApplicationEvents")
+  // Money-out (Phase 12)
+  expensesRecorded Expense[] @relation("ExpenseRecorder")
 
   @@index([role])
 }
@@ -102,6 +104,8 @@ model Property {
   // Agent module (Phase 4)
   listings          Listing[]
   listingApplications ListingApplication[] @relation("ListingApplications")
+  // Money-out (Phase 12)
+  expenses     Expense[]
 
   @@index([landlordId])
   @@index([caretakerId])
@@ -473,6 +477,39 @@ model ListingApplicationEvent {
   actor       Profile            @relation("ApplicationEvents", fields: [actorId], references: [id])
 
   @@index([applicationId, createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// Money-out (Phase 12) — the expense ledger
+// ---------------------------------------------------------------------------
+
+/// Money-out record. Append-only like Payment: amounts are NEVER mutated;
+/// a correction is a new reversing row (negative amount, reversalOfId set).
+/// The P&L is simply charges-matched payments − these rows.
+model Expense {
+  id           String    @id @default(cuid())
+  propertyId   String
+  /// REPAIRS | WATER | GARBAGE | SECURITY | SALARY | UTILITIES | OTHER
+  category     String
+  /// Positive for spend; NEGATIVE only on a reversing row (reversalOfId set).
+  amountMinor  Int
+  /// The calendar day the spend happened (not when it was keyed in).
+  occurredAt   DateTime
+  note         String?
+  /// Who keyed it in (caretaker records on-site; landlord sees everything).
+  recordedById String
+  /// Set on the reversing row only — points at the original Expense id.
+  /// @unique: an expense can be reversed at most once (replay ⇒ 409).
+  reversalOfId String?   @unique
+  createdAt    DateTime  @default(now())
+
+  property   Property  @relation(fields: [propertyId], references: [id])
+  recordedBy Profile   @relation("ExpenseRecorder", fields: [recordedById], references: [id])
+  original   Expense?  @relation("ExpenseReversal", fields: [reversalOfId], references: [id], onDelete: Restrict)
+  reversal   Expense?  @relation("ExpenseReversal")
+
+  @@index([propertyId, occurredAt])
+  @@index([category, occurredAt])
 }
 
 // ---------------------------------------------------------------------------

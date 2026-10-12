@@ -284,3 +284,60 @@ export function fetchMpesaStatus(checkoutRequestId: string): Promise<MpesaStatus
     `/api/mpesa/status?checkoutRequestId=${encodeURIComponent(checkoutRequestId)}`,
   );
 }
+
+/**
+ * Phase 12 (issue #82): the money-out ledger for a month — role-scoped rows
+ * + category totals. Month is part of the key (switching months refetches).
+ * Money-in mutations don't thrash this cache; expense mutations invalidate.
+ */
+export function useExpenses(monthKey: string): UseQueryResult<import("@/lib/types").ExpensesResponseDto> {
+  return useQuery({
+    queryKey: ["expenses", monthKey],
+    queryFn: () =>
+      apiGet<import("@/lib/types").ExpensesResponseDto>(
+        `/api/expenses?month=${encodeURIComponent(monthKey)}`,
+      ),
+    staleTime: 15_000,
+    refetchOnWindowFocus: true,
+  });
+}
+
+/** Phase 12: record an expense (LANDLORD + CARETAKER). 44px-friendly sheet. */
+export function useCreateExpense(): UseMutationResult<
+  import("@/lib/types").ExpenseDto,
+  Error,
+  import("@/lib/types").CreateExpenseRequest
+> {
+  const queryClient = getQueryClient();
+  return useMutation({
+    mutationFn: (vars: import("@/lib/types").CreateExpenseRequest) =>
+      apiPost<import("@/lib/types").ExpenseDto>("/api/expenses", vars),
+    onSuccess: () => {
+      // The list + totals of the spent month…
+      void queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      // …the landlord analytics P&L trend…
+      void queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      // …and the landlord's bell (caretaker-keyed spend notifies the owner).
+      void queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    },
+  });
+}
+
+/** Phase 12: reverse an expense (LANDLORD only) — the cancelling entry. */
+export function useReverseExpense(): UseMutationResult<
+  import("@/lib/types").ExpenseDto,
+  Error,
+  { id: string; note: string }
+> {
+  const queryClient = getQueryClient();
+  return useMutation({
+    mutationFn: ({ id, note }: { id: string; note: string }) =>
+      apiPost<import("@/lib/types").ExpenseDto>(`/api/expenses/${encodeURIComponent(id)}/reverse`, {
+        note,
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["expenses"] });
+      void queryClient.invalidateQueries({ queryKey: ["analytics"] });
+    },
+  });
+}

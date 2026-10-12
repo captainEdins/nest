@@ -227,6 +227,26 @@ export function isMoneyRole(profile: Profile): boolean {
 // ---------------------------------------------------------------------------
 
 /**
+ * Prisma `where` for Expense rows visible to `profile` (Phase 12, matrix §4):
+ * - LANDLORD: every money-out row on owned properties (the P&L is theirs),
+ * - CARETAKER: rows on assigned properties (they key in spend on-site),
+ * - AGENT: rows on managed properties (read-only context for owners),
+ * - TENANT/GUARD: nothing (money-out is staff business — deny by default).
+ */
+export function expenseScopeWhere(profile: Profile): Prisma.ExpenseWhereInput {
+  switch (profile.role) {
+    case "LANDLORD":
+      return { property: { landlordId: profile.id } }
+    case "CARETAKER":
+      return { property: { caretakerId: profile.id } }
+    case "AGENT":
+      return { property: { agentId: profile.id } }
+    default:
+      return { id: "__never__" }
+  }
+}
+
+/**
  * Prisma `where` for MaintenanceTicket rows visible to `profile` (Phase 2 matrix):
  * - TENANT: tickets attached to their own tenancies (any status — history stays visible),
  * - LANDLORD/CARETAKER/AGENT: tickets on their property chain (AGENT read-only),
