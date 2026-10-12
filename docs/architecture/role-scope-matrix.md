@@ -241,7 +241,12 @@ unmatched queue, deposits/deposit movements (P2), and every dashboard
    D-013); **reversal is LANDLORD-only** — correcting money-out is an
    owner decision, like deposit settlement. Every expense write lands in
    `AuditLog` (`EXPENSE_RECORDED` / `EXPENSE_REVERSED`).
-6. **Phase 13 (bulk reminders)**: `POST /api/notifications/remind-all` is
+6. **Phase 14 (the payments ledger read)**: `GET /api/payments` is a staff
+   ledger (LANDLORD/CARETAKER/AGENT — each via their existing scope + visible
+   unmatched slice; take ≤ 60; `?propertyId=` AND-combined so a foreign
+   property id simply matches nothing). **TENANT: 403 by role** — their money
+   surface is receipts + statement (§5.2), not the staff ledger. GUARD: 403.
+7. **Phase 13 (bulk reminders)**: `POST /api/notifications/remind-all` is
    **LANDLORD + CARETAKER only** (a bulk blast is a bigger hammer than the
    per-tenant reminder, which also allows agents — agent sends risk
    landlord-brand spam). TENANT/GUARD/AGENT get **403 by role**. No money is

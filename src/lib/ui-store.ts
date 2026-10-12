@@ -60,6 +60,9 @@ interface UIState {
   /** Payments ledger filter (S-17a); the unmatched alert card presets it. */
   paymentsFilter: PaymentsFilter;
   setPaymentsFilter: (filter: PaymentsFilter) => void;
+  /** Phase 14 — property filter for the multi-plot ledger (null = all plots). */
+  paymentsPropertyFilter: string | null;
+  setPaymentsPropertyFilter: (propertyId: string | null) => void;
   /** Mobile "More" drawer (S-15). */
   moreOpen: boolean;
   setMoreOpen: (open: boolean) => void;
@@ -181,6 +184,8 @@ export const useUIStore = create<UIState>((set) => ({
     set({ pushedScreen: null, depositTenancyId: null, listingViewId: null, applicationViewId: null }),
   paymentsFilter: "ALL",
   setPaymentsFilter: (paymentsFilter) => set({ paymentsFilter }),
+  paymentsPropertyFilter: null,
+  setPaymentsPropertyFilter: (paymentsPropertyFilter) => set({ paymentsPropertyFilter }),
   moreOpen: false,
   setMoreOpen: (moreOpen) => set({ moreOpen }),
   searchOpen: false,

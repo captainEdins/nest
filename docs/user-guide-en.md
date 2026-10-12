@@ -7,6 +7,12 @@ simulated (sandbox), and the app tells you so.
 Demo names used in this guide: Baraka Court (the property), Amina Barasa
 (landlord), John Mwangi (caretaker), Grace Wanjiku (tenant).
 
+The demo now runs **two plots**: Baraka Court (Kahawa Wendani) and Riverside
+Flats (Ruaka) — both owned by Amina, each with its own caretaker. John Mwangi
+runs Baraka Court; Kevin Wakaba (+254 711 000 009) runs Riverside Flats.
+Each caretaker sees only his own plot's money — sign in as both to see the
+scope isolation. As Amina you see the whole portfolio at once.
+
 ## Getting started
 
 1. Open NEST. The sign-in screen shows a card for each role.
@@ -212,3 +218,7 @@ the cards).
 | +254711000005 | Sarah Achieng | Tenant (partial payment) |
 | +254711000006 | Peter Njoroge | Guard (Phase 3 preview) |
 | +254711000007 | Wanjiku Kamau | Agent (Phase 4 preview) |
+| +254711000008 | Kevin Mutua | Tenant (moving out) |
+| +254711000009 | Kevin Wakaba | Caretaker — Riverside Flats (Phase 14) |
+| +254711000010 | Fatuma Hassan | Tenant — Riverside Flats, always paid up |
+| +254711000011 | Brian Kilonzo | Tenant — Riverside Flats (partial cash, arrears) |

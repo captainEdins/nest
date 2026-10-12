@@ -211,6 +211,22 @@ export function useUnmatched(enabled = true): UseQueryResult<PaymentDto[]> {
   });
 }
 
+/**
+ * Phase 14 — the payments LEDGER (Payments/Collections tab): newest first,
+ * take ≤ 60, optional property filter for multi-plot landlords. The
+ * propertyId rides the query key so switching plots refetches.
+ */
+export function usePaymentsLedger(propertyId?: string): UseQueryResult<PaymentDto[]> {
+  return useQuery({
+    queryKey: ["payments-ledger", propertyId ?? "all"],
+    queryFn: () =>
+      apiGet<PaymentDto[]>(
+        propertyId ? `/api/payments?propertyId=${encodeURIComponent(propertyId)}` : "/api/payments",
+      ),
+    staleTime: 30_000,
+  });
+}
+
 /** Scoped receipts (S-10) — lazy, used by the receipt-detail modal. */
 export function useReceipts(enabled = true): UseQueryResult<ReceiptDto[]> {
   return useQuery({

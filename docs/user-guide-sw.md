@@ -7,6 +7,12 @@ ni ya mfumo wa majaribio (sandbox), na NEST inakuambia hivyo wazi.
 Majina ya majaribio yanayotumika kwenye mwongozo huu: Baraka Court (mali),
 Amina Barasa (mmiliki), John Mwangi (msimamizi), Grace Wanjiku (mpangaji).
 
+Jaribio sasa lina **mali mbili**: Baraka Court (Kahawa Wendani) na Riverside
+Flats (Ruaka) — zote mbili za Amina, kila moja na msimamizi wake. John Mwangi
+anaendesha Baraka Court; Kevin Wakaba (+254 711 000 009) anaendesha Riverside
+Flats. Kila msimamizi anaona pesa za mali yake tu — ingia kama wote wawili
+ukuone tofauti. Kama Amina, unaona mali zote mbili pamoja.
+
 ## Kuanza
 
 1. Fungua NEST. Skrini ya kuingia inaonyesha kadi ya kila nafasi.
@@ -219,3 +225,7 @@ kuingia (au kwa kugusa kadi).
 | +254711000005 | Sarah Achieng | Mpangaji (amelipa kwa sehemu) |
 | +254711000006 | Peter Njoroge | Mlinzi (muono wa Awamu ya 3) |
 | +254711000007 | Wanjiku Kamau | Wakala (muono wa Awamu ya 4) |
+| +254711000008 | Kevin Mutua | Mpangaji (anahama) |
+| +254711000009 | Kevin Wakaba | Msimamizi — Riverside Flats (Awamu ya 14) |
+| +254711000010 | Fatuma Hassan | Mpangaji — Riverside Flats, analipa kila mwezi |
+| +254711000011 | Brian Kilonzo | Mpangaji — Riverside Flats (amelipa kwa sehemu, madeni) |
