@@ -15,6 +15,7 @@ import { formatKes } from "@/lib/money";
 import { useRentScoreList } from "@/hooks/use-overview";
 import { daysSincePeriodDue } from "./format";
 import { ArrearsRow, SendReminderButton } from "./arrears-row";
+import { RemindAllButton } from "./remind-all";
 import { RentScoreChip } from "./rent-score-chip";
 import { EmptyState } from "./empty-state";
 import { ErrorState } from "./error-state";
@@ -90,9 +91,13 @@ export function ArrearsScreen({
         <h1 className="text-h2 font-semibold">{t("landlord.arrears")}</h1>
         <p className="text-attention font-semibold tabular-nums">{formatKes(totalMinor)}</p>
       </div>
-      <p className="text-caption text-muted-foreground mb-4">
-        {t("arrears.tenantsBehind", { count: tenantCount })}
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <p className="text-caption text-muted-foreground">
+          {t("arrears.tenantsBehind", { count: tenantCount })}
+        </p>
+        {/* Phase 13 — one verified action for everyone in arrears. */}
+        {!isPending && !error ? <RemindAllButton rows={sorted} /> : null}
+      </div>
 
       {isPending ? (
         <div className="space-y-4" aria-busy>

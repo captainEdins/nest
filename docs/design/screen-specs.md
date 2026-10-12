@@ -497,7 +497,7 @@ STEP 3 — STATUS (role="status" aria-live="polite")
 
 **Purpose**: Who owes, how long they've owed, and a one-tap nudge.
 **Data**: `ArrearsRowDto[]`. **(hint)** `GET /api/arrears`. Buckets derived client-side from `oldestUnpaidPeriod` (days overdue vs today).
-**Primary action**: Send reminder (per row).
+**Primary actions**: Send reminder (per row) · **Remind all (n)** — Phase 13 bulk action in the header row (next to the tenants-behind caption; hidden while loading/erroring). Confirmation-first AlertDialog: recipient count, channels (SMS + in-app), and the EXACT message preview for the largest balance; confirm keeps the dialog open while the request runs. Post-success button → "Sent" disabled (soft 60s); a 409 from the server's 30-minute replay window → info toast `arrears.remindAllCooldown`.
 
 ```
 375px ─────────────────────────────────────────
@@ -717,6 +717,25 @@ Monty's top-bar global search, translated onto the NEST shell.
 - **Deep-links** (routing hints, never record views): TENANT → arrears tab (landlord) / pushed arrears (caretaker) · RECEIPT → receipt modal + payments/receipts tab · TICKET → ticket detail pushed screen + repairs tab · LISTING/APPLICANT → detail pushed screen + listings tab (segment preset) · VISITOR → visitors tab · INCIDENT → incidents tab. **Order matters**: `setTab` clears `pushedScreen` — tab first, detail second.
 - **Footnote row**: sandbox notice · `↑↓ · Enter · Esc` hint (≥sm only).
 - **i18n**: `search.*` (19 keys, EN+SW). Copy: `search.trigger`, `search.placeholder`, `search.hint`, `search.noResults`, `search.group.*`.
+
+---
+
+## S-19 · Tenant Statement + Print Sheet (Phase 6-a / Phase 13 — D-026)
+
+The tenant's portable payment record: month-by-month brought-forward → billed → settled → carried-forward, plus the document version that prints.
+
+### S-19a · Statement timeline (screen)
+- **Data**: `StatementDto` (one GET, same payload the print sheet uses). **(hint)** `GET /api/statements`.
+- Head: `h2` title + `{unit} · {property}` caption + accountRef pill + `statement.generated`. Actions: Give notice (Phase 11, ACTIVE only) · **Print / save PDF** (Phase 13) — both outline `h-11`.
+- Months newest-first down a ruled timeline (`ol`, hairline line behind `size-6` nodes): settled = success dot · outstanding = attention ring (shape + colour, never colour-only). Card per month: month `text-body-lg` + closing balance (amber/success), brought-forward caption, billed lines with per-line status badges, payments that landed (receipt no. semibold + source badge + date + allocated slice caption + green amount), carried-forward footer row.
+- Summary strip: 3 cells — `statement.summaryBilled` · `summarySettled` · `summaryBalance` (amber when > 0, success otherwise).
+- **States**: loading hero + list skeletons; empty `statement.emptyTitle`; error Alert + retry; notice banner (Phase 11) when on NOTICE.
+
+### S-19b · Statement print sheet (print media ONLY)
+- Renders `hidden print:block`; the interactive timeline wraps `print:hidden`; app chrome (header/sidebar/dock/footer/offline banner) is `print:hidden` at the component level; Next.js dev overlays suppressed in globals.css `@media print` (`@page margin 12mm`, white body, `break-inside-avoid` rows).
+- Layout (one page): deep-green letterhead rule — NEST logo + wordmark + property·unit | right-aligned uppercase `statement.printTitle` + generated date + accountRef (mono). Issued-to block (name, phone) + period covered. Totals strip (3 bordered cells, closing balance emphasized). Month table — Month (+ billed-line kinds) · Billed · Settled · Receipts (receipt no. + allocated slice, 9px) · Closing balance (amber/success) — `tabular-nums` throughout. Signature lines: Tenant + For the landlord (date blanks). Footnote: traceability sentence + `statement.printPaybill`.
+- **Trigger**: `window.print()` from the Print button — the browser's print/share-to-PDF handles output (works offline on low-end Android).
+- **i18n**: `statement.print*` (17 keys, EN+SW). Copy: `statement.print`, `statement.printTitle`, `statement.printIssuedTo`, … `statement.printPaybill`.
 
 ---
 

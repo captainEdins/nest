@@ -37,7 +37,7 @@ export function OfflineBanner() {
   return (
     <div
       role="status"
-      className="z-30 bg-warning/15 dark:bg-warning/10 border-y border-warning/40 text-attention"
+      className="z-30 bg-warning/15 dark:bg-warning/10 border-y border-warning/40 text-attention print:hidden"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-10 flex items-center gap-2">
         <WifiOff className="size-4 shrink-0" aria-hidden />

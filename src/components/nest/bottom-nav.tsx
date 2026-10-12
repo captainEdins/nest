@@ -27,7 +27,7 @@ export function BottomNav({ tabs }: { tabs: TabDef[] }) {
   return (
     <nav
       aria-label={t("nav.home")}
-      className="fixed bottom-0 inset-x-0 z-40 lg:hidden px-3 pb-[calc(env(safe-area-inset-bottom)+0.625rem)] pt-1 pointer-events-none"
+      className="fixed bottom-0 inset-x-0 z-40 lg:hidden px-3 pb-[calc(env(safe-area-inset-bottom)+0.625rem)] pt-1 pointer-events-none print:hidden"
     >
       <div className="mx-auto max-w-lg flex h-16 items-stretch rounded-2xl bg-card border nest-float-shadow pointer-events-auto overflow-x-auto nest-scrollbar">
         {tabs.map((def) => {

@@ -499,6 +499,16 @@ export const sw: Record<TranslationKey, string> = {
   "cash.receiptFollows": "Risiti itatumwa ukirudi mtandaoni",
   "arrears.monthsBehindShort": "Miezi nyuma",
   "arrears.bucketTenants": "Wapangaji {count}",
+  // Phase 13 — bulk reminders (issue #84).
+  "arrears.remindAll": "Kumbusha wote",
+  "arrears.remindAllCount": "Kumbusha wote ({count})",
+  "arrears.remindAllTitle": "Tuma kumbusho kwa wote wanaodaiwa?",
+  "arrears.remindAllDesc":
+    "{count} wenye salio watapokea SMS na taarifa ndani ya app, kila mmoja na kiasi chake halisi na namba yake ya akaunti.",
+  "arrears.remindAllPreview": "Ujumbe unaosomeka hivi (mfano kwa {name})",
+  "arrears.remindAllConfirm": "Tuma kwa wapangaji {count}",
+  "arrears.remindAllSent": "Kumbusho zimetumwa kwa wapangaji {count}",
+  "arrears.remindAllCooldown": "Kumbusho kwa wote zilitumwa ndani ya dakika 30 zilizopita",
 
   // ----- Repairs (Phase 2) ---------------------------------------------------------
   "nav.repairs": "Matengenezo",
@@ -781,6 +791,25 @@ export const sw: Record<TranslationKey, string> = {
   "statement.emptyTitle": "Hakuna taarifa bado",
   "statement.emptyHint": "Mwezi wako wa kwanza wa kodi utaonekana hapa.",
   "statement.viewStatement": "Angalia taarifa",
+  // Phase 13 — print sheet (issue #84 part B).
+  "statement.print": "Chapisha / hifadhi PDF",
+  "statement.printTitle": "Taarifa ya akaunti",
+  "statement.printIssuedTo": "Imetolewa kwa",
+  "statement.printPeriod": "Kipindi kilichofunikwa",
+  "statement.printGenerated": "Imechapishwa",
+  "statement.printAccountRef": "Namba ya akaunti",
+  "statement.printMonth": "Mwezi",
+  "statement.printBilled": "Imetolewa",
+  "statement.printSettled": "Imelipwa",
+  "statement.printReceipts": "Risiti",
+  "statement.printBalance": "Salio la mwisho",
+  "statement.printBrought": "Salio lililotangulia",
+  "statement.printSignTenant": "Mpangaji",
+  "statement.printSignManager": "Kwa niaba ya mwenye nyumba",
+  "statement.printSignDate": "Tarehe",
+  "statement.printFootnote":
+    "Kila kiasi kwenye taarifa hii kinatokana na kadi ya deni au malipo yaliyothibitishwa kwenye NEST.",
+  "statement.printPaybill": "Lipa kwa M-Pesa · namba ya akaunti {ref}",
 
   // ----- Rent Score (Phase 6-b, issue #66) -----------------------------------
   "score.title": "Alama ya malipo",

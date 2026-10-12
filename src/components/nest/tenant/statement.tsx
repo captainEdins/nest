@@ -11,7 +11,7 @@
  * never colour-only (design-system §9.2).
  */
 
-import { CheckCircle2, DoorOpen, ScrollText } from "lucide-react";
+import { CheckCircle2, DoorOpen, Printer, ScrollText } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import type { StatementDto, StatementMonthDto } from "@/lib/types";
 import type { TranslationKey } from "@/lib/i18n/en";
@@ -19,6 +19,7 @@ import { formatKes } from "@/lib/money";
 import { useStatement, useTenantOverview } from "@/hooks/use-overview";
 import { useUIStore } from "@/lib/ui-store";
 import { formatDate, formatMonthKey } from "@/components/nest/shared/format";
+import { StatementPrintSheet } from "@/components/nest/tenant/statement-print";
 import { NoticeBanner } from "@/components/nest/shared/give-notice-sheet";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
@@ -88,7 +89,14 @@ export function TenantStatementScreen() {
   const closing = data.closingBalanceMinor;
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 print:space-y-0">
+      {/* Phase 13 — the print sheet is the ONLY thing that prints; the
+       *  interactive timeline below is screen-only. */}
+      <div className="hidden print:block">
+        <StatementPrintSheet data={data} />
+      </div>
+
+      <div className="space-y-4 sm:space-y-6 print:hidden">
       {/* Phase 11 — the exit banner: the notice made visible where the lease
        *  story is told. */}
       {onNotice && overview ? (
@@ -111,17 +119,30 @@ export function TenantStatementScreen() {
           <span className="rounded-full border px-2 py-0.5">{data.accountRef}</span>
           {t("statement.generated", { date: formatDate(data.generatedAt) })}
         </p>
-        {tenancyActive ? (
+        <div className="flex flex-wrap gap-2 mt-3">
+          {tenancyActive ? (
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-11"
+              onClick={() => setGiveNoticeOpen(true)}
+            >
+              <DoorOpen className="size-4" aria-hidden />
+              {t("notice.giveNotice")}
+            </Button>
+          ) : null}
+          {/* Phase 13 — the portable document: print or save as PDF via the
+           *  browser (low-end Android → share-to-PDF works offline). */}
           <Button
             variant="outline"
             size="sm"
-            className="h-11 mt-3"
-            onClick={() => setGiveNoticeOpen(true)}
+            className="h-11"
+            onClick={() => window.print()}
           >
-            <DoorOpen className="size-4" aria-hidden />
-            {t("notice.giveNotice")}
+            <Printer className="size-4" aria-hidden />
+            {t("statement.print")}
           </Button>
-        ) : null}
+        </div>
       </div>
 
       {/* Summary strip */}
@@ -277,6 +298,7 @@ export function TenantStatementScreen() {
           </ol>
         )}
       </section>
+      </div>
     </div>
   );
 }
