@@ -69,7 +69,7 @@ export function TenantTickets() {
               onAction={filter === "ALL" ? () => setReportIssueOpen(true) : undefined}
             />
           ) : (
-            <Card className="divide-y">
+            <Card className="divide-y gap-0 py-0">
               {filtered.map((ticket) => (
                 <TicketRow key={ticket.id} ticket={ticket} />
               ))}

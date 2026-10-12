@@ -156,7 +156,7 @@ export function LoginScreen() {
             {t("app.tagline")}
           </h1>
           <p className="text-body-lg sm:text-body text-muted-foreground">{t("login.heading")}</p>
-          <p className="text-caption text-muted-foreground max-w-xs">{t("login.demoNote")}</p>
+          <p className="text-caption text-foreground/70 max-w-xs">{t("login.demoNote")}</p>
         </div>
 
         {/* Demo identity cards — D-029: staggered entrance (40ms steps). */}
@@ -167,7 +167,9 @@ export function LoginScreen() {
             const isBusy = busyPhone === profile.phone;
             const roleLabel = t(ROLE_KEY[profile.role]);
             return (
-              <Card key={profile.id} className="transition-transform duration-200 hover:-translate-y-0.5">
+              // Phase 18 (D-031): tactile press feedback on the identity
+              // cards — hover lift (D-029) + active settle.
+              <Card key={profile.id} className="transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]">
                 <CardContent className="p-0">
                   <button
                     type="button"

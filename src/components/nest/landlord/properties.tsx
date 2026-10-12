@@ -71,7 +71,7 @@ export function PropertiesScreen() {
           ) : unitsQuery.isPending ? (
             <ListSkeleton rows={5} />
           ) : (
-            <Card className="divide-y">
+            <Card className="divide-y gap-0 py-0">
               {units.map((unit) => (
                 <UnitRow
                   key={unit.id}

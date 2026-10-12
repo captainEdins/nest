@@ -250,9 +250,9 @@ step 2 (confirm):
 - Quick actions: 2×2 `gap-4` grid; Record cash solid primary (`caretaker.collectCash`, icon `Banknote`); Request M-Pesa outline (`caretaker.requestMpesa`, `Smartphone`) → S-07; Units → S-17c; Arrears → S-11. Each cell `min-h-20`.
 - Unit row: `label` semibold + tenant name or "—" · status badge (§9.2) · balance `text-attention` only when >0. Tap occupied row → S-06 picker pre-filtered to that tenancy (still 2 taps to confirm).
 - Recent collections: `recentPayments` (source CASH/MPESA badge, `recordedByName` caption).
-- **Desktop lg**: hero + quick actions in a 2-col band (hero spans 8, actions 4); units table ≥sm; recent collections right rail.
+- **Phase 18 (D-031) — the v2 hero**: the caretaker home mirrors the landlord's asymmetric split (§S-03). ≥lg: LEFT briefing panel (cream `bg-primary/5` + `nest-hero-soft`: greeting `text-h2 lg:text-display`, property · month caption, `caretaker.heroContext` line, arrears alert row amber-tinted → S-11, TODAY pill `bg-card shadow-sm` with `caretaker.todaysCollections` + amount) / RIGHT: 3 action tiles (`grid-cols-3` — Record cash solid primary, Request M-Pesa, Record expense; icon-in-tinted-container, §9.1) above the KPI quad (`grid-cols-2`: month collected [highlight + MoM delta + progress + expected sub] → collections tab, arrears [amber] → S-11, open repairs [amber] → repairs tab, unmatched [amber-if-any] → collections tab w/ UNMATCHED filter). Mobile: briefing first, tiles + quad follow (actions stay within the first fold — Phase 9 rule). Units + recent collections side-by-side ≥xl.
 - **States**: loading — hero skeleton `h-36`, unit row skeletons ×5; empty units → `empty.units` **[gap]**; empty collections → `empty.payments`; error per section; offline — quick actions stay enabled (cash queues offline, S-06).
-- **Copy**: `common.greeting`, `common.today`, `caretaker.*` (+ **[gap]** `caretaker.expectedToday`, `caretaker.collectedToday`, `caretaker.recentCollections`), `status.occupied`, `status.vacant`, `nav.units`.
+- **Copy**: `common.greeting`, `common.today`, `caretaker.*` (+ **[gap]** `caretaker.expectedToday`, `caretaker.collectedToday`, `caretaker.recentCollections`, `caretaker.heroContext`), `status.occupied`, `status.vacant`, `nav.units`.
 
 ---
 

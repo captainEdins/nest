@@ -73,9 +73,11 @@ export function GuardHome() {
         <GuardHomeSkeleton />
       ) : (
         <>
-          {/* On / off duty — the shift is the write anchor for every guard action */}
+          {/* On / off duty — the shift is the write anchor for every guard action.
+              Phase 18 (D-031): tinted surface (no left accent bar — the v2
+              canvas separates by shadow/tint, not rails). */}
           {activeShift ? (
-            <Card className="border-l-4 border-l-success bg-success/5 dark:bg-success/10 animate-in fade-in duration-300">
+            <Card className="bg-success/5 dark:bg-success/10 animate-in fade-in duration-300">
               <CardContent className="p-4 sm:p-6 space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <Badge className="border-transparent bg-success text-success-foreground gap-1.5">
@@ -115,7 +117,7 @@ export function GuardHome() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="bg-muted/40 animate-in fade-in duration-300">
+            <Card className="bg-muted/30 dark:bg-muted/20 animate-in fade-in duration-300">
               <CardContent className="p-4 sm:p-6 space-y-3">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Clock className="size-5" aria-hidden />
@@ -130,33 +132,42 @@ export function GuardHome() {
             </Card>
           )}
 
-          {/* Quick actions — ≤3 taps from cold to a logged visitor */}
+          {/* Quick actions — ≤3 taps from cold to a logged visitor.
+              Phase 18 (D-031): the report-incident tile wears the amber
+              surface so the emergency action reads as one (outline read
+              as disabled in the audit); never red — urgency via tint. */}
           <div className="grid grid-cols-2 gap-4">
-            <Button
-              className="h-auto min-h-20 py-3 flex-col gap-1.5 text-body font-semibold"
+            <button
+              type="button"
               onClick={() => setLogVisitorOpen(true)}
+              className="group rounded-xl h-auto min-h-20 py-3 px-2 flex flex-col items-center justify-center gap-1.5 text-body font-semibold bg-primary text-primary-foreground nest-card-shadow outline-none transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <UserPlus size={20} aria-hidden />
+              <span aria-hidden className="size-9 rounded-lg grid place-items-center bg-primary-foreground/15">
+                <UserPlus className="size-[18px]" />
+              </span>
               {t("guard.visitors.logVisitor")}
               {activeShift == null ? (
                 <span className="text-caption font-normal opacity-75">
                   {t("guard.visitors.offDutyHint")}
                 </span>
               ) : null}
-            </Button>
-            <Button
-              variant="outline"
-              className="h-auto min-h-20 py-3 flex-col gap-1.5 text-body font-semibold"
+            </button>
+            <button
+              type="button"
               onClick={() => setReportIncidentOpen(true)}
+              aria-label={t("guard.incidents.report")}
+              className="group rounded-xl h-auto min-h-20 py-3 px-2 flex flex-col items-center justify-center gap-1.5 text-body font-semibold bg-warning/15 dark:bg-warning/10 text-attention nest-card-shadow outline-none transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <ShieldAlert size={20} aria-hidden />
+              <span aria-hidden className="size-9 rounded-lg grid place-items-center bg-warning/20 dark:bg-warning/20">
+                <ShieldAlert className="size-[18px]" />
+              </span>
               {t("guard.incidents.report")}
               {activeShift == null ? (
                 <span className="text-caption font-normal opacity-70">
                   {t("guard.incidents.offDutyHint")}
                 </span>
               ) : null}
-            </Button>
+            </button>
           </div>
 
           {/* Today at the gate — counts only, never money (matrix §6) */}
@@ -191,7 +202,7 @@ export function GuardHome() {
             {data.recentVisitors.length === 0 ? (
               <EmptyState icon={BookOpen} title={t("guard.visitors.emptyHistory")} />
             ) : (
-              <Card className="divide-y">
+              <Card className="divide-y gap-0 py-0">
                 {data.recentVisitors.slice(0, 3).map((visitor) => (
                   <RecentVisitorRow key={visitor.id} visitor={visitor} />
                 ))}

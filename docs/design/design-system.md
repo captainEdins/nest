@@ -62,6 +62,23 @@ Body sets `font-family: var(--font-poppins)`. `--radius: 0.625rem` is already co
 > stays the only accent; positive deltas stay green; active nav is the NEUTRAL
 > foreground pill (see §6). Dark mode (§1.3) is untouched.
 
+> **D-031 (Phase 18, the detail sweep)**: v2 extended from the landlord's
+> surfaces to EVERY desk. New binding rules (§9): table headers are uppercase
+> micro-labels (`ui/table.tsx` — global); list cards are TIGHT lists
+> (`divide-y gap-0 py-0` — the Card base's `gap-6 py-6` is for sectioned
+> content cards only); the caretaker home mirrors the landlord's asymmetric
+> hero; quick actions are icon-tile buttons (icon in a tinted rounded
+> container — the ONE solid-primary surface per desk stays the money-in
+> action); urgency is a TINT, never a left accent rail (`border-l-4` is
+> retired); the RentScoreChip is pastel-tinted like StatusBadge (the neutral
+> outline read as a broken container in two independent audits); arrears
+> aging urgency lives on the deepest NON-EMPTY bucket; the selected
+> attention segment in the SegmentedControl wears the amber tint. Rejected:
+> red for the guard's report-incident CTA (red stays reserved for
+> destructive confirmations — amber is the urgency language, D-022),
+> illustration on the caretaker panel (mobile vertical space is data space),
+> a per-role illustration set.
+
 | Token | Value | Primary use |
 |---|---|---|
 | `--background` | `oklch(0.98 0.007 96)` | Page background (warm cream, #F9F7F2 family) |
@@ -292,10 +309,17 @@ All icon-only buttons: `h-11 w-11` (44px target) with `sr-only` labels. The offl
 
 ### 9.1 Card / Table / lists
 
-- **Card is borderless** (D-030): white surface, 16px radius, separation by the layered diffuse shadow alone (`.nest-card-shadow`). Explicit `border-*` utilities only for deliberate edges (dashed receipt divider, left accent bars on funnel cards).
+- **Card is borderless** (D-030): white surface, 16px radius, separation by the layered diffuse shadow alone (`.nest-card-shadow`). Explicit `border-*` utilities only for deliberate edges (dashed receipt divider, semantic alert panels inside sheets).
 - **Card** is the universal container for KPIs and rows. Money rows: label (`text-label text-muted-foreground`) left, value (`text-body font-semibold tabular-nums`) right.
 - KPI cards may carry a **sparkline** (D-030): decorative SVG gradient trend beside the value, `currentColor`-tinted, aria-hidden — exact numbers stay in text.
 - **Table only ≥sm.** The same data renders as stacked cards on mobile (one list component, two presentations — never a horizontally-scrolling table).
+- **Table headers are uppercase micro-labels** (D-031, global in `ui/table.tsx`): `text-[0.6875rem] uppercase tracking-[0.08em] font-semibold text-muted-foreground h-11`; cells `px-3 py-2.5` — tables read as data sheets, rows breathe like cards.
+- **Lists are TIGHT lists** (D-031): `<Card className="divide-y gap-0 py-0">` — rows carry their own `p-4`, hairline dividers sit BETWEEN rows (the Card base's `gap-6 py-6` is for sectioned content cards like forms/summaries only, never row lists).
+- **Quick actions are action tiles** (D-031): `rounded-xl h-20` (≥44px targets), icon in a tinted rounded-lg container (`bg-primary/10 text-primary`, or `bg-primary-foreground/15` on the solid tile), label `text-caption/text-label font-semibold`, hover `-translate-y-0.5` + active `scale-[0.97]`. The ONE solid-primary tile per desk is the money-in action (caretaker Record cash, guard Log visitor); the guard's report-incident tile wears the amber tint (`bg-warning/15 text-attention`) — never red.
+- **Urgency is a tint, never a rail** (D-031): `border-l-4 border-l-*` accent cards are retired; on-duty = `bg-success/5`, needs-listing = `bg-warning/10`, quiet = `bg-muted/30`.
+- **Aging-bucket urgency** (D-031): the DEEPEST non-empty arrears bucket carries `bg-warning/10` + amber values — urgency lives where the oldest debt actually is.
+- **RentScoreChip is pastel-tinted** (D-031, mirrors StatusBadge): EXCELLENT `bg-success/15 text-success` · GOOD `bg-primary/10 text-primary` · FAIR `bg-warning/15 text-attention` · BUILDING `bg-muted text-muted-foreground` — all `border-transparent`. (The neutral outline read as an empty/broken container in two independent design audits.)
+- **SegmentedControl selected attention state** (D-031): amber tint `bg-warning/15 text-attention` — the urgent filter is visibly ON (a white selected pill read as near-invisible).
 - Lists: `divide-y` inside a `Card`, rows `min-h-14 p-4`, chevron/tap affordance right-aligned when rows navigate.
 
 ### 9.2 Badge — exact status mapping (shadcn `Badge` with custom variants)

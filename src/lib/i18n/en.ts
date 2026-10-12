@@ -136,6 +136,7 @@ export const en = {
   "caretaker.todaysCollections": "Today's collections",
   "caretaker.expectedToday": "Expected today",
   "caretaker.collectedToday": "Collected today",
+  "caretaker.heroContext": "{units} units · {amount} expected this month",
   "caretaker.recordCash": "Record cash",
   "caretaker.requestMpesa": "Request M-Pesa",
   "caretaker.units": "Units",

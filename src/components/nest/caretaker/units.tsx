@@ -119,7 +119,7 @@ export function CaretakerUnits() {
           ) : units.length === 0 ? (
             <EmptyState icon={DoorOpen} title={t("empty.units")} />
           ) : (
-            <Card className="divide-y">
+            <Card className="divide-y gap-0 py-0">
               {units.map((unit) => (
                 <UnitRow
                   key={unit.id}

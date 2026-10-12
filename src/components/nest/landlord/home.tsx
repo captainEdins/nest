@@ -247,7 +247,7 @@ export function LandlordHome() {
               {t("empty.arrears")}
             </p>
           ) : (
-            <Card className="divide-y">
+            <Card className="divide-y gap-0 py-0">
               {arrears.map((row) => (
                 <ArrearsRow key={row.tenancyId} row={row} />
               ))}
@@ -265,7 +265,7 @@ export function LandlordHome() {
           {recentPayments.length === 0 ? (
             <EmptyState icon={CheckCircle2} title={t("empty.payments")} success />
           ) : (
-            <Card className="divide-y">
+            <Card className="divide-y gap-0 py-0">
               {recentPayments.map((payment) => (
                 <PaymentRow key={payment.id} payment={payment} />
               ))}

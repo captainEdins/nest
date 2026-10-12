@@ -220,7 +220,7 @@ export function ExpensesScreen() {
               hint={t("expenses.noExpensesHint")}
             />
           ) : (
-            <Card className="divide-y">
+            <Card className="divide-y gap-0 py-0">
               {groupedByDay(expenses).map((group) => (
                 <div key={group.day}>
                   <p className="px-4 py-2 text-label font-medium text-muted-foreground uppercase tracking-wide bg-muted/40">
@@ -453,7 +453,7 @@ function ExpensesSkeleton() {
         <Skeleton className="h-8 w-20 rounded-full" />
         <Skeleton className="h-8 w-28 rounded-full" />
       </div>
-      <Card className="divide-y" aria-hidden="true">
+      <Card className="divide-y gap-0 py-0" aria-hidden="true">
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="p-4 min-h-14 flex items-center justify-between">
             <div className="space-y-2">
