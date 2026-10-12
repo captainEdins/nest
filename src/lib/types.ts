@@ -162,6 +162,18 @@ export interface NotificationUnreadCountDto {
   unread: number
 }
 
+/**
+ * Phase 13 (issue #84): result of POST /api/notifications/remind-all.
+ * `skippedCount` = in-scope ACTIVE tenancies with balance ≤ 0 (credit or
+ * settled) — informational, keeps the confirm dialog honest.
+ */
+export interface RemindAllResultDto {
+  notifiedCount: number
+  skippedCount: number
+  channels: NotificationChannel[]
+  sentAt: string
+}
+
 // ---------------------------------------------------------------------------
 // Tenant statement (Phase 6-a, issue #65)
 // ---------------------------------------------------------------------------

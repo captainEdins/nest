@@ -48,7 +48,7 @@ export function ShellHeader({ session }: { session: SessionDto }) {
   }
 
   return (
-    <header className="sticky top-0 z-40 h-14 bg-background border-b">
+    <header className="sticky top-0 z-40 h-14 bg-background border-b print:hidden">
       <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center gap-2">
         {/* Logo + wordmark — the desktop sidebar carries it at ≥lg */}
         <div className="flex items-center gap-2 lg:hidden">

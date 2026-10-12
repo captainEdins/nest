@@ -233,3 +233,34 @@
 .dark .nest-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: oklch(0.78 0.14 75 / 0.6);
 }
+
+/* NEST — print media (Phase 13, D-026) --------------------------------------
+ * The statement print sheet is the only content that prints. App chrome is
+ * `print:hidden` at the component level; this block handles what components
+ * can't reach: Next.js dev overlays, page geometry, and link URLs (never
+ * printed — a receipt number is the durable reference, not a URL). */
+@media print {
+  /* Next.js dev tools portal + badge would otherwise print on every page. */
+  nextjs-portal,
+  [data-next-badge],
+  [data-nextjs-dev-tools-button],
+  [data-nextjs-toolbar] {
+    display: none !important;
+  }
+
+  @page {
+    margin: 12mm;
+  }
+
+  /* White sheet regardless of dark mode. */
+  body {
+    background: #ffffff !important;
+  }
+
+  /* No orphaned boxes: each sheet section stays whole. */
+  article,
+  tr,
+  img {
+    break-inside: avoid;
+  }
+}

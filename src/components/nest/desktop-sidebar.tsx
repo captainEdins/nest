@@ -35,7 +35,7 @@ export function DesktopSidebar({ session }: { session: SessionDto }) {
       : 0;
 
   return (
-    <aside className="hidden lg:flex fixed inset-y-0 left-0 w-[264px] flex-col bg-background border-r z-30">
+    <aside className="hidden lg:flex fixed inset-y-0 left-0 w-[264px] flex-col bg-background border-r z-30 print:hidden">
       {/* Brand + role */}
       <div className="h-14 flex items-center gap-2.5 px-4 border-b">
         <NestLogo className="h-7 w-7" />

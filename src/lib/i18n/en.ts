@@ -252,6 +252,16 @@ export const en = {
   "arrears.aging.1_30": "1–30 days",
   "arrears.aging.31_60": "31–60 days",
   "arrears.aging.61plus": "61+ days",
+  // Phase 13 — bulk reminders (issue #84).
+  "arrears.remindAll": "Remind all",
+  "arrears.remindAllCount": "Remind all ({count})",
+  "arrears.remindAllTitle": "Send reminders to everyone in arrears?",
+  "arrears.remindAllDesc":
+    "{count} tenants with a balance will each get an SMS and an in-app notification with their exact amount and account ref.",
+  "arrears.remindAllPreview": "Each message reads (example for {name})",
+  "arrears.remindAllConfirm": "Send to {count} tenants",
+  "arrears.remindAllSent": "Reminders sent to {count} tenants",
+  "arrears.remindAllCooldown": "Bulk reminders were already sent in the last 30 minutes",
 
   // ----- Cash collection flow (S-06) ----------------------------------------
   "cash.confirm": "Confirm",
@@ -780,6 +790,25 @@ export const en = {
   "statement.emptyTitle": "No statement yet",
   "statement.emptyHint": "Your first billed month will appear here.",
   "statement.viewStatement": "View statement",
+  // Phase 13 — print sheet (issue #84 part B).
+  "statement.print": "Print / save PDF",
+  "statement.printTitle": "Statement of account",
+  "statement.printIssuedTo": "Issued to",
+  "statement.printPeriod": "Period covered",
+  "statement.printGenerated": "Generated",
+  "statement.printAccountRef": "Account ref",
+  "statement.printMonth": "Month",
+  "statement.printBilled": "Billed",
+  "statement.printSettled": "Settled",
+  "statement.printReceipts": "Receipts",
+  "statement.printBalance": "Closing balance",
+  "statement.printBrought": "Brought forward",
+  "statement.printSignTenant": "Tenant",
+  "statement.printSignManager": "For the landlord",
+  "statement.printSignDate": "Date",
+  "statement.printFootnote":
+    "Every figure on this statement traces to a NEST charge row or a receipted payment.",
+  "statement.printPaybill": "Pay via M-Pesa · account ref {ref}",
 
   // ----- Rent Score (Phase 6-b, issue #66) -----------------------------------
   "score.title": "Rent score",

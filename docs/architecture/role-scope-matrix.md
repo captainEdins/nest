@@ -241,6 +241,14 @@ unmatched queue, deposits/deposit movements (P2), and every dashboard
    D-013); **reversal is LANDLORD-only** — correcting money-out is an
    owner decision, like deposit settlement. Every expense write lands in
    `AuditLog` (`EXPENSE_RECORDED` / `EXPENSE_REVERSED`).
+6. **Phase 13 (bulk reminders)**: `POST /api/notifications/remind-all` is
+   **LANDLORD + CARETAKER only** (a bulk blast is a bigger hammer than the
+   per-tenant reminder, which also allows agents — agent sends risk
+   landlord-brand spam). TENANT/GUARD/AGENT get **403 by role**. No money is
+   written — notifications only — but the balance math it reads is the
+   economic figure (§5), and every run lands in `AuditLog`
+   (`REMINDERS_BULK_SENT`) with one 30-minute replay window per sender
+   (replay → 409).
 
 ---
 
