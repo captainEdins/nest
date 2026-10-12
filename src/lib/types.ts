@@ -120,6 +120,9 @@ export interface PaymentDto {
   /** Human label for the payer, resolved when matched */
   matchedLabel: string | null
   recordedByName: string | null
+  /** Phase 14: the plot a matched payment belongs to (null = unmatched). */
+  unitLabel: string | null
+  propertyName: string | null
   allocations?: PaymentAllocationDto[]
 }
 

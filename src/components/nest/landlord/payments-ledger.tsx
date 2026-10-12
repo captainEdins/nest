@@ -2,8 +2,11 @@
 
 /**
  * S-17a · Payments ledger (landlord "Payments" tab / caretaker "Collections"
- * tab). Data = overview.recentPayments (no separate payments endpoint in the
- * Phase 1 backend). Filter: Monty SegmentedControl — All · M-Pesa · Cash ·
+ * tab). Phase 14: reads the full ledger from GET /api/payments (newest first,
+ * take ≤ 60) instead of the overview's recent-5 — and gains the multi-plot
+ * view: property chips (All plots · per-property) + a Property column on ≥sm,
+ * shown only when the caller actually has more than one plot (D-027).
+ * Source filter stays the Monty SegmentedControl — All · M-Pesa · Cash ·
  * Unmatched (amber accent). Mobile: stacked cards · ≥sm: table.
  */
 
@@ -11,7 +14,7 @@ import { useI18n } from "@/lib/i18n";
 import type { PaymentDto, PaymentSource } from "@/lib/types";
 import { formatKes } from "@/lib/money";
 import { useUIStore } from "@/lib/ui-store";
-import { useCaretakerOverview, useLandlordOverview } from "@/hooks/use-overview";
+import { usePaymentsLedger } from "@/hooks/use-overview";
 import { formatDate } from "@/components/nest/shared/format";
 import { paymentRowLabel, PaymentRow } from "@/components/nest/shared/payment-row";
 import { StatusBadge } from "@/components/nest/shared/status-badge";
@@ -45,19 +48,30 @@ export function PaymentsLedger({ variant }: { variant: "landlord" | "caretaker" 
   const { t } = useI18n();
   const filter = useUIStore((s) => s.paymentsFilter);
   const setFilter = useUIStore((s) => s.setPaymentsFilter);
+  const propertyFilter = useUIStore((s) => s.paymentsPropertyFilter);
+  const setPropertyFilter = useUIStore((s) => s.setPaymentsPropertyFilter);
 
-  const landlordQuery = useLandlordOverview();
-  const caretakerQuery = useCaretakerOverview();
-  const query = variant === "landlord" ? landlordQuery : caretakerQuery;
-  const { data, isPending, error, refetch } = query;
+  // Full ledger (unfiltered) — the property filter is applied client-side so
+  // the chip row always knows every plot, even mid-refilter.
+  const { data, isPending, error, refetch } = usePaymentsLedger();
+  const payments: PaymentDto[] = data ?? [];
 
-  const payments: PaymentDto[] = data?.recentPayments ?? [];
-  const filtered =
-    filter === "ALL"
-      ? payments
-      : filter === "UNMATCHED"
-        ? payments.filter((p) => p.status === "UNMATCHED")
-        : payments.filter((p) => p.source === (filter as PaymentSource));
+  // Distinct plots in the caller's scope (null propertyName = unmatched rows,
+  // which belong to no plot). Chips render only when the portfolio is real.
+  const propertyNames = [...new Set(payments.map((p) => p.propertyName).filter((n): n is string => n != null))].sort(
+    (a, b) => a.localeCompare(b),
+  );
+  const multiPlot = propertyNames.length > 1;
+
+  const filtered = payments
+    .filter((p) => (propertyFilter ? p.propertyName === propertyFilter : true))
+    .filter((p) =>
+      filter === "ALL"
+        ? true
+        : filter === "UNMATCHED"
+          ? p.status === "UNMATCHED"
+          : p.source === (filter as PaymentSource),
+    );
 
   const title = variant === "landlord" ? t("nav.payments") : t("nav.collections");
   const unmatchedCount = payments.filter((p) => p.status === "UNMATCHED").length;
@@ -82,6 +96,41 @@ export function PaymentsLedger({ variant }: { variant: "landlord" | "caretaker" 
         <ListSkeleton rows={5} />
       ) : (
         <div className="space-y-4">
+          {/* Property chips — only when the caller has more than one plot */}
+          {multiPlot ? (
+            <div className="flex gap-2 overflow-x-auto pb-1" role="group" aria-label={t("payments.plot")}>
+              <button
+                type="button"
+                onClick={() => setPropertyFilter(null)}
+                aria-pressed={propertyFilter === null}
+                className={cn(
+                  "shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-caption font-medium transition-colors",
+                  propertyFilter === null
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-border text-muted-foreground hover:bg-muted/50",
+                )}
+              >
+                {t("payments.allPlots")}
+              </button>
+              {propertyNames.map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => setPropertyFilter(name)}
+                  aria-pressed={propertyFilter === name}
+                  className={cn(
+                    "shrink-0 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-caption font-medium transition-colors",
+                    propertyFilter === name
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:bg-muted/50",
+                  )}
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
           {/* Filter — Monty segmented control (D-022) */}
           <SegmentedControl
             ariaLabel={t("common.status")}
@@ -106,7 +155,17 @@ export function PaymentsLedger({ variant }: { variant: "landlord" | "caretaker" 
               {/* Mobile: stacked cards */}
               <Card className="divide-y sm:hidden">
                 {filtered.map((payment) => (
-                  <PaymentRow key={payment.id} payment={payment} />
+                  <PaymentRow
+                    key={payment.id}
+                    payment={payment}
+                    showUnit={
+                      payment.unitLabel
+                        ? multiPlot
+                          ? `${payment.unitLabel} · ${payment.propertyName}`
+                          : payment.unitLabel
+                        : undefined
+                    }
+                  />
                 ))}
               </Card>
 
@@ -117,6 +176,7 @@ export function PaymentsLedger({ variant }: { variant: "landlord" | "caretaker" 
                     <TableRow>
                       <TableHead>{t("common.date")}</TableHead>
                       <TableHead>{t("receipt.receivedFrom")}</TableHead>
+                      {multiPlot ? <TableHead>{t("payments.plot")}</TableHead> : null}
                       <TableHead className="text-right">{t("common.amount")}</TableHead>
                       <TableHead>{t("receipt.paymentMethod")}</TableHead>
                       <TableHead>{t("common.status")}</TableHead>
@@ -132,6 +192,11 @@ export function PaymentsLedger({ variant }: { variant: "landlord" | "caretaker" 
                         <TableCell className="font-medium">
                           {paymentRowLabel(payment) || t("status.unmatched")}
                         </TableCell>
+                        {multiPlot ? (
+                          <TableCell className="text-muted-foreground">
+                            {payment.propertyName ?? "—"}
+                          </TableCell>
+                        ) : null}
                         <TableCell
                           className={cn(
                             "text-right font-semibold tabular-nums",

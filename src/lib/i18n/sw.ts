@@ -509,6 +509,10 @@ export const sw: Record<TranslationKey, string> = {
   "arrears.remindAllConfirm": "Tuma kwa wapangaji {count}",
   "arrears.remindAllSent": "Kumbusho zimetumwa kwa wapangaji {count}",
   "arrears.remindAllCooldown": "Kumbusho kwa wote zilitumwa ndani ya dakika 30 zilizopita",
+  // Phase 14 — multi-plot payments ledger (issue #86).
+  "payments.plot": "Mali",
+  "payments.allPlots": "Mali zote",
+  "payments.ledgerCount": "Malipo {count}",
 
   // ----- Repairs (Phase 2) ---------------------------------------------------------
   "nav.repairs": "Matengenezo",

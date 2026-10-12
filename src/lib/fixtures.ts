@@ -231,6 +231,8 @@ const PAYMENTS: FxPayment[] = [
     phone: "+254711000003",
     matchedLabel: "Grace Wanjiku · B2",
     recordedByName: null,
+    unitLabel: "B2",
+    propertyName: PROPERTY.name,
     allocations: [
       { chargeId: chargeIdOf("t-b2", "RENT", CUR), chargeKind: "RENT", chargePeriod: CUR, amountMinor: 850_000 },
       { chargeId: chargeIdOf("t-b2", "WATER", CUR), chargeKind: "WATER", chargePeriod: CUR, amountMinor: WATER_MINOR },
@@ -249,6 +251,8 @@ const PAYMENTS: FxPayment[] = [
     phone: "+254711000005",
     matchedLabel: "Sarah Achieng · A2",
     recordedByName: null,
+    unitLabel: "A2",
+    propertyName: PROPERTY.name,
     allocations: [
       { chargeId: chargeIdOf("t-a2", "RENT", CUR), chargeKind: "RENT", chargePeriod: CUR, amountMinor: 600_000 },
     ],
@@ -265,6 +269,8 @@ const PAYMENTS: FxPayment[] = [
     phone: "+254722000999",
     matchedLabel: null,
     recordedByName: null,
+    unitLabel: null,
+    propertyName: null,
     allocations: [],
   },
 ]
@@ -524,6 +530,8 @@ function recordCompletedPayment(input: {
     phone: input.phone,
     matchedLabel: `${t.tenantName} · ${t.unitLabel}`,
     recordedByName: input.recordedByName,
+    unitLabel: t.unitLabel,
+    propertyName: PROPERTY.name,
     allocations,
   }
   PAYMENTS.push(p)
@@ -634,6 +642,8 @@ function fixtureMatch(body: { paymentId: string; tenancyId: string }): PaymentDt
   p.status = "COMPLETED"
   p.receiptNo = nextReceiptNo()
   p.matchedLabel = `${t.tenantName} · ${t.unitLabel}`
+  p.unitLabel = t.unitLabel
+  p.propertyName = PROPERTY.name
   p.accountReference = t.accountRef
   p.allocations = allocate(body.tenancyId, p.amountMinor)
   pushNotification(

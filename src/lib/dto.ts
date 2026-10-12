@@ -112,6 +112,8 @@ export function toPaymentDto(payment: PaymentWithRelations): PaymentDto {
     phone: payment.phone,
     matchedLabel: payment.tenancy?.tenant.fullName ?? payment.phone ?? null,
     recordedByName: payment.recordedBy?.fullName ?? null,
+    unitLabel: payment.tenancy?.unit.label ?? null,
+    propertyName: payment.tenancy?.unit.property.name ?? null,
     allocations: payment.allocations.map((allocation) => ({
       chargeId: allocation.chargeId,
       chargeKind: allocation.charge.kind as ChargeKind,

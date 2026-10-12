@@ -75,6 +75,10 @@ async function main(): Promise<void> {
   // --- 1) Wipe (FK-safe: children before parents) -------------------------
   await db.auditLog.deleteMany()
   await db.notification.deleteMany()
+  // Phase 12 — MUST precede property wipe (FK). Reversing rows link to other
+  // Expense rows (reversalOfId self-FK), so they go first.
+  await db.expense.deleteMany({ where: { reversalOfId: { not: null } } })
+  await db.expense.deleteMany()
   await db.ticketUpdate.deleteMany()
   await db.maintenanceTicket.deleteMany()
   await db.conditionReport.deleteMany()
@@ -298,6 +302,170 @@ async function main(): Promise<void> {
       receiptNo: null,
     },
   })
+
+  // --- 6b) Phase 14 — Riverside Flats: the second plot ---------------------
+  // One truth, two plots. Amina owns a second property (Ruaka); Kevin Wakaba
+  // is ITS caretaker (scope isolation: he never sees Baraka Court's money);
+  // Wanjiku agents both. Fatuma pays in full every month (the statement/print
+  // story with receipts); Brian pays partial cash keyed by his caretaker (the
+  // arrears + collections story on plot 2). Charges/payments live BELOW the
+  // recompute (section 7) so paidMinor settles by the ledger rule.
+  const kevinW = await db.profile.create({
+    data: { phone: "+254711000009", fullName: "Kevin Wakaba", role: "CARETAKER" },
+  })
+  const fatuma = await db.profile.create({
+    data: { phone: "+254711000010", fullName: "Fatuma Hassan", role: "TENANT" },
+  })
+  const brianK = await db.profile.create({
+    data: { phone: "+254711000011", fullName: "Brian Kilonzo", role: "TENANT" },
+  })
+
+  const property2 = await db.property.create({
+    data: {
+      name: "Riverside Flats",
+      location: "Ruaka, Kiambu",
+      landlordId: amina.id,
+      caretakerId: kevinW.id,
+      agentId: wanjiku.id,
+    },
+  })
+
+  const unitSeeds2 = [
+    { label: "C1", type: "ONE_BR", rentAmountMinor: 1_800_000, depositAmountMinor: 1_800_000, status: "OCCUPIED" },
+    { label: "C2", type: "TWO_BR", rentAmountMinor: 2_800_000, depositAmountMinor: 2_800_000, status: "OCCUPIED" },
+    { label: "C3", type: "BEDSITTER", rentAmountMinor: 900_000, depositAmountMinor: 900_000, status: "VACANT" },
+    { label: "C4", type: "SHOP", rentAmountMinor: 1_500_000, depositAmountMinor: 1_500_000, status: "VACANT" },
+  ]
+  for (const u of unitSeeds2) {
+    units[u.label] = await db.unit.create({ data: { ...u, propertyId: property2.id } })
+  }
+
+  const tenancySeeds2 = [
+    { unit: "C1", tenant: fatuma, accountRef: "NEST-C1-2001", monthlyRentMinor: 1_800_000, depositHeldMinor: 1_800_000 },
+    { unit: "C2", tenant: brianK, accountRef: "NEST-C2-2002", monthlyRentMinor: 2_800_000, depositHeldMinor: 2_800_000 },
+  ]
+  for (const t of tenancySeeds2) {
+    tenancies[t.accountRef] = await db.tenancy.create({
+      data: {
+        unitId: units[t.unit].id,
+        tenantId: t.tenant.id,
+        startDate: tenancyStart,
+        monthlyRentMinor: t.monthlyRentMinor,
+        depositHeldMinor: t.depositHeldMinor,
+        status: "ACTIVE",
+        accountRef: t.accountRef,
+      },
+    })
+  }
+
+  // Charges: prev + current month (rent + water + garbage), both tenancies.
+  for (const t of tenancySeeds2) {
+    for (const p of [PREV, CUR]) {
+      const period = monthKey(p)
+      const rows: { kind: "RENT" | "WATER" | "GARBAGE"; amountMinor: number }[] = [
+        { kind: "RENT", amountMinor: t.monthlyRentMinor },
+        { kind: "WATER", amountMinor: WATER_MINOR },
+        { kind: "GARBAGE", amountMinor: GARBAGE_MINOR },
+      ]
+      for (const c of rows) {
+        charges[`${t.accountRef}:${c.kind}:${period}`] = await db.rentCharge.create({
+          data: {
+            tenancyId: tenancies[t.accountRef].id,
+            kind: c.kind,
+            periodMonth: period,
+            dueDate: dueDate(p),
+            amountMinor: c.amountMinor,
+            paidMinor: 0,
+            status: "UNPAID",
+          },
+        })
+      }
+    }
+  }
+
+  // Fatuma — pays in FULL, both months, via M-Pesa (receipts follow the
+  // Payment.id sequence: 5 and 6 — NEST-R-000005/000006).
+  await db.payment.create({
+    data: {
+      receiptNo: "NEST-R-000005",
+      amountMinor: 1_850_000,
+      source: "MPESA",
+      status: "COMPLETED",
+      receivedAt: daysAgo(1),
+      tenancyId: tenancies["NEST-C1-2001"].id,
+      accountReference: "NEST-C1-2001",
+      phone: fatuma.phone,
+      allocations: {
+        create: [
+          { chargeId: charges[`NEST-C1-2001:RENT:${curMonthKey}`].id, amountMinor: 1_800_000 },
+          { chargeId: charges[`NEST-C1-2001:WATER:${curMonthKey}`].id, amountMinor: WATER_MINOR },
+          { chargeId: charges[`NEST-C1-2001:GARBAGE:${curMonthKey}`].id, amountMinor: GARBAGE_MINOR },
+        ],
+      },
+    },
+  })
+  await db.payment.create({
+    data: {
+      receiptNo: "NEST-R-000006",
+      amountMinor: 1_850_000,
+      source: "MPESA",
+      status: "COMPLETED",
+      receivedAt: new Date(PREV.y, PREV.m, 24, 10, 0, 0),
+      tenancyId: tenancies["NEST-C1-2001"].id,
+      accountReference: "NEST-C1-2001",
+      phone: fatuma.phone,
+      allocations: {
+        create: [
+          { chargeId: charges[`NEST-C1-2001:RENT:${prevMonthKey}`].id, amountMinor: 1_800_000 },
+          { chargeId: charges[`NEST-C1-2001:WATER:${prevMonthKey}`].id, amountMinor: WATER_MINOR },
+          { chargeId: charges[`NEST-C1-2001:GARBAGE:${prevMonthKey}`].id, amountMinor: GARBAGE_MINOR },
+        ],
+      },
+    },
+  })
+
+  // Brian — partial CASH against current-month rent, keyed at the plot office
+  // by HIS caretaker (Kevin Wakaba) — the collections story on plot 2.
+  await db.payment.create({
+    data: {
+      receiptNo: "NEST-R-000007",
+      amountMinor: 1_000_000,
+      source: "CASH",
+      status: "COMPLETED",
+      receivedAt: daysAgo(2),
+      tenancyId: tenancies["NEST-C2-2002"].id,
+      accountReference: "NEST-C2-2002",
+      phone: brianK.phone,
+      recordedById: kevinW.id,
+      note: "Cash collected at the plot office",
+      allocations: {
+        create: [{ chargeId: charges[`NEST-C2-2002:RENT:${curMonthKey}`].id, amountMinor: 1_000_000 }],
+      },
+    },
+  })
+
+  // Deposits (HOLD movements) for both Riverside tenancies.
+  for (const t of tenancySeeds2) {
+    const deposit = await db.deposit.create({
+      data: {
+        tenancyId: tenancies[t.accountRef].id,
+        heldMinor: t.depositHeldMinor,
+        status: "HELD",
+        createdAt: tenancyStart,
+      },
+    })
+    await db.depositMovement.create({
+      data: {
+        depositId: deposit.id,
+        kind: "HOLD",
+        amountMinor: t.depositHeldMinor,
+        reason: "Security deposit collected at tenancy start",
+        actorId: amina.id,
+        createdAt: tenancyStart,
+      },
+    })
+  }
+
 
   // --- 7) Recompute charge paidMinor/status from allocations ----------------
   // (paidMinor is ALWAYS the sum of PaymentAllocation rows — the ledger rule.)
@@ -1129,6 +1297,100 @@ async function main(): Promise<void> {
       profileId: amina.id, templateKey: "EXPENSE_RECORDED", channel: "IN_APP",
       body: `NEST: ${mwangi.fullName} recorded a repairs expense of KSh 2,500 for ${property.name}. Note: Pipe fittings for B2 kitchen`,
       status: "SENT", createdAt: daysAgo(3),
+    },
+  })
+
+  // --- 10e) Phase 14 — Riverside Flats: ticket, expense, listing, notifications
+  // Brian's kitchen sink — reported by the tenant, progressed by HIS caretaker
+  // (Kevin Wakaba). The cross-plot proof: John Mwangi never sees this ticket.
+  const riversideTicket = await db.maintenanceTicket.create({
+    data: {
+      propertyId: property2.id,
+      unitId: units["C2"].id,
+      tenancyId: tenancies["NEST-C2-2002"].id,
+      title: "Kitchen sink draining slowly",
+      description: "Water takes hours to drain — worse every evening. Might be the trap under the sink.",
+      priority: "NORMAL",
+      status: "IN_PROGRESS",
+      reportedById: brianK.id,
+      createdAt: daysAgo(4),
+      updatedAt: daysAgo(1),
+    },
+  })
+  await db.ticketUpdate.create({
+    data: {
+      ticketId: riversideTicket.id,
+      authorId: kevinW.id,
+      note: "Checked the trap — need a replacement kit. Buying from Ruaka hardware tomorrow.",
+      statusFrom: "OPEN",
+      statusTo: "IN_PROGRESS",
+      createdAt: daysAgo(1),
+    },
+  })
+
+  // Riverside money-out: Kevin Wakaba keys a water repair; Amina hears about it.
+  const riversideExpense = await db.expense.create({
+    data: {
+      propertyId: property2.id, category: "WATER", amountMinor: 350_000,
+      occurredAt: daysAgo(2), note: "Water pump repair — plot meter", recordedById: kevinW.id,
+    },
+  })
+  await db.auditLog.create({
+    data: {
+      actorId: kevinW.id, action: "EXPENSE_RECORDED", entity: "Expense",
+      entityId: riversideExpense.id,
+      detailJson: JSON.stringify({
+        propertyId: property2.id, propertyName: property2.name,
+        category: "WATER", amountMinor: 350_000, recordedBy: kevinW.fullName,
+      }),
+      createdAt: daysAgo(2),
+    },
+  })
+  await db.notification.create({
+    data: {
+      profileId: amina.id, templateKey: "EXPENSE_RECORDED", channel: "IN_APP",
+      body: `NEST: ${kevinW.fullName} recorded a water expense of KSh 3,500 for ${property2.name}. Note: Water pump repair — plot meter`,
+      status: "SENT", createdAt: daysAgo(2),
+    },
+  })
+
+  // Fatuma's receipts (both months) + Brian's ticket notification.
+  await db.notification.create({
+    data: {
+      profileId: fatuma.id, templateKey: "RECEIPT_ISSUED", channel: "IN_APP",
+      body: `NEST: Receipt NEST-R-000005 for KSh 18,500 — rent for C1, ${property2.name}. Thank you, Fatuma.`,
+      status: "SENT", createdAt: daysAgo(1),
+    },
+  })
+  await db.notification.create({
+    data: {
+      profileId: brianK.id, templateKey: "TICKET_CREATED", channel: "IN_APP",
+      body: `NEST: Your repair "Kitchen sink draining slowly" (unit C2) was received. ${kevinW.fullName} is on it.`,
+      status: "SENT", createdAt: daysAgo(4),
+    },
+  })
+  await db.notification.create({
+    data: {
+      profileId: brianK.id, templateKey: "TICKET_UPDATED", channel: "IN_APP",
+      body: `NEST: Your repair "Kitchen sink draining slowly" (unit C2) is now In progress. ${kevinW.fullName}: Checked the trap — need a replacement kit.`,
+      status: "SENT", createdAt: daysAgo(1),
+    },
+  })
+
+  // A DRAFT listing for the vacant C3 — Wanjiku works both plots (the agent
+  // funnel across properties: B3 PUBLISHED at Baraka, C3 DRAFT at Riverside).
+  await db.listing.create({
+    data: {
+      propertyId: property2.id,
+      unitId: units["C3"].id,
+      title: "Bedsitter — Riverside Flats",
+      description:
+        "Modern bedsitter in a 4-unit block off Kiambu Road. Metered water, " +
+        "backup tank, 5 min to Ruaka centre. KSh 9,000 monthly, deposit same as rent.",
+      rentAmountMinor: units["C3"].rentAmountMinor,
+      status: "DRAFT",
+      createdAt: daysAgo(1),
+      updatedAt: daysAgo(1),
     },
   })
 

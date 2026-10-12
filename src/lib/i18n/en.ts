@@ -262,6 +262,10 @@ export const en = {
   "arrears.remindAllConfirm": "Send to {count} tenants",
   "arrears.remindAllSent": "Reminders sent to {count} tenants",
   "arrears.remindAllCooldown": "Bulk reminders were already sent in the last 30 minutes",
+  // Phase 14 — multi-plot payments ledger (issue #86).
+  "payments.plot": "Property",
+  "payments.allPlots": "All plots",
+  "payments.ledgerCount": "{count} payments",
 
   // ----- Cash collection flow (S-06) ----------------------------------------
   "cash.confirm": "Confirm",
