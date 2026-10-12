@@ -146,8 +146,9 @@ export function LoginScreen() {
           </DropdownMenu>
         </div>
 
-        {/* Brand + tagline (the screen's h1) — Monty display scale */}
-        <div className="flex flex-col items-center text-center gap-3 mt-2">
+        {/* Brand + tagline (the screen's h1) — Monty display scale; D-029:
+         * the block arrives (rise) once on mount. */}
+        <div className="flex flex-col items-center text-center gap-3 mt-2 nest-anim-rise">
           <span className="grid place-items-center size-20 rounded-3xl bg-primary/10">
             <NestLogo className="size-14" />
           </span>
@@ -158,8 +159,8 @@ export function LoginScreen() {
           <p className="text-caption text-muted-foreground max-w-xs">{t("login.demoNote")}</p>
         </div>
 
-        {/* Demo identity cards */}
-        <div className="mt-8 space-y-4">
+        {/* Demo identity cards — D-029: staggered entrance (40ms steps). */}
+        <div className="mt-8 space-y-4 nest-stagger">
           {isPending ? <RoleSelectSkeleton /> : null}
           {error ? <ErrorState onRetry={() => refetch()} /> : null}
           {demoCards.map((profile) => {

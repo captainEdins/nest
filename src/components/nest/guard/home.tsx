@@ -56,9 +56,9 @@ export function GuardHome() {
   const name = session?.profile.fullName.split(" ")[0] ?? "";
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 nest-stagger">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-h3 font-semibold truncate">{t("common.greeting", { name })}</h1>
+        <h1 className="text-h2 font-semibold tracking-tight truncate">{t("common.greeting", { name })}</h1>
         {data?.property ? (
           <Badge variant="secondary" className="text-caption shrink-0 max-w-44 gap-1">
             <Building2 className="size-3" aria-hidden />

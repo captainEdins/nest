@@ -168,7 +168,7 @@ export function TicketRow({
       type="button"
       onClick={() => openTicket(ticket.id)}
       aria-label={`${ticket.title}. ${t("repairs.viewTicket")}`}
-      className="group w-full text-left p-4 min-h-16 flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition active:scale-[0.99] hover:bg-muted/40 active:bg-muted/60"
+      className="group w-full text-left p-4 min-h-16 flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98] hover:bg-muted/40 active:bg-muted/60"
     >
       <div className="min-w-0 flex-1">
         <p className="text-body font-semibold truncate">{ticket.title}</p>

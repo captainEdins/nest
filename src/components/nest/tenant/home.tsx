@@ -65,7 +65,7 @@ export function TenantHome() {
     if (endedLease) {
       return (
         <section aria-label={t("tenant.yourRent")} className="space-y-4">
-          <h1 className="text-h3 font-semibold">{t("common.greeting", { name: session?.profile.fullName.split(" ")[0] ?? "" })}</h1>
+          <h1 className="text-h2 font-semibold tracking-tight">{t("common.greeting", { name: session?.profile.fullName.split(" ")[0] ?? "" })}</h1>
           <EmptyState icon={Receipt} title={t("tenant.noTenancyTitle")} hint={t("tenant.noTenancyBody")} />
         </section>
       )
@@ -91,8 +91,8 @@ export function TenantHome() {
   const openCharges = (data?.charges ?? []).filter((c) => c.status !== "PAID").length;
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <h1 className="text-h3 font-semibold">{t("common.greeting", { name })}</h1>
+    <div className="space-y-4 sm:space-y-6 nest-stagger">
+      <h1 className="text-h2 font-semibold tracking-tight">{t("common.greeting", { name })}</h1>
 
       {isPending || !tenancy || !totals ? (
         <div className="space-y-4 sm:space-y-6" aria-busy>
@@ -172,7 +172,7 @@ export function TenantHome() {
               type="button"
               onClick={() => pushDeposit()}
               aria-label={`${t("money.deposit")}: ${formatKes(tenancy.depositHeldMinor)}`}
-              className="rounded-lg border p-3 min-w-0 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition active:scale-[0.99] hover:bg-muted/40"
+              className="rounded-lg border p-3 min-w-0 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98] hover:bg-muted/40"
             >
               <p className="text-caption text-muted-foreground truncate flex items-center gap-0.5">
                 <span className="truncate">{t("money.deposit")}</span>

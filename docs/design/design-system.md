@@ -259,15 +259,25 @@ All icon-only buttons: `h-11 w-11` (44px target) with `sr-only` labels. The offl
 - **lucide-react only.** Inline `16` (caption rows) / `20` (nav, buttons) / `40` (empty states). No filled icons, no emoji in UI.
 - Key icons: cash `Banknote` · M-Pesa `Smartphone` · bank `Landmark` · arrears `AlertTriangle` · unmatched `HelpCircle` · share `Share2` · success `CheckCircle2` · fail `XCircle` · offline `WifiOff` · search `Search` · send `Send`.
 - **Avatars = initials only** (no photos on 3G): `h-10 w-10 rounded-full bg-primary text-primary-foreground text-label font-semibold`, two letters from `fullName`.
-- **Motion ≤200ms**, `transform`/`opacity` only. Respect `prefers-reduced-motion` (tw-animate-css provides the media query; do not add keyframe animations not gated by it). Drawer/sheet easing = vaul default.
+- **Motion — the NEST signature system (D-029, Phase 16)**. CSS-only, no JS motion runtime (framer-motion stays an unused dependency by decision): the caretaker's low-end Android gets GPU-composited transform/opacity keyframes for free. Spec:
+  - **One easing curve** `cubic-bezier(0.22, 1, 0.36, 1)` (decelerate-heavy "settle"); durations 150ms (fades) / 200–220ms (rises, pops) / 300ms (stagger) / 700ms (progress grow).
+  - **Utilities** (globals.css): `.nest-anim-rise` · `.nest-anim-fade` · `.nest-anim-pop` · `.nest-anim-grow` · `.nest-stagger > *` (40ms child steps, capped at 6) · `.nest-skeleton` (shimmer sweep, 1.8s).
+  - **Keyframes animate FROM the displaced state TO the element's normal style** — `animation: none` can never strand content invisible or shifted. This is the rule that keeps reduced-motion and print safe.
+  - **`prefers-reduced-motion: reduce`** collapses every animation/transition to 0.01ms globally (final states, not blanks). Print kills entrance animations explicitly.
+  - **Screen transitions**: app-shell wraps tab/pushed-screen content in a keyed `.nest-anim-fade`; role homes stagger sections with `.nest-stagger`.
+  - **Micro-interactions**: buttons `active:scale-[0.97]` (cva base, disabled excluded); interactive card wrappers `hover:-translate-y-0.5` + `active:scale-[0.98]`; segmented-control selection settles via keyed label remount; unread bell badge pops in; rows tint on hover.
+  - **Frosted chrome is progressive**: `.nest-frost` / `.nest-frost-strong` (header, bottom dock) are no-ops without `backdrop-filter` support — the solid D-022 surfaces are the fallback, never removed.
+  - **Hero surfaces**: `.nest-hero-surface` (solid-primary KPI hero: diagonal gradient + radial glow + aria-hidden rings, `overflow-hidden`) and `.nest-hero-soft` (cream action hub: top-left bloom, no rings). Engines without relative-color syntax keep the solid fill.
+- Long entrance lists: do not exceed the stagger cap (6 children × 40ms); lists inside a screen ride the screen-level fade only.
+- Drawer/sheet easing = vaul default.
 
 ## 8. States — exact treatments
 
 | State | Treatment | Copy |
 |---|---|---|
-| **Loading (lists/cards)** | `Skeleton` blocks matching final layout: list rows `h-16 rounded-lg`, KPI card `h-28 rounded-xl`, text `h-4 w-2/3`. Never a full-page spinner. | — |
+| **Loading (lists/cards)** | `Skeleton` blocks matching final layout: list rows `h-16 rounded-lg`, KPI card `h-28 rounded-xl`, text `h-4 w-2/3` — with the D-029 shimmer sweep (`.nest-skeleton`; reduced-motion freezes it). Never a full-page spinner. | — |
 | **Loading (buttons)** | Inline `Loader2 size-4 animate-spin` + label, `disabled` + `aria-busy` | `common.loading` |
-| **Empty** | `py-12` centered: lucide icon `size-10 text-muted-foreground` → `text-body-lg font-medium` headline → `text-caption text-muted-foreground` line → primary action (if any) | `empty.*` |
+| **Empty** | `py-12` centered (D-029 illustration): icon `size-5` inside a **tinted concentric blob** (`size-12` inner / `size-20` outer circle, `primary/5–10` or `success/10–15` families) → `text-body-lg font-medium` headline → `text-caption text-muted-foreground` line → primary action (if any) | `empty.*` |
 | **Error (section)** | `Alert variant="destructive"` + destructive `Retry` button; section keeps other content | `errors.couldNotLoad`, `common.retry` |
 | **Error (screen)** | Centered Alert + Retry; nav remains usable | `errors.somethingWrong` |
 | **Offline** | Banner under header: `bg-warning/15 dark:bg-warning/10 border-y border-warning/40 text-attention`, `WifiOff size-4`, full-width; visible while `navigator.onLine === false` | `common.offlineBanner` |

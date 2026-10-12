@@ -63,6 +63,7 @@ Conventions applying to **every** screen (not repeated below): shell header + na
 **Purpose**: Role-aware frame — header, navigation, content slot, footer. All screens below render inside it.
 **Data**: `SessionDto` (profile → role, name, phone, language). Language seeded into `I18nProvider`.
 **Primary action**: switch tabs; each tab renders its screen.
+**Phase 16 (D-029) signature layer**: the sticky header and mobile floating dock are **frosted** (progressive — `.nest-frost`/`.nest-frost-strong` behind `@supports (backdrop-filter)`, solid surfaces remain the fallback); tab / pushed-screen switches fade in via the keyed `nest-anim-fade` wrapper (key includes pushed ids); role-home sections stagger (`.nest-stagger`); the unread bell badge pops in; greeting renders at `text-h2` display scale on every role home; skeletons shimmer (`.nest-skeleton`); empty states render the tinted-blob illustration.
 
 ```
 375px ─────────────────────────────────────────

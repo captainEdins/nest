@@ -49,7 +49,9 @@ function NestToaster() {
       offset={isDesktop ? 24 : 80}
       duration={4000}
       toastOptions={{
+        // D-029: Monty geometry — toasts match the card radius language.
         classNames: {
+          toast: "rounded-2xl",
           error: "[&_[data-icon]]:text-destructive",
           warning: "[&_[data-icon]]:text-attention",
         },

@@ -58,9 +58,9 @@ export function DesktopSidebar({ session }: { session: SessionDto }) {
               aria-current={active ? "page" : undefined}
               className={cn(
                 "w-full h-10 px-3 rounded-xl flex items-center gap-3 text-body",
-                "focus-visible:ring-2 focus-visible:ring-ring outline-none transition-colors",
+                "focus-visible:ring-2 focus-visible:ring-ring outline-none transition-all",
                 active
-                  ? "bg-primary/10 text-primary font-medium"
+                  ? "bg-primary/10 text-primary font-medium ring-1 ring-inset ring-primary/15"
                   : "text-foreground hover:bg-muted",
               )}
             >

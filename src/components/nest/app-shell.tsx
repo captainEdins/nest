@@ -241,6 +241,15 @@ function Shell({ session }: { session: SessionDto }) {
           id="main"
           className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-[calc(env(safe-area-inset-bottom)+5.5rem)] lg:pb-6 print:max-w-none print:px-0 print:pt-0 print:pb-0"
         >
+          {/* Phase 16 (D-029): every tab / pushed-screen switch re-mounts this
+           * keyed wrapper → the content fades in (150ms) instead of hard-
+           * swapping. Sections inside each screen additionally stagger (see
+           * the role homes' nest-stagger). Key includes the pushed ids so
+           * navigating between two tickets also re-animates. */}
+          <div
+            key={`${role}:${tab}:${pushedScreen ?? "root"}:${ticketViewId ?? ""}:${listingViewId ?? ""}:${applicationViewId ?? ""}:${statementTenancyId ?? ""}:${depositTenancyId ?? ""}`}
+            className="nest-anim-fade"
+          >
           {pushedScreen === "arrears" && role === "CARETAKER" ? (
             <section aria-label={t("landlord.arrears")}>
               <div className="flex items-center gap-2 mb-4">
@@ -319,6 +328,7 @@ function Shell({ session }: { session: SessionDto }) {
           ) : (
             <TabContent role={role} tab={tab} />
           )}
+          </div>
         </main>
         <AppFooter />
       </div>

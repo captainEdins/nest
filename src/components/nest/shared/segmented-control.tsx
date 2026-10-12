@@ -69,17 +69,27 @@ export function SegmentedControl<T extends string>({
                   : "text-muted-foreground hover:text-foreground",
             )}
           >
-            {option.label}
-            {typeof option.count === "number" && option.count > 0 ? (
-              <span
-                className={cn(
-                  "text-caption font-semibold tabular-nums",
-                  option.attention ? "text-attention" : "text-muted-foreground",
-                )}
-              >
-                {option.count}
-              </span>
-            ) : null}
+            {/* D-029: keyed content — the newly-selected pill's label settles
+             * in (fade + 95% zoom, 200ms) instead of hard-swapping. */}
+            <span
+              key={selected ? "on" : "off"}
+              className={cn(
+                "inline-flex items-center gap-1.5",
+                selected && "animate-in fade-in zoom-in-95 duration-200",
+              )}
+            >
+              {option.label}
+              {typeof option.count === "number" && option.count > 0 ? (
+                <span
+                  className={cn(
+                    "text-caption font-semibold tabular-nums",
+                    option.attention ? "text-attention" : "text-muted-foreground",
+                  )}
+                >
+                  {option.count}
+                </span>
+              ) : null}
+            </span>
           </button>
         );
       })}

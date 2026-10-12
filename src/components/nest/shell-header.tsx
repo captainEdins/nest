@@ -48,7 +48,13 @@ export function ShellHeader({ session }: { session: SessionDto }) {
   }
 
   return (
-    <header className="sticky top-0 z-40 h-14 bg-background border-b print:hidden">
+    <header
+      // D-029: frosted chrome — .nest-frost is a no-op on engines without
+      // backdrop-filter (solid bg-background stays, the D-022 baseline);
+      // supporting engines get the translucent blur. Content scrolls under
+      // the sticky bar and is softly diffused through it.
+      className="sticky top-0 z-40 h-14 bg-background border-b nest-frost print:hidden"
+    >
       <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center gap-2">
         {/* Logo + wordmark — the desktop sidebar carries it at ≥lg */}
         <div className="flex items-center gap-2 lg:hidden">
@@ -128,7 +134,7 @@ export function ShellHeader({ session }: { session: SessionDto }) {
           {unread ? (
             <span
               aria-hidden
-              className="absolute -top-0.5 -right-0.5 min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-caption font-semibold tabular-nums flex items-center justify-center shadow-sm"
+              className="absolute -top-0.5 -right-0.5 min-w-5 h-5 px-1.5 rounded-full bg-primary text-primary-foreground text-caption font-semibold tabular-nums flex items-center justify-center shadow-sm nest-anim-pop"
             >
               {unread > 9 ? "9+" : unread}
             </span>

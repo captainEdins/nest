@@ -97,9 +97,9 @@ export function CaretakerHome() {
       : 0;
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 nest-stagger">
       <div className="flex items-baseline justify-between gap-2">
-        <h1 className="text-h3 font-semibold truncate">
+        <h1 className="text-h2 font-semibold tracking-tight truncate">
           {t("common.greeting", { name })}
           {data?.property ? <span className="text-muted-foreground font-normal"> · {data.property.name}</span> : null}
         </h1>
@@ -120,8 +120,9 @@ export function CaretakerHome() {
         <>
           {/* Hero — today + month progress (todayExpected not in the DTO:
               month numbers labelled this-month per screen-specs fallback).
-              Phase 9 (D-022): Monty micro-label + MoM delta under the month row. */}
-          <Card className="bg-secondary">
+              Phase 9 (D-022): Monty micro-label + MoM delta under the month row.
+              Phase 16 (D-029): soft-depth bloom on the cream action hub. */}
+          <Card className="bg-secondary nest-hero-soft">
             <CardContent className="p-4 sm:p-6 space-y-3">
               <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                 {t("caretaker.todaysCollections")}

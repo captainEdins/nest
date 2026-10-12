@@ -50,10 +50,12 @@ export function LandlordHome() {
   const unmatchedCount = totals?.unmatchedPayments ?? 0;
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Greeting (the screen's h1) + month chip */}
+    // D-029: sections stagger in (40ms steps) as data lands; the keyed
+    // wrapper in app-shell fades the whole screen on tab switches.
+    <div className="space-y-4 sm:space-y-6 nest-stagger">
+      {/* Greeting (the screen's h1) + month chip — display scale (D-029) */}
       <div className="flex items-baseline justify-between gap-2">
-        <h1 className="text-h3 font-semibold">{t("common.greeting", { name })}</h1>
+        <h1 className="text-h2 font-semibold tracking-tight">{t("common.greeting", { name })}</h1>
         {overview ? (
           <span className="text-caption text-muted-foreground tabular-nums">
             {formatMonthKey(overview.month)}
@@ -122,7 +124,7 @@ export function LandlordHome() {
               type="button"
               onClick={() => setTab("repairs")}
               aria-label={`${t("repairs.openRepairs")}: ${totals.openTickets}`}
-              className="text-left w-full rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition active:scale-[0.99]"
+              className="text-left w-full rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
             >
               <KpiCard
                 label={t("repairs.openRepairs")}
@@ -312,9 +314,9 @@ function VacancyFunnelCard() {
         type="button"
         onClick={() => openListings("applicants")}
         aria-label={`${t("agent.funnelCardTitle")} — ${t("agent.pendingDecisions", { count: pending.length })}`}
-        className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition active:scale-[0.99]"
+        className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
       >
-        <Card className="border-l-4 border-l-warning/70 bg-warning/15 dark:bg-warning/10 animate-in fade-in duration-300">
+        <Card className="border-l-4 border-l-warning/70 bg-warning/15 dark:bg-warning/10">
           <CardContent className="p-4 sm:p-6 space-y-2.5">
             <div className="flex items-center gap-2 min-w-0">
               <Megaphone className="size-4 text-attention shrink-0" aria-hidden />
@@ -362,9 +364,9 @@ function VacancyFunnelCard() {
         aria-label={`${t("agent.funnelCardTitle")} — ${t("agent.moveInReadyCard", {
           count: approvedReady.length,
         })}`}
-        className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition active:scale-[0.99]"
+        className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
       >
-        <Card className="border-l-4 border-l-success/70 bg-success/10 dark:bg-success/10 animate-in fade-in duration-300">
+        <Card className="border-l-4 border-l-success/70 bg-success/10 dark:bg-success/10">
           <CardContent className="p-4 sm:p-6 space-y-2.5">
             <div className="flex items-center gap-2 min-w-0">
               <CheckCircle2 className="size-4 text-success shrink-0" aria-hidden />
@@ -398,9 +400,9 @@ function VacancyFunnelCard() {
         type="button"
         onClick={() => openListings("listings")}
         aria-label={`${t("agent.funnelCardTitle")} — ${primary.unitLabel}. ${formatKes(primary.rentAmountMinor)}`}
-        className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition active:scale-[0.99]"
+        className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
       >
-        <Card className="animate-in fade-in duration-300">
+        <Card>
           <CardContent className="p-4 sm:p-6 space-y-2.5">
             <div className="flex items-center gap-2 min-w-0">
               <Megaphone className="size-4 text-muted-foreground shrink-0" aria-hidden />
@@ -432,9 +434,9 @@ function VacancyFunnelCard() {
       type="button"
       onClick={() => openListings("listings")}
       aria-label={`${t("agent.funnelCardTitle")} — ${t("landlord.funnelAllLet")}`}
-      className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition active:scale-[0.99]"
+      className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
     >
-      <Card className="bg-muted/40 animate-in fade-in duration-300">
+      <Card className="bg-muted/40">
         <CardContent className="p-4 flex items-center gap-2.5 text-muted-foreground">
           <Megaphone className="size-5 shrink-0" aria-hidden />
           <p className="text-body flex-1 min-w-0 truncate">{t("landlord.funnelAllLet")}</p>

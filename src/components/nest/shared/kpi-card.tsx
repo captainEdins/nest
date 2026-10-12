@@ -67,10 +67,26 @@ export function KpiCard({
     <Card
       className={cn(
         "transition-shadow",
-        highlight && "border-transparent bg-primary nest-card-shadow",
+        highlight &&
+          "relative overflow-hidden border-transparent bg-primary nest-card-shadow nest-hero-surface",
         className,
       )}
     >
+      {/* Hero decoration (D-029): concentric rings rising out of the
+       * bottom-right corner — clipped by overflow-hidden, aria-hidden,
+         pointer-events-none. Purely paint, never information. */}
+      {highlight ? (
+        <>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -right-10 -bottom-14 size-44 rounded-full border border-primary-foreground/12"
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -right-3 -bottom-7 size-24 rounded-full border border-primary-foreground/10"
+          />
+        </>
+      ) : null}
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-start justify-between gap-3">
           <p
@@ -165,7 +181,7 @@ export function KpiCard({
               className="h-2 mt-3 w-full rounded-full bg-primary-foreground/20 overflow-hidden"
             >
               <div
-                className="h-full rounded-full bg-primary-foreground transition-all"
+                className="h-full rounded-full bg-primary-foreground origin-left nest-anim-grow"
                 style={{ width: `${clamped}%` }}
               />
             </div>
