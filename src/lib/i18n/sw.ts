@@ -796,6 +796,7 @@ export const sw: Record<TranslationKey, string> = {
 
   // ----- Global search (Phase 10, issue #76) -------------------------------
   "search.trigger": "Tafuta",
+  "search.srDescription": "Tafuta kwenye rekodi zako za NEST. Matokeo yamepunguzwa kwa unachoweza kuona kulingana na wadhifa wako. Tumia vishushi vya mishale kupitia matokeo na Enter kufungua.",
   "search.clear": "Futa utafutaji",
   "search.placeholder": "Tafuta wapangaji, risiti, maombi…",
   "search.hint": "Andika herufi 2 au zaidi",

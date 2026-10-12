@@ -795,6 +795,7 @@ export const en = {
 
   // ----- Global search (Phase 10, issue #76) -------------------------------
   "search.trigger": "Search",
+  "search.srDescription": "Search across your NEST records. Results are limited to what your role can see. Use the arrow keys to move through results and Enter to open.",
   "search.clear": "Clear search",
   "search.placeholder": "Search tenants, receipts, tickets…",
   "search.hint": "Type at least 2 letters",
