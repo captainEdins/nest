@@ -44,8 +44,8 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import type { TranslationKey } from "@/lib/i18n/en";
 
@@ -111,9 +111,13 @@ export function SearchPalette({ role }: { role: Role }) {
           showCloseButton={false}
           className="top-[10vh] translate-y-0 rounded-2xl p-0 gap-0 overflow-hidden nest-card-shadow sm:max-w-lg"
         >
-          {/* Radix a11y contract: the dialog needs a name. Visually the input
-           *  placeholder is the title; screen readers get the sr-only twin. */}
+          {/* Radix a11y contract: the dialog needs a name and a description.
+           *  Visually the input placeholder is the title; screen readers get
+           *  the sr-only twins (name + how the results behave). */}
           <DialogTitle className="sr-only">{t("search.trigger")}</DialogTitle>
+          <DialogDescription className="sr-only">
+            {t("search.srDescription")}
+          </DialogDescription>
           {body}
         </DialogContent>
       </Dialog>
@@ -124,6 +128,9 @@ export function SearchPalette({ role }: { role: Role }) {
     <Drawer open={searchOpen} onOpenChange={setSearchOpen}>
       <DrawerContent className="rounded-t-2xl p-0 gap-0 overflow-hidden nest-card-shadow">
         <DrawerTitle className="sr-only">{t("search.trigger")}</DrawerTitle>
+        <DrawerDescription className="sr-only">
+          {t("search.srDescription")}
+        </DrawerDescription>
         {body}
       </DrawerContent>
     </Drawer>
