@@ -49,8 +49,8 @@ export function AgentHome() {
   const unlistedCount = data?.unlistedVacantUnits?.length ?? 0;
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <h1 className="text-h3 font-semibold">{t("common.greeting", { name })}</h1>
+    <div className="space-y-4 sm:space-y-6 nest-stagger">
+      <h1 className="text-h2 font-semibold tracking-tight">{t("common.greeting", { name })}</h1>
 
       {isPending || !totals ? (
         <div className="space-y-4 sm:space-y-6" aria-busy>
@@ -174,7 +174,7 @@ function FunnelCard({
         aria-label={`${t("agent.funnelCardTitle")} — ${liveListing.unitLabel}. ${formatKes(
           liveListing.rentAmountMinor,
         )}`}
-        className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition active:scale-[0.99]"
+        className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
       >
         <Card className="animate-in fade-in duration-300">
           <CardContent className="p-4 sm:p-6 space-y-3">
@@ -259,7 +259,7 @@ function ListingPreviewRow({ listing }: { listing: ListingDto }) {
     <button
       type="button"
       onClick={() => openListing(listing.id)}
-      className="w-full text-left p-3.5 sm:p-4 min-h-16 flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition active:scale-[0.99] hover:bg-muted/40 active:bg-muted/60"
+      className="w-full text-left p-3.5 sm:p-4 min-h-16 flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98] hover:bg-muted/40 active:bg-muted/60"
       aria-label={`${listing.title}. ${formatKes(listing.rentAmountMinor)} ${t("agent.perMonth")}`}
     >
       <div className="min-w-0 flex-1">

@@ -39,7 +39,7 @@ export function SecurityCard({ security }: { security: SecurityDigestDto }) {
       aria-label={`${t("security.cardTitle")} — ${t("security.visitorsToday", {
         count: security.visitorsToday,
       })}`}
-      className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition active:scale-[0.99]"
+      className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
     >
       <Card>
         <CardContent className="p-4 sm:p-6 space-y-3">

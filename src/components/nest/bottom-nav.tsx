@@ -29,7 +29,10 @@ export function BottomNav({ tabs }: { tabs: TabDef[] }) {
       aria-label={t("nav.home")}
       className="fixed bottom-0 inset-x-0 z-40 lg:hidden px-3 pb-[calc(env(safe-area-inset-bottom)+0.625rem)] pt-1 pointer-events-none print:hidden"
     >
-      <div className="mx-auto max-w-lg flex h-16 items-stretch rounded-2xl bg-card border nest-float-shadow pointer-events-auto overflow-x-auto nest-scrollbar">
+      {/* D-029: frosted dock — .nest-frost-strong behind @supports keeps the
+       * solid bg-card surface as the low-end fallback (D-022 rule intact);
+       * scrolling content diffuses softly under the floating bar. */}
+      <div className="mx-auto max-w-lg flex h-16 items-stretch rounded-2xl bg-card border nest-float-shadow nest-frost-strong pointer-events-auto overflow-x-auto nest-scrollbar">
         {tabs.map((def) => {
           const Icon = def.icon;
           const active = tab === def.id && pushedScreen === null;
@@ -48,7 +51,7 @@ export function BottomNav({ tabs }: { tabs: TabDef[] }) {
               {active ? (
                 <span
                   aria-hidden
-                  className="absolute inset-x-2 inset-y-1.5 -z-10 rounded-xl bg-primary/10"
+                  className="absolute inset-x-2 inset-y-1.5 -z-10 rounded-xl bg-primary/10 animate-in fade-in zoom-in-95 duration-200"
                 />
               ) : null}
               <Icon size={20} aria-hidden />

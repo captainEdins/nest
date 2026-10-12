@@ -215,7 +215,7 @@ export function ApplicantRow({
       type="button"
       onClick={() => openApplication(application.id)}
       aria-label={`${application.applicantName}. ${application.applicantPhone}`}
-      className="w-full text-left p-3.5 sm:p-4 min-h-16 flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition active:scale-[0.99] hover:bg-muted/40 active:bg-muted/60"
+      className="w-full text-left p-3.5 sm:p-4 min-h-16 flex items-center gap-3 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98] hover:bg-muted/40 active:bg-muted/60"
     >
       <AvatarInitials fullName={application.applicantName} size="sm" />
       <div className="min-w-0 flex-1">

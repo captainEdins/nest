@@ -91,7 +91,7 @@ function ListingRow({ listing }: { listing: ListingDto }) {
       type="button"
       onClick={() => openListing(listing.id)}
       aria-label={`${listing.title}. ${listing.unitLabel}. ${formatKes(listing.rentAmountMinor)}`}
-      className="w-full text-left p-4 min-h-16 flex items-start gap-3 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition active:scale-[0.99] hover:bg-muted/40 active:bg-muted/60"
+      className="w-full text-left p-4 min-h-16 flex items-start gap-3 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98] hover:bg-muted/40 active:bg-muted/60"
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5 flex-wrap">
