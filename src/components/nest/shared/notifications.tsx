@@ -67,6 +67,9 @@ const TEMPLATE_KEY_TO_I18N: Record<string, TranslationKey> = {
   NOTICE_GIVEN: "notifications.noticeGiven",
   NOTICE_WITHDRAWN: "notifications.noticeWithdrawn",
   TENANCY_ENDED: "notifications.tenancyEnded",
+  // Phase 12 — money-out template headings.
+  EXPENSE_RECORDED: "notifications.expenseRecorded",
+  EXPENSE_REVERSED: "notifications.expenseReversed",
 };
 
 function templateLine(templateKey: string, t: ReturnType<typeof useI18n>["t"]): string | null {
@@ -386,6 +389,7 @@ export function NotificationsModal({
       open={open}
       onOpenChange={setOpen}
       title={t("notifications.title")}
+      description={t("notifications.centerDesc")}
       wide
     >
       {isPending ? <ListSkeleton rows={6} /> : null}

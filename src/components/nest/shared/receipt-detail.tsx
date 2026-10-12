@@ -112,6 +112,7 @@ export function ReceiptDetailModal() {
         if (!next) closeReceipt();
       }}
       title={t("receipt.receipt")}
+      description={t("receipt.viewDesc")}
     >
       {open && (!receipt || isPending) ? (
         <div className="space-y-3" aria-busy>

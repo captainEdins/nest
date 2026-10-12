@@ -20,8 +20,9 @@
  */
 
 import * as React from "react";
-import { Building2 } from "lucide-react";
+import { Building2, TrendingDown } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { useUIStore } from "@/lib/ui-store";
 import { formatKes, formatKesCompact } from "@/lib/money";
 import type { AnalyticsMonthDto, ArrearsAgingDto, OccupancyRowDto } from "@/lib/types";
 import { useLandlordAnalytics } from "@/hooks/use-overview";
@@ -39,6 +40,7 @@ import { cn } from "@/lib/utils";
 
 export function LandlordAnalyticsScreen() {
   const { t } = useI18n();
+  const setTab = useUIStore((s) => s.setTab);
   const { data, isPending, error, refetch } = useLandlordAnalytics();
 
   if (error != null) {
@@ -69,6 +71,55 @@ export function LandlordAnalyticsScreen() {
         <EmptyState icon={Building2} title={t("analytics.emptyTitle")} hint={t("analytics.emptyHint")} />
       ) : (
         <>
+          {/* Phase 12 — the P&L hero: the CURRENT month's net (collected −
+              expenses). The number the whole trend builds toward. */}
+          {data.monthly.length > 0 ? (
+            <Card
+              className={cn(
+                "border-transparent transition-shadow",
+                data.monthly[data.monthly.length - 1]!.netMinor >= 0
+                  ? "bg-success/10 border-success/20"
+                  : "bg-attention/10 border-attention/20",
+              )}
+            >
+              <CardContent className="p-4 sm:p-6 flex items-center gap-4">
+                <span
+                  aria-hidden
+                  className={cn(
+                    "size-10 shrink-0 rounded-full grid place-items-center",
+                    data.monthly[data.monthly.length - 1]!.netMinor >= 0
+                      ? "bg-success/15 text-success"
+                      : "bg-attention/15 text-attention",
+                  )}
+                >
+                  <TrendingDown className="size-5 rotate-180" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] leading-5 text-muted-foreground">
+                    {t("analytics.netCard")}
+                  </p>
+                  <p
+                    className={cn(
+                      "text-kpi font-bold tabular-nums",
+                      data.monthly[data.monthly.length - 1]!.netMinor >= 0
+                        ? "text-success"
+                        : "text-attention",
+                    )}
+                  >
+                    {formatKes(data.monthly[data.monthly.length - 1]!.netMinor)}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTab("expenses")}
+                  className="h-9 px-3 rounded-lg text-label font-medium text-primary hover:bg-primary/10 focus-visible:ring-2 focus-visible:ring-ring outline-none shrink-0"
+                >
+                  {t("expenses.title")}
+                </button>
+              </CardContent>
+            </Card>
+          ) : null}
+
           {/* Chart 1 — collection trend (full width; the 6-group geometry
               needs every pixel it can get at 375px). */}
           <section aria-label={t("analytics.collectionTrend")}>
@@ -106,9 +157,10 @@ const PLOT_TOP = 12;
 const PLOT_BOTTOM = 192;
 const PLOT_WIDTH = PLOT_RIGHT - PLOT_LEFT;
 const PLOT_HEIGHT = PLOT_BOTTOM - PLOT_TOP;
-const BAR_W = 13;
-const BAR_GAP = 5;
-const BAR_PAIR_W = BAR_W * 2 + BAR_GAP;
+// Phase 12: three bars per group (billed, collected, money out).
+const BAR_W = 10;
+const BAR_GAP = 4;
+const BAR_GROUP_W = BAR_W * 3 + BAR_GAP * 2;
 const MONTH_LABEL_Y = 210;
 
 /**
@@ -147,7 +199,10 @@ function LegendSwatch({ className }: { className: string }) {
 function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
   const { t } = useI18n();
 
-  const maxMinor = monthly.reduce((max, m) => Math.max(max, m.billedMinor, m.collectedMinor), 0);
+  const maxMinor = monthly.reduce(
+    (max, m) => Math.max(max, m.billedMinor, m.collectedMinor, m.expensesMinor),
+    0,
+  );
   const axisMaxMinor = niceAxisMaxMinor(maxMinor);
   const groupWidth = monthly.length > 0 ? PLOT_WIDTH / monthly.length : PLOT_WIDTH;
 
@@ -165,7 +220,7 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
       <CardContent className="p-4 sm:p-6 space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <p className="text-caption text-muted-foreground">{t("analytics.last6Months")}</p>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <span className="flex items-center gap-1.5 text-caption text-muted-foreground">
               <LegendSwatch className="border border-border bg-muted" />
               {t("analytics.billed")}
@@ -173,6 +228,10 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
             <span className="flex items-center gap-1.5 text-caption text-muted-foreground">
               <LegendSwatch className="bg-primary" />
               {t("analytics.collected")}
+            </span>
+            <span className="flex items-center gap-1.5 text-caption text-muted-foreground">
+              <LegendSwatch className="bg-attention" />
+              {t("analytics.moneyOut")}
             </span>
           </div>
         </div>
@@ -213,13 +272,16 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
           {/* Month groups — focusable, with a native <title> tooltip. */}
           {monthly.map((month, index) => {
             const groupX = PLOT_LEFT + index * groupWidth;
-            const pairX = groupX + (groupWidth - BAR_PAIR_W) / 2;
+            const group0X = groupX + (groupWidth - BAR_GROUP_W) / 2;
             const billedH = barHeight(month.billedMinor);
             const collectedH = barHeight(month.collectedMinor);
+            const expensesH = barHeight(month.expensesMinor);
             const summary = t("analytics.monthSummary", {
               month: month.label,
               billed: formatKes(month.billedMinor),
               collected: formatKes(month.collectedMinor),
+              expenses: formatKes(month.expensesMinor),
+              net: formatKes(month.netMinor),
             });
             return (
               <g
@@ -231,17 +293,26 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
               >
                 <title>{summary}</title>
                 <path
-                  d={topRoundedBarPath(pairX, PLOT_BOTTOM - billedH, BAR_W, PLOT_BOTTOM)}
+                  d={topRoundedBarPath(group0X, PLOT_BOTTOM - billedH, BAR_W, PLOT_BOTTOM)}
                   className="fill-muted"
                 />
                 <path
                   d={topRoundedBarPath(
-                    pairX + BAR_W + BAR_GAP,
+                    group0X + BAR_W + BAR_GAP,
                     PLOT_BOTTOM - collectedH,
                     BAR_W,
                     PLOT_BOTTOM,
                   )}
                   className="fill-primary"
+                />
+                <path
+                  d={topRoundedBarPath(
+                    group0X + (BAR_W + BAR_GAP) * 2,
+                    PLOT_BOTTOM - expensesH,
+                    BAR_W,
+                    PLOT_BOTTOM,
+                  )}
+                  className="fill-attention"
                 />
                 <text
                   x={groupX + groupWidth / 2}
@@ -272,6 +343,12 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
               <th scope="col" className="text-right font-medium py-1.5">
                 {t("analytics.collected")}
               </th>
+              <th scope="col" className="text-right font-medium py-1.5">
+                {t("analytics.moneyOut")}
+              </th>
+              <th scope="col" className="text-right font-medium py-1.5">
+                {t("analytics.net")}
+              </th>
             </tr>
           </thead>
           <tbody className="text-caption tabular-nums">
@@ -285,6 +362,17 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
                 </td>
                 <td className="text-right font-medium py-1.5">
                   {formatKes(month.collectedMinor)}
+                </td>
+                <td className="text-right text-attention py-1.5">
+                  {formatKes(month.expensesMinor)}
+                </td>
+                <td
+                  className={cn(
+                    "text-right font-semibold py-1.5",
+                    month.netMinor >= 0 ? "text-success" : "text-destructive",
+                  )}
+                >
+                  {formatKes(month.netMinor)}
                 </td>
               </tr>
             ))}

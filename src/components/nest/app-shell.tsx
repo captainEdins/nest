@@ -54,6 +54,8 @@ import { MoveInSheet } from "@/components/nest/shared/move-in-sheet";
 import { GiveNoticeSheet } from "@/components/nest/shared/give-notice-sheet";
 import { MoveOutDialog } from "@/components/nest/shared/move-out-dialog";
 import { InspectionSheet } from "@/components/nest/shared/inspection-sheet";
+import { ExpensesScreen } from "@/components/nest/shared/expenses-screen";
+import { RecordExpenseSheet } from "@/components/nest/shared/record-expense-sheet";
 import { ListingDetailScreen } from "@/components/nest/shared/listing-detail-screen";
 import { ApplicationDetailScreen } from "@/components/nest/shared/application-detail-screen";
 import { GuardHome } from "@/components/nest/guard/home";
@@ -348,6 +350,7 @@ function Shell({ session }: { session: SessionDto }) {
       {role === "TENANT" ? <GiveNoticeSheet /> : null}
       {role === "LANDLORD" || role === "CARETAKER" ? <MoveOutDialog /> : null}
       {role === "LANDLORD" || role === "CARETAKER" ? <InspectionSheet /> : null}
+      {role === "LANDLORD" || role === "CARETAKER" ? <RecordExpenseSheet /> : null}
 
       {/* Mobile "More" drawer (S-15) */}
       <Drawer open={moreOpen} onOpenChange={setMoreOpen}>
@@ -381,6 +384,8 @@ function TabContent({ role, tab }: { role: Role; tab: string }) {
       // Phase 5 (More tab): KRA/MRI tax assistant — monthly rent summary,
       // 7.5% estimate, CSV export (record-keeping assistance, not advice).
       if (tab === "kra") return <LandlordKraScreen />;
+      // Phase 12 (More tab): Money out — the expense ledger + this month's P&L.
+      if (tab === "expenses") return <ExpensesScreen />;
       return <LandlordHome />;
     }
     case "CARETAKER": {
@@ -388,6 +393,8 @@ function TabContent({ role, tab }: { role: Role; tab: string }) {
       if (tab === "collections") return <PaymentsLedger variant="caretaker" />;
       if (tab === "repairs") return <CaretakerTickets />;
       if (tab === "security") return <SecurityScreen />;
+      // Phase 12 (More tab): Money out — his on-site spend capture + the list.
+      if (tab === "expenses") return <ExpensesScreen />;
       return <CaretakerHome />;
     }
     case "TENANT": {

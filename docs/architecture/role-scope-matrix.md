@@ -40,9 +40,11 @@ real RLS later is mechanical: each "Exact condition" below becomes a
 
 ### Append-only (money) rules — apply to every role, no exceptions
 
-- `Payment`, `PaymentAllocation`, `DepositMovement`, `AuditLog` rows are
-  created, never edited in `amountMinor`/`receiptNo`, never deleted.
-  Corrections are new reversing entries (D-008).
+- `Payment`, `PaymentAllocation`, `DepositMovement`, `Expense`, `AuditLog`
+  rows are created, never edited in `amountMinor`/`receiptNo`, never
+  deleted. Corrections are new reversing entries (D-008; Phase 12: expense
+  reversal = a negative row linked by `reversalOfId`, at most one per
+  original).
 - `RentCharge.paidMinor` is **system-computed** as the sum of the charge's
   `PaymentAllocation` rows. No route ever writes `paidMinor` directly.
 - Every financial/deposit mutation writes an `AuditLog` row
@@ -232,6 +234,13 @@ unmatched queue, deposits/deposit movements (P2), and every dashboard
    cause money writes in Phase 1 (cash recording, matching); TENANT can only
    *initiate* an STK push; AGENT has no money writes in Phase 1. All money
    writes flow through the reconciliation pipeline (append-only + audit log).
+5. **Phase 12 (money-out)**: `Expense` reads follow the property chain
+   (LANDLORD owned / CARETAKER assigned / AGENT managed — §4.1–4.3);
+   **TENANT/GUARD get 403 by role**. Expense **writes**: LANDLORD +
+   CARETAKER may record (caretaker-keyed spend notifies the landlord,
+   D-013); **reversal is LANDLORD-only** — correcting money-out is an
+   owner decision, like deposit settlement. Every expense write lands in
+   `AuditLog` (`EXPENSE_RECORDED` / `EXPENSE_REVERSED`).
 
 ---
 

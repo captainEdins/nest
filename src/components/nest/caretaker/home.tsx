@@ -66,6 +66,8 @@ export function CaretakerHome() {
   const pushArrears = useUIStore((s) => s.pushArrears);
   const openCashFlow = useUIStore((s) => s.openCashFlow);
   const openStkRequest = useUIStore((s) => s.openStkRequest);
+  // Phase 12: the caretaker's on-site spend capture — one tap from home.
+  const setRecordExpenseOpen = useUIStore((s) => s.setRecordExpenseOpen);
   const { data: session } = useSession();
   const { data, isPending, error, refetch } = useCaretakerOverview();
 
@@ -205,10 +207,10 @@ export function CaretakerHome() {
             <Button
               variant="secondary"
               className="h-20 flex-col gap-1.5 text-body font-semibold"
-              onClick={() => setTab("units")}
+              onClick={() => setRecordExpenseOpen(true)}
             >
-              <DoorOpen size={20} aria-hidden />
-              {t("nav.units")}
+              <TrendingDown size={20} aria-hidden />
+              {t("expenses.record")}
             </Button>
             <Button
               variant="secondary"

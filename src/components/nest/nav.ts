@@ -16,6 +16,7 @@ import {
   ScrollText,
   Shield,
   ShieldAlert,
+  TrendingDown,
   Users,
   Wrench,
   type LucideIcon,
@@ -75,6 +76,9 @@ export const TABS: Record<Role, TabDef[]> = {
  * Landlord "kra" (Phase 5, issue #59) is the Tax assistant — the MRI
  * monthly rent summary, 7.5% estimate and CSV export (record-keeping
  * assistance, never tax advice).
+ * Landlord "expenses" (Phase 12, issue #82) is Money out — the expense
+ * ledger + this month's P&L; the landlord reverses mistakes here.
+ * Caretaker "expenses" (Phase 12) is his on-site spend capture + list.
  */
 export const MORE_TABS: Partial<Record<Role, TabDef[]>> = {
   TENANT: [{ id: "statement", labelKey: "nav.statement", icon: ScrollText }],
@@ -84,8 +88,12 @@ export const MORE_TABS: Partial<Record<Role, TabDef[]>> = {
     { id: "security", labelKey: "nav.security", icon: Shield },
     { id: "analytics", labelKey: "nav.analytics", icon: ChartColumn },
     { id: "kra", labelKey: "nav.taxAssistant", icon: Landmark },
+    { id: "expenses", labelKey: "nav.expenses", icon: TrendingDown },
   ],
-  CARETAKER: [{ id: "security", labelKey: "nav.security", icon: Shield }],
+  CARETAKER: [
+    { id: "security", labelKey: "nav.security", icon: Shield },
+    { id: "expenses", labelKey: "nav.expenses", icon: TrendingDown },
+  ],
 };
 
 export function roleLabelKey(role: Role): TranslationKey {

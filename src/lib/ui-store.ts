@@ -29,6 +29,7 @@ export type TabId =
   | "analytics" // Phase 5: landlord analytics dashboard (More tab)
   | "kra" // Phase 5: landlord KRA/MRI tax assistant (More tab)
   | "statement" // Phase 6: tenant monthly statement (More tab)
+  | "expenses" // Phase 12: money-out ledger (landlord + caretaker, More tab)
 ;
 export type PaymentsFilter = "ALL" | "MPESA" | "CASH" | "UNMATCHED";
 
@@ -152,6 +153,16 @@ interface UIState {
   inspectionContext: { unitLabel: string; tenantName: string } | null;
   openInspection: (tenancyId: string, context?: { unitLabel: string; tenantName: string }) => void;
   closeInspection: () => void;
+  /** Record-expense sheet (Phase 12, issue #82), landlord + caretaker —
+   *  money-out keyed in at the point of spend. No anchor: the sheet picks
+   *  the first scoped property (multi-property switcher is a later phase). */
+  recordExpenseOpen: boolean;
+  setRecordExpenseOpen: (recordExpenseOpen: boolean) => void;
+  /** Reverse-expense dialog (Phase 12, issue #82), landlord-only — anchored
+   *  to the original row; the confirmation states both rows stay on record. */
+  reverseExpenseId: string | null;
+  openReverseExpense: (id: string) => void;
+  closeReverseExpense: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -233,4 +244,9 @@ export const useUIStore = create<UIState>((set) => ({
   openInspection: (tenancyId, context) =>
     set({ inspectionFlow: { open: true, tenancyId }, inspectionContext: context ?? null }),
   closeInspection: () => set({ inspectionFlow: { open: false }, inspectionContext: null }),
+  recordExpenseOpen: false,
+  setRecordExpenseOpen: (recordExpenseOpen) => set({ recordExpenseOpen }),
+  reverseExpenseId: null,
+  openReverseExpense: (id) => set({ reverseExpenseId: id }),
+  closeReverseExpense: () => set({ reverseExpenseId: null }),
 }));

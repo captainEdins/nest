@@ -158,6 +158,9 @@ export function MoreSheetContent({ session }: { session: SessionDto }) {
         moveOutFlow: { open: false },
         moveOutContext: null,
         inspectionFlow: { open: false },
+        // Phase 12: money-out flows reset on sign-out.
+        recordExpenseOpen: false,
+        reverseExpenseId: null,
       });
     },
     onError: () => toast.error(t("errors.somethingWrong")),

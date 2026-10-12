@@ -1047,6 +1047,91 @@ async function main(): Promise<void> {
     },
   })
 
+  // --- Phase 12 story: money-out ledger + P&L -------------------------------
+  // The money-IN side was already complete; this gives the landlord's P&L a
+  // live demo: current-month spend across categories (caretaker keys in the
+  // on-site spend; landlord sees it), a prev-month baseline, and one honest
+  // REVERSAL pair (John keyed a repair twice-billed; Amina corrected it with
+  // a reason — both rows stay on the record).
+  const expenseSeed = [
+    {
+      category: "REPAIRS", amountMinor: 250_000, at: daysAgo(3), by: mwangi.id,
+      note: "Pipe fittings for B2 kitchen",
+    },
+    {
+      category: "WATER", amountMinor: 480_000, at: daysAgo(5), by: mwangi.id,
+      note: "Water tokens — plot meter",
+    },
+    {
+      category: "SALARY", amountMinor: 800_000, at: daysAgo(7), by: amina.id,
+      note: "Caretaker half-month advance",
+    },
+    // The reversal story: original (John) + reversing row (Amina, with reason).
+    {
+      category: "REPAIRS", amountMinor: 200_000, at: daysAgo(4), by: mwangi.id,
+      note: "Door lock A1",
+    },
+    {
+      category: "GARBAGE", amountMinor: 150_000, at: new Date(PREV.y, PREV.m, 20, 11, 0, 0), by: mwangi.id,
+      note: "Monthly collection fee",
+    },
+    {
+      category: "SECURITY", amountMinor: 300_000, at: new Date(PREV.y, PREV.m, 8, 10, 0, 0), by: amina.id,
+      note: "Guard allowance",
+    },
+  ]
+  const expenseRows: { id: string; reversalOf?: string }[] = []
+  for (const e of expenseSeed) {
+    const row = await db.expense.create({
+      data: {
+        propertyId: property.id, category: e.category, amountMinor: e.amountMinor,
+        occurredAt: e.at, note: e.note, recordedById: e.by,
+      },
+    })
+    expenseRows.push({ id: row.id, ...(e.note === "Door lock A1" ? { reversalOf: "seed" } : {}) })
+  }
+  // The reversing row for the "Door lock A1" pair (negative, links back).
+  const doorLockId = expenseRows.find((r) => r.reversalOf === "seed")!.id
+  await db.expense.create({
+    data: {
+      propertyId: property.id, category: "REPAIRS", amountMinor: -200_000,
+      occurredAt: daysAgo(1), note: "Billed twice by mistake — vendor issued refund",
+      recordedById: amina.id, reversalOfId: doorLockId,
+    },
+  })
+
+  // Audit + notification evidence for the money-out story.
+  await db.auditLog.create({
+    data: {
+      actorId: mwangi.id, action: "EXPENSE_RECORDED", entity: "Expense",
+      entityId: expenseRows[0]!.id,
+      detailJson: JSON.stringify({
+        propertyId: property.id, propertyName: property.name,
+        category: "REPAIRS", amountMinor: 250_000, recordedBy: mwangi.fullName,
+      }),
+      createdAt: daysAgo(3),
+    },
+  })
+  await db.auditLog.create({
+    data: {
+      actorId: amina.id, action: "EXPENSE_REVERSED", entity: "Expense",
+      entityId: doorLockId,
+      detailJson: JSON.stringify({
+        reversalOf: doorLockId, category: "REPAIRS", amountMinor: -200_000,
+        reversedBy: amina.fullName, note: "Billed twice by mistake — vendor issued refund",
+      }),
+      createdAt: daysAgo(1),
+    },
+  })
+  // The landlord hears about caretaker-keyed spend (the trust story).
+  await db.notification.create({
+    data: {
+      profileId: amina.id, templateKey: "EXPENSE_RECORDED", channel: "IN_APP",
+      body: `NEST: ${mwangi.fullName} recorded a repairs expense of KSh 2,500 for ${property.name}. Note: Pipe fittings for B2 kitchen`,
+      status: "SENT", createdAt: daysAgo(3),
+    },
+  })
+
   // --- 11) Summary (evidence) ----------------------------------------------
   const counts = {
     profiles: await db.profile.count(),
