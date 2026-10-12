@@ -83,6 +83,10 @@ export const sw: Record<TranslationKey, string> = {
   "common.signOut": "Toka",
   "common.installApp": "Sakinisha app",
   "common.greeting": "Habari, {name}",
+  // Phase 17 (D-030): time-aware greeting (greetingKeyForHour).
+  "common.greetingMorning": "Habari ya asubuhi, {name}",
+  "common.greetingAfternoon": "Habari ya mchana, {name}",
+  "common.greetingEvening": "Habari ya jioni, {name}",
 
   // ----- Money labels -------------------------------------------------------
   "money.rent": "Kodi",
@@ -114,6 +118,9 @@ export const sw: Record<TranslationKey, string> = {
 
   // ----- Landlord dashboard & KPIs ------------------------------------------
   "landlord.collectedThisMonth": "Makusanyo ya mwezi huu",
+  // Phase 17 (D-030) — the warm-canvas hero band (greeting panel context line).
+  "landlord.heroContext": "Mashamba {plots} · Vyumba {units} · {amount} inatarajiwa mwezi huu",
+  "landlord.viewAnalytics": "Angalia uchambuzi",
   "landlord.expectedThisMonth": "Inayotarajiwa mwezi huu",
   "landlord.collectionRate": "Kiwango cha ukusanyaji",
   "landlord.arrears": "Madeni",

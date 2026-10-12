@@ -158,8 +158,10 @@ const PLOT_BOTTOM = 192;
 const PLOT_WIDTH = PLOT_RIGHT - PLOT_LEFT;
 const PLOT_HEIGHT = PLOT_BOTTOM - PLOT_TOP;
 // Phase 12: three bars per group (billed, collected, money out).
-const BAR_W = 10;
-const BAR_GAP = 4;
+// Phase 17 (D-030): wider reference-style bars — 12px bars in 3px gutters
+// fill ~94% of each month's category width (the reference's chunky look).
+const BAR_W = 12;
+const BAR_GAP = 3;
 const BAR_GROUP_W = BAR_W * 3 + BAR_GAP * 2;
 const MONTH_LABEL_Y = 210;
 
@@ -193,7 +195,19 @@ function topRoundedBarPath(x: number, top: number, width: number, bottom: number
 }
 
 function LegendSwatch({ className }: { className: string }) {
-  return <span className={cn("inline-block size-2.5 rounded-[3px] shrink-0", className)} aria-hidden />;
+  return <span className={cn("inline-block size-2 rounded-full shrink-0", className)} aria-hidden />;
+}
+
+/** Legend pill chip (D-030) — the reference's bordered pill toggles: 1px
+ *  hairline, fully rounded, dot + label. Presentational (colors are the
+ *  swatches' job). */
+function LegendChip({ swatch, children }: { swatch: string; children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-card px-2.5 h-6 text-caption font-medium text-muted-foreground shrink-0">
+      <LegendSwatch className={swatch} />
+      {children}
+    </span>
+  );
 }
 
 function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
@@ -220,19 +234,16 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
       <CardContent className="p-4 sm:p-6 space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <p className="text-caption text-muted-foreground">{t("analytics.last6Months")}</p>
-          <div className="flex items-center gap-3 sm:gap-4">
-            <span className="flex items-center gap-1.5 text-caption text-muted-foreground">
-              <LegendSwatch className="border border-border bg-muted" />
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <LegendChip swatch="border border-border bg-muted">
               {t("analytics.billed")}
-            </span>
-            <span className="flex items-center gap-1.5 text-caption text-muted-foreground">
-              <LegendSwatch className="bg-primary" />
+            </LegendChip>
+            <LegendChip swatch="bg-primary">
               {t("analytics.collected")}
-            </span>
-            <span className="flex items-center gap-1.5 text-caption text-muted-foreground">
-              <LegendSwatch className="bg-attention" />
+            </LegendChip>
+            <LegendChip swatch="bg-attention">
               {t("analytics.moneyOut")}
-            </span>
+            </LegendChip>
           </div>
         </div>
 
@@ -475,11 +486,16 @@ function OccupancyDonut({ occupied, total, pct }: { occupied: number; total: num
   const { t } = useI18n();
   const size = 116;
   const center = size / 2;
-  const radius = 48;
-  const stroke = 12;
+  const radius = 45;
+  // Phase 17 (D-030): the reference's thick ring — stroke 18 (was 12) with a
+  // visible GAP before the track's end and round caps, the "friendly data"
+  // signature. Geometry stays dasharray math (no library, no floats in the
+  // DATA — display fractions are fine).
+  const stroke = 18;
   const circumference = 2 * Math.PI * radius;
   const fraction = total > 0 ? occupied / total : 0; // display geometry, not money
-  const dash = Math.min(circumference, fraction * circumference);
+  const gap = 6; // arc length held back so the segment never touches itself
+  const dash = Math.max(0, Math.min(circumference - gap, fraction * circumference));
 
   return (
     <svg
@@ -515,7 +531,7 @@ function OccupancyDonut({ occupied, total, pct }: { occupied: number; total: num
         y={center - 2}
         textAnchor="middle"
         dominantBaseline="middle"
-        fontSize={20}
+        fontSize={22}
         fontWeight={700}
         className="fill-foreground"
         style={{ fontVariantNumeric: "tabular-nums" }}
@@ -524,7 +540,7 @@ function OccupancyDonut({ occupied, total, pct }: { occupied: number; total: num
       </text>
       <text
         x={center}
-        y={center + 17}
+        y={center + 18}
         textAnchor="middle"
         fontSize={11}
         className="fill-muted-foreground"

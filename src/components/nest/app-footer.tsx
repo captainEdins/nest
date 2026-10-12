@@ -16,7 +16,7 @@ export function AppFooter() {
         <p className="text-caption text-muted-foreground">NEST — {t("footer.madeFor")}</p>
         <p className="text-caption text-muted-foreground">{t("footer.sandbox")}</p>
         <p className="text-caption text-muted-foreground tabular-nums">
-          {t("misc.phaseNotice", { phase: "Phase 16" })} · v0.16.0
+          {t("misc.phaseNotice", { phase: "Phase 17" })} · v0.17.0
         </p>
       </div>
     </footer>

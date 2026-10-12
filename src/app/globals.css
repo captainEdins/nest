@@ -78,20 +78,23 @@
   /* D-022 (Monty-inspired Soft-SaaS pass): base radius 10px → 12px so lg/xl/2xl
      land on 12/16/20 — Monty's soft geometry. */
   --radius: 0.75rem;
-  /* Light mode (dictated — design-system.md §1.2; D-022: warm cream → cool
-     green-tinted off-white, the Monty layered-canvas feel) */
-  --background: oklch(0.982 0.004 140);
-  --foreground: oklch(0.22 0.02 150);
+  /* Light mode (dictated — design-system.md §1.2). D-030 (Phase 17, the warm
+     canvas): the cool green-tinted off-white becomes the reference's WARM
+     CREAM (#F9F7F2 family) — the premium proptech canvas. Surfaces (muted,
+     secondary, borders) shift to warm sand so nothing on the canvas reads
+     cold. Dark mode is untouched (cream is a light-mode material). */
+  --background: oklch(0.98 0.007 96);
+  --foreground: oklch(0.24 0.02 120);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.02 150);
+  --card-foreground: oklch(0.24 0.02 120);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.02 150);
+  --popover-foreground: oklch(0.24 0.02 120);
   --primary: oklch(0.52 0.12 155);
   --primary-foreground: oklch(0.985 0.01 95);
-  --secondary: oklch(0.95 0.015 120);
-  --secondary-foreground: oklch(0.32 0.03 150);
-  --muted: oklch(0.955 0.01 100);
-  --muted-foreground: oklch(0.52 0.02 120);
+  --secondary: oklch(0.95 0.012 100);
+  --secondary-foreground: oklch(0.34 0.03 120);
+  --muted: oklch(0.95 0.008 95);
+  --muted-foreground: oklch(0.5 0.015 100);
   --accent: oklch(0.93 0.04 85);
   --accent-foreground: oklch(0.3 0.04 85);
   --destructive: oklch(0.55 0.19 27);
@@ -102,9 +105,11 @@
   --success-foreground: oklch(1 0 0);
   /* attention = amber as text: light --warning-foreground (16.09:1 on card) */
   --attention: oklch(0.25 0.05 75);
-  /* D-022: borders a shade softer — cards separate by shadow, not outline */
-  --border: oklch(0.912 0.008 120);
-  --input: oklch(0.912 0.008 120);
+  /* D-030: borders go warm-hairline — cards separate by shadow alone (the
+     reference's borderless surfaces); the few remaining hairlines (inputs,
+     dividers, sidebar edge) are warm sand instead of green-gray. */
+  --border: oklch(0.912 0.012 95);
+  --input: oklch(0.912 0.012 95);
   --ring: oklch(0.52 0.12 155);
   /* Chart palette (green / amber / teal / warm-gray) */
   --chart-1: oklch(0.52 0.12 155);
@@ -335,7 +340,7 @@
  * bg-background/bg-card underneath — the fallback IS the old design. */
 @supports ((backdrop-filter: blur(2px)) or (-webkit-backdrop-filter: blur(2px))) {
   .nest-frost {
-    background-color: oklch(0.982 0.004 140 / 0.85);
+    background-color: oklch(0.98 0.007 96 / 0.85);
     -webkit-backdrop-filter: blur(12px) saturate(1.35);
     backdrop-filter: blur(12px) saturate(1.35);
   }

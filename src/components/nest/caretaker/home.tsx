@@ -17,7 +17,7 @@ import {
   TriangleAlert,
   Wrench,
 } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { greetingKeyForHour, useI18n } from "@/lib/i18n";
 import { formatKes } from "@/lib/money";
 import { useUIStore } from "@/lib/ui-store";
 import { useCaretakerOverview, useSession } from "@/hooks/use-overview";
@@ -100,7 +100,7 @@ export function CaretakerHome() {
     <div className="space-y-4 sm:space-y-6 nest-stagger">
       <div className="flex items-baseline justify-between gap-2">
         <h1 className="text-h2 font-semibold tracking-tight truncate">
-          {t("common.greeting", { name })}
+          {t(greetingKeyForHour(), { name })}
           {data?.property ? <span className="text-muted-foreground font-normal"> · {data.property.name}</span> : null}
         </h1>
         {data ? (

@@ -1,12 +1,14 @@
 "use client";
 
 /**
- * KPI card — Monty-inspired "Soft SaaS" stat card (D-022, Phase 9).
+ * KPI card — Monty-inspired "Soft SaaS" stat card (D-022, Phase 9), refined
+ * by the Phase 17 reference (D-030, warm canvas).
  *
  * Anatomy: uppercase micro-label · 28px tabular bold value · optional
  * month-over-month delta (arrow + pct + context) · optional icon in a tinted
  * round container · optional progress · optional `highlight` hero treatment
- * (solid primary surface — Monty's "Revenue" card).
+ * (solid primary surface — Monty's "Revenue" card) · optional `sparkline`
+ * (the reference's gradient trend hint — replaces the icon when supplied).
  *
  * The delta is computed by the CALLER (server supplies monthCollectedPrevMinor
  * in the same overview call — no extra round trips): `deltaPct` is the signed
@@ -17,6 +19,7 @@
 import { TrendingDown, TrendingUp, type LucideIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Sparkline } from "@/components/nest/shared/sparkline";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +38,7 @@ export function KpiCard({
   highlight = false,
   delta,
   lastMonthValue,
+  sparkline,
   className,
 }: {
   label: string;
@@ -49,6 +53,9 @@ export function KpiCard({
   delta?: KpiDelta;
   /** Optional absolute "Last month KSh X" caption (used when delta is null). */
   lastMonthValue?: string;
+  /** Optional trend series (oldest → newest) — the reference's gradient
+   *  sparkline, drawn beside the value; decorative (direction, not numbers). */
+  sparkline?: number[];
   className?: string;
 }) {
   const { t } = useI18n();
@@ -59,6 +66,14 @@ export function KpiCard({
       : tone === "success"
         ? "text-success"
         : "text-foreground";
+
+  const sparkTone = highlight
+    ? "text-primary-foreground"
+    : tone === "amber"
+      ? "text-attention"
+      : tone === "success"
+        ? "text-success"
+        : "text-primary";
 
   const clamped =
     typeof progressPct === "number" ? Math.min(100, Math.max(0, progressPct)) : undefined;
@@ -98,7 +113,9 @@ export function KpiCard({
           >
             {label}
           </p>
-          {Icon ? (
+          {/* The reference's KPI anatomy: a sparkline REPLACES the icon tile
+           * when a trend series exists — direction lives beside the number. */}
+          {!sparkline && Icon ? (
             <span
               aria-hidden
               className={cn(
@@ -111,7 +128,12 @@ export function KpiCard({
           ) : null}
         </div>
 
-        <p className={cn("text-kpi font-bold tabular-nums mt-1.5", valueTone)}>{value}</p>
+        <div className="flex items-end justify-between gap-3 min-w-0">
+          <p className={cn("text-kpi font-bold tabular-nums mt-1.5 truncate", valueTone)}>{value}</p>
+          {sparkline && sparkline.length >= 2 ? (
+            <Sparkline values={sparkline} className={cn("mb-0.5 hidden sm:block", sparkTone)} />
+          ) : null}
+        </div>
 
         {delta ? (
           delta.deltaPct == null ? (

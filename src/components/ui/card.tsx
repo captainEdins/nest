@@ -6,10 +6,12 @@ function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card"
-      // D-022 (Monty Soft-SaaS): 20px radius, hairline border, layered diffuse
-      // shadow — cards lift off the canvas instead of outlining themselves.
+      // D-030 (Phase 17, warm canvas): the reference's BORDERLESS surface —
+      // white card, 16px radius, separation by the layered diffuse shadow
+      // alone. Callers that need an explicit edge (dashed receipt divider,
+      // accent tints) set their own border-* utilities.
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-2xl border py-6 nest-card-shadow",
+        "bg-card text-card-foreground flex flex-col gap-6 rounded-2xl py-6 nest-card-shadow",
         className
       )}
       {...props}

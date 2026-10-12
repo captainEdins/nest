@@ -1,9 +1,10 @@
 "use client";
 
 /** Desktop sidebar — 264px fixed left (design-system §6.2).
- *  Phase 9 (D-022): Monty nav treatment — active pill (primary/10 tint,
- *  12px radius, leading icon colored), soft hover, brand lockup with the
- *  role chip in the pastel family. */
+ *  Phase 9 (D-022): Monty nav treatment. Phase 17 (D-030, warm canvas): the
+ *  active item becomes the reference's SOLID neutral pill — bg-foreground
+ *  (near-black on cream, near-white on dark) with inverted text. Green is
+ *  reserved for data + actions; the nav reads as the calm neutral rail. */
 
 import * as React from "react";
 import { useI18n } from "@/lib/i18n";
@@ -60,14 +61,19 @@ export function DesktopSidebar({ session }: { session: SessionDto }) {
                 "w-full h-10 px-3 rounded-xl flex items-center gap-3 text-body",
                 "focus-visible:ring-2 focus-visible:ring-ring outline-none transition-all",
                 active
-                  ? "bg-primary/10 text-primary font-medium ring-1 ring-inset ring-primary/15"
+                  ? "bg-foreground text-background font-medium shadow-sm"
                   : "text-foreground hover:bg-muted",
               )}
             >
-              <Icon size={20} aria-hidden className={active ? "text-primary" : undefined} />
+              <Icon size={20} aria-hidden className={active ? "text-background" : undefined} />
               <span className="flex-1 text-left truncate">{t(def.labelKey)}</span>
               {def.id === "notifications" && undeliveredCount > 0 ? (
-                <span className="text-caption tabular-nums text-primary font-medium">
+                <span
+                  className={cn(
+                    "text-caption tabular-nums font-medium",
+                    active ? "text-background/80" : "text-primary",
+                  )}
+                >
                   {undeliveredCount}
                 </span>
               ) : null}

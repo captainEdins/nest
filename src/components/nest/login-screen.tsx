@@ -167,7 +167,7 @@ export function LoginScreen() {
             const isBusy = busyPhone === profile.phone;
             const roleLabel = t(ROLE_KEY[profile.role]);
             return (
-              <Card key={profile.id} className="border transition-transform duration-200 hover:-translate-y-0.5">
+              <Card key={profile.id} className="transition-transform duration-200 hover:-translate-y-0.5">
                 <CardContent className="p-0">
                   <button
                     type="button"

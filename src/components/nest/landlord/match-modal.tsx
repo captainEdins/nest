@@ -154,7 +154,7 @@ export function MatchModal() {
         ) : (
           <div className="space-y-4">
             {/* Confirm step — amber, money-crediting action */}
-            <Card className="border-warning/40 bg-warning/15 dark:bg-warning/10">
+            <Card className="bg-warning/15 dark:bg-warning/10">
               <div className="p-4 space-y-2">
                 <p className="flex items-center gap-2 text-attention font-semibold">
                   <TriangleAlert className="size-4 shrink-0" aria-hidden />

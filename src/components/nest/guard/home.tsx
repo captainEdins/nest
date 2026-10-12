@@ -24,7 +24,7 @@ import {
   Users,
   type LucideIcon,
 } from "lucide-react";
-import { useI18n } from "@/lib/i18n";
+import { greetingKeyForHour, useI18n } from "@/lib/i18n";
 import { useUIStore } from "@/lib/ui-store";
 import { useSession, useGuardOverview } from "@/hooks/use-overview";
 import { useDurationTicker } from "@/hooks/use-guard";
@@ -58,7 +58,7 @@ export function GuardHome() {
   return (
     <div className="space-y-4 sm:space-y-6 nest-stagger">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-h2 font-semibold tracking-tight truncate">{t("common.greeting", { name })}</h1>
+        <h1 className="text-h2 font-semibold tracking-tight truncate">{t(greetingKeyForHour(), { name })}</h1>
         {data?.property ? (
           <Badge variant="secondary" className="text-caption shrink-0 max-w-44 gap-1">
             <Building2 className="size-3" aria-hidden />

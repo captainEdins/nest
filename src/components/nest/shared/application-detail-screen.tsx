@@ -162,7 +162,7 @@ function MoveInCard({ application }: { application: ListingApplicationDto }) {
   if (role !== "LANDLORD" || application.status !== "APPROVED") return null;
 
   return (
-    <Card className="border-success/40 bg-success/5 dark:bg-success/10 animate-in fade-in duration-300">
+    <Card className="bg-success/10 dark:bg-success/10 animate-in fade-in duration-300">
       <CardContent className="p-4 sm:p-6 space-y-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
@@ -201,7 +201,7 @@ function ConvertedSummary({ application }: { application: ListingApplicationDto 
   const accountRef = convertedEvent.note?.match(/NEST-[A-Z0-9]+-\d+/)?.[0];
 
   return (
-    <Card className="border-primary/30 bg-primary/5 dark:bg-primary/10 animate-in fade-in duration-300">
+    <Card className="bg-primary/10 dark:bg-primary/10 animate-in fade-in duration-300">
       <CardContent className="p-4 sm:p-6 space-y-2">
         <div className="flex items-center gap-2 min-w-0">
           <CheckCircle2 className="size-4.5 text-primary shrink-0" aria-hidden />
