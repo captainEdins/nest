@@ -739,6 +739,25 @@ The tenant's portable payment record: month-by-month brought-forward → billed 
 
 ---
 
+## S-20 · Staff Statement — the reconciliation view (Phase 15 — D-028)
+
+The landlord/caretaker's copy of the tenant's portable record: the SAME payload, the SAME timeline components (S-19a pieces lifted into `shared/statement-screen.tsx`), the SAME print sheet (S-19b) — one record, every desk. Opened from a pushed screen; back is depth-1 (returns to the tab, the shell's pushed-screen idiom).
+
+- **Data**: `StatementDto` via `GET /api/statements?tenancyId=` (scope re-resolved server-side; miss ⇒ 404 — existence doesn't leak). **(hint)** live tenancy = `ACTIVE | NOTICE`.
+- **Entry points (all LANDLORD + CARETAKER)**:
+  - Arrears rows (S-11): `OpenStatementButton` (ghost icon `h-11 w-11`, accessible name = `statement.openAria` with the tenant's name) beside Send reminder — mobile card row AND desktop table cell. Statement = the reconciliation move; reminder = the nudge.
+  - Caretaker Units rows (S-17c): on occupied/notice rows, after the deposit cell.
+  - Landlord Properties unit rows (S-17b): on rows with a live tenancy.
+  - ⌘K search palette (S-16): TENANT result → `openStatement(tenancyId)` — searching a name lands on that tenant's record, not the arrears tab.
+- Head: accountRef pill + `statement.generated` + the one-truth caption (`statement.staffOneRecord` — "the exact record {name} sees on their own phone") + **Print / save PDF** (outline `h-11`).
+- **Staff context banner** — who the record belongs to: Card with a 4px deep-green left rule, `UserRound` in a primary-tinted circle, tenant name (`text-body-lg` semibold) + phone · unit · plot caption. The issued-to identity is never ambiguous when staff open this for someone else.
+- Summary strip + months timeline: shared components (`StatementSummaryStrip`, `StatementMonthsTimeline`) — identical rendering to the tenant view by construction.
+- **States**: loading hero + list skeletons; error Alert + retry (404 = "no statement for this tenancy"). NO give-notice, NO exit banner (tenant-only furniture stays in the tenant wrapper).
+- **Print**: `window.print()` → S-19b print sheet, unchanged (same letterhead, signature lines, traceability footnote).
+- **i18n**: `statement.staffTitle`, `statement.staffOneRecord`, `statement.openAria` (EN+SW).
+
+---
+
 ## Appendix A · Copy gaps → proposed i18n keys
 
 These keys are referenced above but don't exist in `src/lib/i18n/en.ts` yet. Task 1-b (or frontend with 1-b review) must add them **with Kiswahili twins** (`Record<TranslationKey, string>` enforces parity):

@@ -13,6 +13,9 @@
  * sequencing is deliberate: move-out (exit executed, unit frees) comes first;
  * settle deposit stays the landlord's money decision AFTER the move-out
  * inspection (the server enforces the same order).
+ * Phase 15 (issue #88): rows with a live tenancy (OCCUPIED or NOTICE) carry
+ * the statement opener — the tenant's full payment record from the property
+ * directory, one tap away.
  */
 
 import { Building2, DoorOpen, HandCoins } from "lucide-react";
@@ -22,6 +25,7 @@ import { formatKes } from "@/lib/money";
 import { useUIStore } from "@/lib/ui-store";
 import { useLandlordOverview } from "@/hooks/use-overview";
 import { useUnits } from "@/hooks/use-deposits";
+import { OpenStatementButton } from "@/components/nest/shared/statement-screen";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
 import { ListSkeleton } from "@/components/nest/shared/skeletons";
@@ -135,6 +139,9 @@ function UnitRow({
   const { t } = useI18n();
   const tenancy = unit.tenancy ?? null;
   const canAct = unit.status === "NOTICE" && tenancy != null;
+  // Phase 15 — any live tenancy (occupied or on notice) can show its record.
+  const hasLiveTenancy =
+    (unit.status === "OCCUPIED" || unit.status === "NOTICE") && tenancy != null;
   // Phase 11: an ENDED lease with the deposit still HELD keeps its settle
   // action after the move-out — the money decision survives the exit.
   const endedWithDeposit = tenancy?.tenancyStatus === "ENDED";
@@ -166,6 +173,10 @@ function UnitRow({
             ) : null}
           </p>
         </div>
+        {/* Phase 15 — this tenancy's money story, one tap away */}
+        {hasLiveTenancy && tenancy != null ? (
+          <OpenStatementButton tenancyId={tenancy.id} tenantName={tenancy.tenantName} />
+        ) : null}
         <StatusBadge status={unit.status} className="shrink-0" />
       </div>
       {endedWithDeposit && tenancy ? (

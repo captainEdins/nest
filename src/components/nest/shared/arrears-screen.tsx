@@ -15,6 +15,7 @@ import { formatKes } from "@/lib/money";
 import { useRentScoreList } from "@/hooks/use-overview";
 import { daysSincePeriodDue } from "./format";
 import { ArrearsRow, SendReminderButton } from "./arrears-row";
+import { OpenStatementButton } from "./statement-screen";
 import { RemindAllButton } from "./remind-all";
 import { RentScoreChip } from "./rent-score-chip";
 import { EmptyState } from "./empty-state";
@@ -202,7 +203,15 @@ export function ArrearsScreen({
                         {formatKes(row.balanceMinor)}
                       </TableCell>
                       <TableCell className="text-right">
-                        <SendReminderButton row={row} />
+                        {/* Phase 15 — statement (reconciliation) + reminder
+                         *  (nudge): the two moves a money conversation needs. */}
+                        <div className="flex items-center justify-end gap-1">
+                          <OpenStatementButton
+                            tenancyId={row.tenancyId}
+                            tenantName={row.tenantName}
+                          />
+                          <SendReminderButton row={row} />
+                        </div>
                       </TableCell>
                     </TableRow>
                   );

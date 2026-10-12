@@ -814,6 +814,11 @@ export const sw: Record<TranslationKey, string> = {
   "statement.printFootnote":
     "Kila kiasi kwenye taarifa hii kinatokana na kadi ya deni au malipo yaliyothibitishwa kwenye NEST.",
   "statement.printPaybill": "Lipa kwa M-Pesa · namba ya akaunti {ref}",
+  // Phase 15 — the staff reconciliation view (issue #88).
+  "statement.staffTitle": "Taarifa ya mpangaji",
+  "statement.staffOneRecord":
+    "Hii ni rekodi ileile {name} anayoiona kwenye simu yake — ichape kama uthibitisho kwenye mkutano.",
+  "statement.openAria": "Fungua taarifa ya {name}",
 
   // ----- Rent Score (Phase 6-b, issue #66) -----------------------------------
   "score.title": "Alama ya malipo",

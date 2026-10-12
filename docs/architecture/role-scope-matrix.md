@@ -225,8 +225,10 @@ unmatched queue, deposits/deposit movements (P2), and every dashboard
 
 1. **LANDLORD, AGENT, CARETAKER** may read money data — each strictly limited
    to rows whose property satisfies their scope primitive (§2).
-2. **TENANT** may read money data **only for their own ACTIVE tenancy**
-   (own charges, own payments, own receipts, own deposit, own STK pushes).
+2. **TENANT** may read money data **only for their own live tenancy** —
+   `ACTIVE`, or `NOTICE` through the exit window (Phase 11 money-in; Phase 15
+   statements — own charges, own payments, own receipts, own deposit, own
+   STK pushes, own statement).
 3. **GUARD: none.** A guard session calling any money endpoint is a **403 by
    role**, before any scope evaluation. There is no query parameter, path
    parameter, or payload field that can grant a guard money access.
@@ -254,6 +256,16 @@ unmatched queue, deposits/deposit movements (P2), and every dashboard
    economic figure (§5), and every run lands in `AuditLog`
    (`REMINDERS_BULK_SENT`) with one 30-minute replay window per sender
    (replay → 409).
+8. **Phase 15 (the staff statement read)**: `GET /api/statements?tenancyId=`
+   resolves staff reads inside `tenancyScopeWhere` (LANDLORD/CARETAKER —
+   AGENT/GUARD 403 at the route, money stays out of their lanes). "Live" is
+   `ACTIVE | NOTICE`: a tenant who gave notice keeps their record through the
+   exit window (final-month rent + the deposit conversation are exactly when
+   it matters); ENDED stays out — the exit arc ends at the deposit
+   settlement (§5.2), which has its own screen. The staff SCREEN is the same
+   payload, same components, same print sheet as the tenant view (D-028 —
+   one record, every desk); entry points: arrears rows, caretaker Units
+   rows, landlord Properties rows, and ⌘K TENANT results.
 
 ---
 

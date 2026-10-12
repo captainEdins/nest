@@ -75,6 +75,7 @@ import { ReceiptDetailModal } from "@/components/nest/shared/receipt-detail";
 import { TicketDetailScreen } from "@/components/nest/shared/ticket-detail";
 import { ReportIssueSheet } from "@/components/nest/shared/report-issue-sheet";
 import { DepositDetailScreen } from "@/components/nest/shared/deposit-detail";
+import { StatementScreen } from "@/components/nest/shared/statement-screen";
 import { MoreSheetContent } from "@/components/nest/shared/more-sheet";
 import { SearchPalette } from "@/components/nest/shared/search-palette";
 import { Button } from "@/components/ui/button";
@@ -188,6 +189,7 @@ function Shell({ session }: { session: SessionDto }) {
   const tab = useUIStore((s) => s.tab);
   const pushedScreen = useUIStore((s) => s.pushedScreen);
   const depositTenancyId = useUIStore((s) => s.depositTenancyId);
+  const statementTenancyId = useUIStore((s) => s.statementTenancyId);
   const popScreen = useUIStore((s) => s.popScreen);
   const ticketViewId = useUIStore((s) => s.ticketViewId);
   const listingViewId = useUIStore((s) => s.listingViewId);
@@ -269,6 +271,20 @@ function Shell({ session }: { session: SessionDto }) {
               </div>
               {/* Caretaker (Phase 3) passes the tenancy id; tenant reads /mine. */}
               <DepositDetailScreen tenancyId={role === "CARETAKER" ? (depositTenancyId ?? undefined) : undefined} />
+            </section>
+          ) : pushedScreen === "statement" && statementTenancyId != null && (role === "LANDLORD" || role === "CARETAKER") ? (
+            <section aria-label={t("statement.staffTitle")}>
+              {/* print:hidden — the pushed-screen title is screen furniture;
+               *  the print sheet carries its own letterhead (S-19b). */}
+              <div className="flex items-center gap-2 mb-4 print:hidden">
+                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={popScreen} aria-label={t("common.back")}>
+                  <ArrowLeft aria-hidden />
+                </Button>
+                <h1 className="text-h2 font-semibold">{t("statement.staffTitle")}</h1>
+              </div>
+              {/* Phase 15 — the reconciliation view: the SAME statement the
+               *  tenant sees, printed proof on the spot. */}
+              <StatementScreen tenancyId={statementTenancyId} />
             </section>
           ) : pushedScreen === "shift" && role === "GUARD" ? (
             <section aria-label={t("guard.shiftLog")}>

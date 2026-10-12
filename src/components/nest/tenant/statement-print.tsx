@@ -138,7 +138,9 @@ export function StatementPrintSheet({ data }: { data: StatementDto }) {
                   <span className="tabular-nums">
                     {month.paymentLines.map((payment) => (
                       <span key={payment.paymentId} className="block text-[9px] leading-snug">
-                        {payment.receiptNo ?? `#${payment.paymentId.slice(-6)}`} ·{" "}
+                        {/* paymentId is a number on the wire — stringify before
+                         *  slicing (the receiptless fallback, Phase 15 fix). */}
+                        {payment.receiptNo ?? `#${String(payment.paymentId).slice(-6)}`} ·{" "}
                         {formatKes(payment.allocatedMinor)}
                       </span>
                     ))}
