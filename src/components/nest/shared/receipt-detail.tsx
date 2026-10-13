@@ -123,7 +123,7 @@ export function ReceiptDetailModal() {
         </div>
       ) : receipt ? (
         <div className="space-y-4">
-          <Card className="border border-dashed">
+          <Card className="py-0 gap-0 border border-dashed">
             <CardContent className="p-4 sm:p-6 space-y-3">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="font-bold text-h3">NEST</span>

@@ -94,7 +94,7 @@ function PropertyCard({ property }: { property: PropertyDto }) {
   const occupancyPct =
     property.unitCount > 0 ? Math.round((property.occupiedCount / property.unitCount) * 100) : 0;
   return (
-    <Card>
+    <Card className="py-0 gap-0">
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-center gap-2">
           <Building2 className="size-4 text-muted-foreground" aria-hidden />

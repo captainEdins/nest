@@ -77,7 +77,7 @@ export function GuardHome() {
               Phase 18 (D-031): tinted surface (no left accent bar — the v2
               canvas separates by shadow/tint, not rails). */}
           {activeShift ? (
-            <Card className="bg-success/5 dark:bg-success/10 animate-in fade-in duration-300">
+            <Card className="py-0 gap-0 bg-success/5 dark:bg-success/10 animate-in fade-in duration-300">
               <CardContent className="p-4 sm:p-6 space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <Badge className="border-transparent bg-success text-success-foreground gap-1.5">
@@ -117,7 +117,7 @@ export function GuardHome() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="bg-muted/30 dark:bg-muted/20 animate-in fade-in duration-300">
+            <Card className="py-0 gap-0 bg-muted/30 dark:bg-muted/20 animate-in fade-in duration-300">
               <CardContent className="p-4 sm:p-6 space-y-3">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Clock className="size-5" aria-hidden />
@@ -275,7 +275,7 @@ function GuardHomeSkeleton() {
         <Skeleton className="h-20 rounded-xl" />
         <Skeleton className="h-20 rounded-xl" />
       </div>
-      <Card>
+      <Card className="py-0 gap-0">
         <CardContent className="grid grid-cols-3 divide-x p-0">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-2 p-4">

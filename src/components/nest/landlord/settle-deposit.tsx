@@ -267,7 +267,7 @@ export function SettleDepositModal() {
            *  Phase 11: the warning is now actionable — record the inspection
            *  without leaving the settle flow (InspectionSheet). */}
           {!hasMoveOutReport ? (
-            <Card className="bg-warning/15 dark:bg-warning/10">
+            <Card className="py-0 gap-0 bg-warning/15 dark:bg-warning/10">
               <CardContent className="p-4 space-y-3">
                 <div className="flex items-start gap-2.5">
                   <TriangleAlert className="size-4 text-attention shrink-0 mt-0.5" aria-hidden />

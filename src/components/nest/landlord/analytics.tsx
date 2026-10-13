@@ -76,7 +76,7 @@ export function LandlordAnalyticsScreen() {
           {data.monthly.length > 0 ? (
             <Card
               className={cn(
-                "border-transparent transition-shadow",
+                "py-0 gap-0 border-transparent transition-shadow",
                 data.monthly[data.monthly.length - 1]!.netMinor >= 0
                   ? "bg-success/10 border-success/20"
                   : "bg-attention/10 border-attention/20",
@@ -230,7 +230,7 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
   const ticks = axisMaxMinor > 0 ? [0, Math.round(axisMaxMinor / 2), axisMaxMinor] : [0];
 
   return (
-    <Card>
+    <Card className="py-0 gap-0">
       <CardContent className="p-4 sm:p-6 space-y-3">
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <p className="text-caption text-muted-foreground">{t("analytics.last6Months")}</p>
@@ -415,7 +415,7 @@ function ArrearsAgingChart({ aging }: { aging: ArrearsAgingDto }) {
   );
 
   return (
-    <Card>
+    <Card className="py-0 gap-0">
       <CardContent className="p-4 sm:p-6 space-y-4">
         {AGING_ROWS.map(({ labelKey, bucket, barClass }) => {
           const row = aging[bucket];
@@ -450,7 +450,7 @@ function ArrearsAgingChart({ aging }: { aging: ArrearsAgingDto }) {
 
 function OccupancyChart({ occupancy }: { occupancy: OccupancyRowDto[] }) {
   return (
-    <Card>
+    <Card className="py-0 gap-0">
       <CardContent className="p-4 sm:p-6">
         <div className={cn("grid gap-4 sm:gap-6", occupancy.length > 1 ? "grid-cols-2" : "grid-cols-1")}>
           {occupancy.map((property) => (
@@ -558,7 +558,7 @@ function OccupancyDonut({ occupied, total, pct }: { occupied: number; total: num
 function AnalyticsSkeleton() {
   return (
     <div className="space-y-4 sm:space-y-6" aria-busy="true">
-      <Card>
+      <Card className="py-0 gap-0">
         <CardContent className="p-4 sm:p-6 space-y-4">
           <Skeleton className="h-4 w-32" />
           <div className="flex items-end gap-2 h-40" aria-hidden="true">
@@ -573,7 +573,7 @@ function AnalyticsSkeleton() {
         </CardContent>
       </Card>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-        <Card>
+        <Card className="py-0 gap-0">
           <CardContent className="p-4 sm:p-6 space-y-4" aria-hidden="true">
             <Skeleton className="h-4 w-28" />
             {Array.from({ length: 4 }).map((_, i) => (
@@ -587,7 +587,7 @@ function AnalyticsSkeleton() {
             ))}
           </CardContent>
         </Card>
-        <Card>
+        <Card className="py-0 gap-0">
           <CardContent
             className="p-4 sm:p-6 flex flex-col items-center gap-3"
             aria-hidden="true"

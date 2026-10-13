@@ -169,7 +169,7 @@ export function LoginScreen() {
             return (
               // Phase 18 (D-031): tactile press feedback on the identity
               // cards — hover lift (D-029) + active settle.
-              <Card key={profile.id} className="transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]">
+              <Card key={profile.id} className="py-0 gap-0 transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]">
                 <CardContent className="p-0">
                   <button
                     type="button"

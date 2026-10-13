@@ -297,7 +297,7 @@ export function TicketDetailScreen({ ticketId }: { ticketId: string }) {
       </div>
 
       {/* Description */}
-      <Card>
+      <Card className="py-0 gap-0">
         <CardContent className="p-4 sm:p-6">
           <p className="text-body whitespace-pre-wrap break-words">{ticket.description}</p>
         </CardContent>
@@ -307,7 +307,7 @@ export function TicketDetailScreen({ ticketId }: { ticketId: string }) {
       {ticket.updates.length > 0 ? (
         <section aria-label={t("repairs.timeline")}>
           <SectionHeader title={t("repairs.timeline")} count={ticket.updates.length} className="mb-3" />
-          <Card>
+          <Card className="py-0 gap-0">
             <CardContent className="p-4 sm:p-6">
               <ol className="relative">
                 <span aria-hidden className="absolute left-[5px] top-2 bottom-2 w-0.5 rounded bg-border" />
@@ -425,7 +425,7 @@ function TicketActionBar({ ticket }: { ticket: TicketDto }) {
   if (!hasAnyAction && !composerAllowed) return null;
 
   return (
-    <Card>
+    <Card className="py-0 gap-0">
       <CardContent className="p-4 sm:p-6 space-y-3">
         {hasAnyAction ? (
           <div className="flex gap-2 flex-wrap">
@@ -551,7 +551,7 @@ function TicketDetailSkeleton() {
         <Skeleton className="h-5 w-1/2" />
         <Skeleton className="h-4 w-2/3" />
       </div>
-      <Card>
+      <Card className="py-0 gap-0">
         <CardContent className="p-4 sm:p-6 space-y-2">
           <Skeleton className="h-4 w-full" />
           <Skeleton className="h-4 w-5/6" />
@@ -560,7 +560,7 @@ function TicketDetailSkeleton() {
       </Card>
       <div className="space-y-3">
         <Skeleton className="h-6 w-24" />
-        <Card>
+        <Card className="py-0 gap-0">
           <CardContent className="p-4 sm:p-6 space-y-4">
             <Skeleton className="h-4 w-1/3" />
             <Skeleton className="h-4 w-full" />

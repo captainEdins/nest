@@ -102,7 +102,7 @@ export function TenantHome() {
       ) : (
         <>
           {/* Hero */}
-          <Card>
+          <Card className="py-0 gap-0">
             <CardContent className="p-4 sm:p-6">
               <p className="text-caption text-muted-foreground uppercase tracking-wide truncate">
                 {tenancy.propertyName} · {tenancy.propertyLocation}
@@ -311,7 +311,7 @@ export function TenantHome() {
               onAction={() => setTab("statement")}
               className="mb-3"
             />
-            <Card>
+            <Card className="py-0 gap-0">
               <CardContent className="p-0">
                 <Accordion type="single" collapsible defaultValue={periods[0]}>
                   {periods.map((period) => {

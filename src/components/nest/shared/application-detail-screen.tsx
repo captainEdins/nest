@@ -127,7 +127,7 @@ export function ApplicationDetailScreen({ applicationId }: { applicationId: stri
       {/* Timeline — the append-only trust record (oldest first) */}
       <section aria-label={t("agent.timeline")}>
         <SectionHeader title={t("agent.timeline")} count={application.events.length} className="mb-3" />
-        <Card>
+        <Card className="py-0 gap-0">
           <CardContent className="p-4 sm:p-6">
             <ol className="relative">
               <span aria-hidden className="absolute left-[5px] top-2 bottom-2 w-0.5 rounded bg-border" />
@@ -162,7 +162,7 @@ function MoveInCard({ application }: { application: ListingApplicationDto }) {
   if (role !== "LANDLORD" || application.status !== "APPROVED") return null;
 
   return (
-    <Card className="bg-success/10 dark:bg-success/10 animate-in fade-in duration-300">
+    <Card className="py-0 gap-0 bg-success/10 dark:bg-success/10 animate-in fade-in duration-300">
       <CardContent className="p-4 sm:p-6 space-y-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-success/15 text-success">
@@ -201,7 +201,7 @@ function ConvertedSummary({ application }: { application: ListingApplicationDto 
   const accountRef = convertedEvent.note?.match(/NEST-[A-Z0-9]+-\d+/)?.[0];
 
   return (
-    <Card className="bg-primary/10 dark:bg-primary/10 animate-in fade-in duration-300">
+    <Card className="py-0 gap-0 bg-primary/10 dark:bg-primary/10 animate-in fade-in duration-300">
       <CardContent className="p-4 sm:p-6 space-y-2">
         <div className="flex items-center gap-2 min-w-0">
           <CheckCircle2 className="size-4.5 text-primary shrink-0" aria-hidden />
@@ -324,7 +324,7 @@ function ApplicationActions({ application }: { application: ListingApplicationDt
       { status: "WITHDRAWN", label: t("applicant.withdraw"), variant: "outline" },
     ];
     return (
-      <Card>
+      <Card className="py-0 gap-0">
         <CardContent className="p-4 sm:p-6 space-y-3">
           <p className="text-label font-medium text-muted-foreground">{t("applicant.moveTo")}</p>
           <div className="flex gap-2 flex-wrap">
@@ -361,7 +361,7 @@ function ApplicationActions({ application }: { application: ListingApplicationDt
 
   // LANDLORD — the decision of record, behind a confirm + optional note.
   return (
-    <Card>
+    <Card className="py-0 gap-0">
       <CardContent className="p-4 sm:p-6 flex gap-2 flex-wrap">
         <DecisionDialog
           application={application}
@@ -506,7 +506,7 @@ function ApplicationDetailSkeleton() {
       <Skeleton className="h-4 w-5/6" />
       <div className="space-y-3">
         <Skeleton className="h-6 w-24" />
-        <Card>
+        <Card className="py-0 gap-0">
           <CardContent className="p-4 sm:p-6 space-y-5">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="flex gap-3">
