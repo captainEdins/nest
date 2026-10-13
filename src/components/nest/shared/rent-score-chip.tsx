@@ -9,6 +9,12 @@
  * Phase 18 (D-031): pastel-tint treatment (matches StatusBadge) — the old
  * neutral outline read as an empty/broken container on the warm canvas
  * (two independent design audits mis-filed it as a rendering failure).
+ *
+ * Phase 20 (issue #98): `text-caption/90` was a leading-modifier footgun —
+ * `--text-caption` is a Tailwind v4 font-size token, so the slash suffix set
+ * line-height to 90 × 0.25rem = 360px (chip 366px tall, every arrears table
+ * row 387px). NEVER use `text-{custom-size}/N` for opacity; only colour
+ * tokens take the slash. De-emphasis now uses the opacity utility.
  */
 
 import { useI18n } from "@/lib/i18n";
@@ -43,7 +49,7 @@ export function RentScoreChip({
       title={`${t("score.title")}: ${score} ${t("score.ofMax")}`}
     >
       <span className="text-caption font-semibold">{score}</span>
-      <span className="text-caption/90 hidden min-[420px]:inline">
+      <span className="text-caption opacity-90 hidden min-[420px]:inline">
         {t(scoreBandKey(band))}
       </span>
     </span>

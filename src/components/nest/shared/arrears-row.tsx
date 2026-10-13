@@ -7,6 +7,8 @@
  * own card shows, so "who usually pays" is data, not gossip.
  * Phase 15: per-row statement opener — the reconciliation view is one tap
  * from the arrears list (the money conversation starts where the debt is).
+ * Phase 20 (issue #98): months-behind lives under the amount — never the
+ * truncated tail of the caption line.
  */
 
 import * as React from "react";
@@ -90,13 +92,20 @@ export function ArrearsRow({
             {score != null && band != null ? <RentScoreChip score={score} band={band} /> : null}
           </p>
           <p className="text-caption text-muted-foreground truncate">
-            {row.unitLabel} · {row.propertyName} · {monthsLabel}
+            {row.unitLabel} · {row.propertyName}
           </p>
         </div>
-        <p className="text-attention font-semibold tabular-nums flex items-center gap-1 shrink-0">
-          <TriangleAlert className="size-3.5" aria-hidden />
-          {formatKes(row.balanceMinor)}
-        </p>
+        {/* Phase 20 (issue #98) — the debt block: how much (amber, money)
+            stacked over how long (muted, never truncated). The old layout
+            put monthsLabel at the END of the truncated caption line, so the
+            urgency fact was the item most often cut ("1 month beh…"). */}
+        <div className="shrink-0 text-right">
+          <p className="text-attention font-bold tabular-nums flex items-center justify-end gap-1">
+            <TriangleAlert className="size-3.5" aria-hidden />
+            {formatKes(row.balanceMinor)}
+          </p>
+          <p className="text-caption text-muted-foreground mt-0.5">{monthsLabel}</p>
+        </div>
       </div>
       <div className="mt-2 flex justify-end gap-1">
         <OpenStatementButton tenancyId={row.tenancyId} tenantName={row.tenantName} />
