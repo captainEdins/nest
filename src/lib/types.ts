@@ -519,11 +519,38 @@ export interface AgentOverviewDto {
     liveListings: number
     newApplications: number
     activeApplications: number
+    /**
+     * Phase 23 (issue #109 — agent parity): the landlord-grade money block,
+     * scoped to `Properties WHERE agentId = SELF`. Same definitions as
+     * LandlordOverviewDto (src/lib/overview.ts `computeMoneyRollup`) — one
+     * computation, two desks.
+     */
+    occupied: number
+    monthExpectedMinor: number
+    monthCollectedMinor: number
+    /** Matched money that landed LAST calendar month — MoM KPI delta. */
+    monthCollectedPrevMinor: number
+    /** Payments received since midnight today (all sources). */
+    todayCollectedMinor: number
+    collectionRatePct: number
+    arrearsMinor: number
+    arrearsTenantCount: number
+    unmatchedPayments: number
+    /** OPEN + IN_PROGRESS maintenance tickets across managed properties. */
+    openTickets: number
   }
+  /** Phase 23: arrears rows (biggest debt first) — feeds the shared ArrearsScreen. */
+  arrears: ArrearsRowDto[]
+  /** Phase 23: the 5 most recent scoped payments — home preview. */
+  recentPayments: PaymentDto[]
   /** Vacant units with no live listing yet (create-listing candidates). */
   unlistedVacantUnits: { id: string; label: string; propertyName: string; rentAmountMinor: number }[]
   /** Live listings preview (PUBLISHED), newest first. */
   liveListings: ListingDto[]
+  /** Phase 23: eyes on the ground — visitor/incident digest (scoped). */
+  security: SecurityDigestDto
+  /** "YYYY-MM" the money numbers refer to. */
+  month: string
 }
 
 export interface GuardOverviewDto {

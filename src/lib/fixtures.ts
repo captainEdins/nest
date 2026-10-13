@@ -901,9 +901,27 @@ function agentOverview(): AgentOverviewDto {
       liveListings: 1,
       newApplications: 1,
       activeApplications: 3,
+      // Phase 23 (issue #109 — agent parity): the money block, same numbers
+      // as the landlord fixture (one record, two desks).
+      occupied: t.occupied,
+      monthExpectedMinor: t.monthExpected,
+      monthCollectedMinor: t.monthCollected,
+      monthCollectedPrevMinor: t.monthCollectedPrev,
+      todayCollectedMinor: t.todayCollected,
+      collectionRatePct: t.monthExpected > 0 ? Math.round((t.monthCollected / t.monthExpected) * 100) : 0,
+      arrearsMinor: t.arrearsMinor,
+      arrearsTenantCount: t.arrearsTenantCount,
+      unmatchedPayments: t.unmatched,
+      openTickets: 2,
     },
+    arrears: arrearsRows(),
+    recentPayments: PAYMENTS.filter((p) => p.status === "COMPLETED")
+      .sort((a, b) => (a.receivedAt < b.receivedAt ? 1 : -1))
+      .slice(0, 5),
     unlistedVacantUnits: [], // the demo's only vacant unit (B3) is listed
     liveListings: [B3_LISTING],
+    security: securityDigest(),
+    month: CUR,
   }
 }
 

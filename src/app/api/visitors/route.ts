@@ -70,9 +70,9 @@ const logVisitorSchema = z.object({
 
 export async function GET() {
   try {
-    // requireRole (not bare requireProfile) so AGENT gets a real 403 instead
-    // of a silently-empty 200 — the register is operations data.
-    const profile = await requireRole("GUARD", "LANDLORD", "CARETAKER", "TENANT")
+    // Phase 23 (issue #109): AGENT admitted — the appointed manager reads
+    // the register scoped to managed plots (visitorLogScopeWhere handles it).
+    const profile = await requireRole("GUARD", "LANDLORD", "CARETAKER", "TENANT", "AGENT")
 
     // TENANT reads are clipped to the 7-day window; every other admitted
     // role sees the full register (capped at 100 rows).

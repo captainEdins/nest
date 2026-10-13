@@ -1,7 +1,8 @@
 /**
  * NEST — POST /api/payments/unmatched/match  (Task 2-a, issue #10)
  *
- * Match an UNMATCHED payment to a tenancy. LANDLORD / CARETAKER only —
+ * Match an UNMATCHED payment to a tenancy. LANDLORD / CARETAKER / AGENT
+ * (Phase 23, issue #109 — agent parity) —
  * matrix §5.4 money writes (§4.2 + §6: agent match is an explicit 403
  * adversarial probe in Phase 1; deferred to Phase 4 with its own ACs).
  *
@@ -32,8 +33,8 @@ const matchSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    // Phase 1 money writes: LANDLORD + CARETAKER only (matrix §5.4/§6).
-    const profile = await requireRole("LANDLORD", "CARETAKER")
+    // Phase 1 money writes; Phase 23: AGENT joins (matrix §5.4/§6).
+    const profile = await requireRole("LANDLORD", "CARETAKER", "AGENT")
     const body = await parseJsonBody(request, matchSchema)
 
     // Target tenancy must be in the actor's scope chain (matrix §4.1/§4.3).
