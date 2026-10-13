@@ -119,7 +119,7 @@ export function AgentHome() {
                       ? Math.round((property.occupiedCount / property.unitCount) * 100)
                       : 0;
                   return (
-                    <Card key={property.id}>
+                    <Card className="py-0 gap-0" key={property.id}>
                       <CardContent className="p-4 sm:p-6">
                         <p className="text-h3 font-semibold truncate">{property.name}</p>
                         <p className="text-caption text-muted-foreground truncate">
@@ -179,7 +179,7 @@ function FunnelCard({
         )}`}
         className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
       >
-        <Card className="animate-in fade-in duration-300">
+        <Card className="py-0 gap-0 animate-in fade-in duration-300">
           <CardContent className="p-4 sm:p-6 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
@@ -225,7 +225,7 @@ function FunnelCard({
   //    (Phase 18 D-031: tinted surface, no left rail — v2 canvas).
   if (unlistedCount > 0) {
     return (
-      <Card className="bg-warning/10 dark:bg-warning/10 animate-in fade-in duration-300">
+      <Card className="py-0 gap-0 bg-warning/10 dark:bg-warning/10 animate-in fade-in duration-300">
         <CardContent className="p-4 sm:p-6 space-y-3">
           <p className="text-label font-medium text-muted-foreground">
             {t("agent.funnelCardTitle")}
@@ -242,7 +242,7 @@ function FunnelCard({
 
   // 3. Nothing vacant — the portfolio is full (the quiet success state).
   return (
-    <Card className="bg-muted/30 dark:bg-muted/20 animate-in fade-in duration-300">
+    <Card className="py-0 gap-0 bg-muted/30 dark:bg-muted/20 animate-in fade-in duration-300">
       <CardContent className="p-4 sm:p-6 flex items-center gap-3 text-muted-foreground">
         <CheckCircle2 className="size-5 text-success shrink-0" aria-hidden />
         <p className="text-body">{t("agent.emptyVacancies")}</p>

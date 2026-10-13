@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 
 export function KpiSkeleton({ className }: { className?: string }) {
   return (
-    <Card className={className}>
+    <Card className={cn("py-0 gap-0", className)}>
       <CardContent className="p-4 sm:p-6 space-y-3">
         <Skeleton className="h-4 w-2/3" />
         <Skeleton className="h-8 w-1/2" />
@@ -20,7 +20,7 @@ export function KpiSkeleton({ className }: { className?: string }) {
 
 export function HeroSkeleton({ className }: { className?: string }) {
   return (
-    <Card className={className}>
+    <Card className={cn("py-0 gap-0", className)}>
       <CardContent className="p-4 sm:p-6 space-y-4">
         <Skeleton className="h-4 w-1/3" />
         <Skeleton className="h-9 w-1/2" />
@@ -91,7 +91,7 @@ export function RoleSelectSkeleton() {
       <Skeleton className="h-8 w-64 mt-6" />
       <div className="w-full space-y-4 mt-8">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Card key={i}>
+          <Card className="py-0 gap-0" key={i}>
             <CardContent className="p-4 flex items-center gap-4">
               <Skeleton className="size-10 rounded-full shrink-0" />
               <div className="space-y-2 flex-1">

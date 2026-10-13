@@ -128,7 +128,7 @@ export function LandlordKraScreen() {
               CSV parity). Horizontal scroll wrapper as a safety net. */}
           <section aria-label={t("kra.monthlyTitle")}>
             <SectionHeader title={t("kra.monthlyTitle")} className="mb-3" />
-            <Card>
+            <Card className="py-0 gap-0">
               <CardContent className="p-4 sm:p-6 overflow-x-auto">
                 <table className="w-full">
                   <caption className="sr-only">
@@ -185,7 +185,7 @@ export function LandlordKraScreen() {
 
           {/* MRI estimate — the headline number of the regime. */}
           <section aria-label={t("kra.mriEstimate")}>
-            <Card>
+            <Card className="py-0 gap-0">
               <CardContent className="p-4 sm:p-6 space-y-2">
                 <p className="text-label font-medium text-muted-foreground">
                   {t("kra.mriEstimate")}
@@ -223,7 +223,7 @@ export function LandlordKraScreen() {
 function KraSkeleton() {
   return (
     <div className="space-y-4 sm:space-y-6" aria-busy="true">
-      <Card>
+      <Card className="py-0 gap-0">
         <CardContent className="p-4 sm:p-6 overflow-x-auto" aria-hidden="true">
           <Skeleton className="h-3.5 w-40 mb-3" />
           <Skeleton className="h-3 w-full mb-2" />
@@ -239,7 +239,7 @@ function KraSkeleton() {
           <Skeleton className="h-4 w-full mt-2" />
         </CardContent>
       </Card>
-      <Card>
+      <Card className="py-0 gap-0">
         <CardContent className="p-4 sm:p-6 space-y-2.5" aria-hidden="true">
           <Skeleton className="h-3.5 w-36" />
           <Skeleton className="h-8 w-40" />

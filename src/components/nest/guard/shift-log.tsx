@@ -69,7 +69,7 @@ function ActiveShiftCard({ shift, onEndShift }: { shift: GuardShiftDto; onEndShi
   const duration = useDurationTicker(shift.startedAt);
 
   return (
-    <Card className="border-l-4 border-l-success bg-success/5 dark:bg-success/10 animate-in fade-in duration-300">
+    <Card className="py-0 gap-0 border-l-4 border-l-success bg-success/5 dark:bg-success/10 animate-in fade-in duration-300">
       <CardContent className="p-4 sm:p-6 space-y-3">
         <Badge className="border-transparent bg-success text-success-foreground gap-1.5 w-fit">
           <span aria-hidden className="size-1.5 rounded-full bg-current animate-pulse" />

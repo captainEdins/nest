@@ -128,7 +128,7 @@ export function StatementMonthsTimeline({ months }: { months: StatementMonthDto[
             <span className="absolute left-0 top-4">
               <MonthNode month={month} />
             </span>
-            <Card>
+            <Card className="py-0 gap-0">
               <CardContent className="p-4 sm:p-5">
                 {/* Month head */}
                 <div className="flex items-baseline justify-between gap-3">
@@ -291,7 +291,7 @@ export function StatementScreen({ tenancyId }: { tenancyId: string }) {
         </div>
 
         {/* Who this record belongs to — the meeting's other party */}
-        <Card className="border-l-4 border-l-primary">
+        <Card className="py-0 gap-0 border-l-4 border-l-primary">
           <CardContent className="p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
             <div
               className="size-11 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0"

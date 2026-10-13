@@ -81,7 +81,12 @@ export function KpiCard({
   return (
     <Card
       className={cn(
-        "transition-shadow",
+        // Phase 19 (D-032, rhythm pass): a KPI card is a FLAT card — the
+        // CardContent's p-4 sm:p-6 is the whole padding (design-system §5);
+        // the Card base's py-6 gap-6 stays reserved for sectioned cards.
+        // h-full fills the grid cell / the clickable KpiButton wrapper so
+        // every card in a row shares one bottom edge.
+        "transition-shadow py-0 gap-0 h-full",
         highlight &&
           "relative overflow-hidden border-transparent bg-primary nest-card-shadow nest-hero-surface",
         className,
@@ -114,13 +119,21 @@ export function KpiCard({
             {label}
           </p>
           {/* The reference's KPI anatomy: a sparkline REPLACES the icon tile
-           * when a trend series exists — direction lives beside the number. */}
+           * when a trend series exists — direction lives beside the number.
+           * Phase 19: the tile's tint FOLLOWS the card's tone so the icon
+           * never contradicts the number it sits above (arrears = amber). */}
           {!sparkline && Icon ? (
             <span
               aria-hidden
               className={cn(
                 "size-8 shrink-0 flex items-center justify-center rounded-full",
-                highlight ? "bg-primary-foreground/15 text-primary-foreground" : "bg-primary/10 text-primary",
+                highlight
+                  ? "bg-primary-foreground/15 text-primary-foreground"
+                  : tone === "amber"
+                    ? "bg-attention/10 text-attention"
+                    : tone === "success"
+                      ? "bg-success/10 text-success"
+                      : "bg-primary/10 text-primary",
               )}
             >
               <Icon className="size-4" />

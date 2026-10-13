@@ -41,7 +41,7 @@ export function SecurityCard({ security }: { security: SecurityDigestDto }) {
       })}`}
       className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
     >
-      <Card>
+      <Card className="py-0 gap-0">
         <CardContent className="p-4 sm:p-6 space-y-3">
           <div className="flex items-center gap-2">
             <Shield className="size-4 text-muted-foreground shrink-0" aria-hidden />

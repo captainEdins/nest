@@ -119,7 +119,7 @@ export function DepositDetailScreen({ tenancyId }: { tenancyId?: string }) {
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Hero — the number the tenant cares about */}
-      <Card>
+      <Card className="py-0 gap-0">
         <CardContent className="p-4 sm:p-6">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
@@ -145,7 +145,7 @@ export function DepositDetailScreen({ tenancyId }: { tenancyId?: string }) {
       <section aria-label={t("deposit.movements")}>
         <SectionHeader title={t("deposit.movements")} count={deposit.movements.length} className="mb-3" />
         {deposit.movements.length > 0 ? (
-          <Card>
+          <Card className="py-0 gap-0">
             <CardContent className="p-4 sm:p-6">
               <MovementsTimeline movements={deposit.movements} />
             </CardContent>
@@ -169,7 +169,7 @@ export function DepositDetailScreen({ tenancyId }: { tenancyId?: string }) {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {deposit.conditionReports.map((report) => (
-              <Card key={report.id} className="animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both">
+              <Card key={report.id} className="py-0 gap-0 animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both">
                 <CardContent className="p-4 space-y-1.5">
                   <div className="flex items-center gap-2">
                     {report.kind === "MOVE_IN" ? (

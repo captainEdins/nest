@@ -312,7 +312,7 @@ function IncidentCard({ incident }: { incident: IncidentReportDto }) {
   return (
     <Card
       className={cn(
-        "border-l-4 animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both",
+        "py-0 gap-0 border-l-4 animate-in fade-in slide-in-from-bottom-2 duration-300 fill-mode-both",
         style.border,
       )}
     >
@@ -408,7 +408,7 @@ function AcknowledgeButton({ incident }: { incident: IncidentReportDto }) {
 
 function IncidentCardSkeleton() {
   return (
-    <Card className="border-l-4 border-l-muted">
+    <Card className="py-0 gap-0 border-l-4 border-l-muted">
       <CardContent className="p-4 space-y-2.5">
         <div className="flex gap-2 items-center">
           <Skeleton className="h-6 w-16 rounded-md" />
@@ -439,7 +439,7 @@ function ShiftsSegment({ query }: { query: UseQueryResult<GuardShiftDto[]> }) {
   if (query.isPending) {
     return (
       <div className="space-y-4" aria-busy>
-        <Card>
+        <Card className="py-0 gap-0">
           <CardContent className="p-4 flex items-center gap-3">
             <Skeleton className="size-3 rounded-full" />
             <div className="space-y-2 flex-1">
@@ -464,7 +464,7 @@ function ShiftsSegment({ query }: { query: UseQueryResult<GuardShiftDto[]> }) {
     <div className="space-y-4 sm:space-y-6">
       {/* On duty now — live dot */}
       {active != null ? (
-        <Card className="animate-in fade-in duration-300 fill-mode-both">
+        <Card className="py-0 gap-0 animate-in fade-in duration-300 fill-mode-both">
           <CardContent className="p-4 flex items-center gap-3">
             <span className="relative flex size-2.5 shrink-0" aria-hidden>
               <span className="absolute inline-flex size-full rounded-full bg-success opacity-60 animate-ping" />
@@ -484,7 +484,7 @@ function ShiftsSegment({ query }: { query: UseQueryResult<GuardShiftDto[]> }) {
           </CardContent>
         </Card>
       ) : (
-        <Card>
+        <Card className="py-0 gap-0">
           <CardContent className="p-4 flex items-center gap-2.5 text-muted-foreground">
             <MoonStar className="size-4 shrink-0" aria-hidden />
             <p className="text-body">{t("security.noGuardOnDuty")}</p>

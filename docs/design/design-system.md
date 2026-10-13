@@ -79,6 +79,17 @@ Body sets `font-family: var(--font-poppins)`. `--radius: 0.625rem` is already co
 > illustration on the caretaker panel (mobile vertical space is data space),
 > a per-role illustration set.
 
+> **D-032 (Phase 19, the rhythm pass)**: the Card base's `py-6 gap-6` is for
+> SECTIONED cards only (CardHeader/Content/Footer) — every FLAT card
+> (single CardContent, or content-managed `p-0` rows) now zeroes it:
+> `className="py-0 gap-0"` so the §5 rule "Card padding `p-4` → `sm:p-6`"
+> is the TOTAL, symmetric (the pre-fix stack measured 40/48px vertical vs
+> 16/24px horizontal — a 2:1 asymmetry on 63 sites). `KpiCard` additionally
+> carries `h-full`: a KPI wrapped in a clickable (KpiButton / raw button)
+> fills its grid ROW exactly — one bottom edge per row, no dead zones.
+> KPI icon tiles follow the card's tone (amber cards wear amber tiles —
+> the arrears icon must never sit green above an amber number).
+
 | Token | Value | Primary use |
 |---|---|---|
 | `--background` | `oklch(0.98 0.007 96)` | Page background (warm cream, #F9F7F2 family) |
@@ -233,7 +244,7 @@ Computed OKLCH→sRGB→WCAG ratios; QA re-verifies via the token contrast check
 
 | Concern | Rule |
 |---|---|
-| Card padding | `p-4` mobile → `sm:p-6` desktop |
+| Card padding | `p-4` mobile → `sm:p-6` desktop — **the TOTAL** (D-032: flat cards zero the Card base's `py-6 gap-6` via `py-0 gap-0`; only sectioned cards keep the base rhythm) |
 | Grid/list gaps | `gap-4` → `sm:gap-6` |
 | Screen padding | `px-4` → `sm:px-6` → `lg:px-8`; content `max-w-7xl mx-auto` |
 | Section spacing | `space-y-4` mobile → `sm:space-y-6` |
@@ -315,6 +326,7 @@ All icon-only buttons: `h-11 w-11` (44px target) with `sr-only` labels. The offl
 - **Table only ≥sm.** The same data renders as stacked cards on mobile (one list component, two presentations — never a horizontally-scrolling table).
 - **Table headers are uppercase micro-labels** (D-031, global in `ui/table.tsx`): `text-[0.6875rem] uppercase tracking-[0.08em] font-semibold text-muted-foreground h-11`; cells `px-3 py-2.5` — tables read as data sheets, rows breathe like cards.
 - **Lists are TIGHT lists** (D-031): `<Card className="divide-y gap-0 py-0">` — rows carry their own `p-4`, hairline dividers sit BETWEEN rows (the Card base's `gap-6 py-6` is for sectioned content cards like forms/summaries only, never row lists).
+- **Flat cards zero the base rhythm** (D-032): any single-CardContent card (stat cards, detail panels, `p-0` content-managed rows) sets `py-0 gap-0` on the Card root — the content's own padding is the whole card, symmetric per §5. `KpiCard` additionally carries `h-full` so click-wrapped KPIs fill their grid row (one bottom edge per row).
 - **Quick actions are action tiles** (D-031): `rounded-xl h-20` (≥44px targets), icon in a tinted rounded-lg container (`bg-primary/10 text-primary`, or `bg-primary-foreground/15` on the solid tile), label `text-caption/text-label font-semibold`, hover `-translate-y-0.5` + active `scale-[0.97]`. The ONE solid-primary tile per desk is the money-in action (caretaker Record cash, guard Log visitor); the guard's report-incident tile wears the amber tint (`bg-warning/15 text-attention`) — never red.
 - **Urgency is a tint, never a rail** (D-031): `border-l-4 border-l-*` accent cards are retired; on-duty = `bg-success/5`, needs-listing = `bg-warning/10`, quiet = `bg-muted/30`.
 - **Aging-bucket urgency** (D-031): the DEEPEST non-empty arrears bucket carries `bg-warning/10` + amber values — urgency lives where the oldest debt actually is.

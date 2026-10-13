@@ -57,7 +57,7 @@ export function RentScoreCard({
 
   if (isPending || !data) {
     return (
-      <Card aria-busy>
+      <Card className="py-0 gap-0" aria-busy>
         <CardContent className="p-4 sm:p-6">
           <HeroSkeleton className="h-32" />
         </CardContent>
@@ -70,7 +70,7 @@ export function RentScoreCard({
   const dashOffset = RING_CIRCUMFERENCE * (1 - progress);
 
   return (
-    <Card>
+    <Card className="py-0 gap-0">
       <CardContent className="p-4 sm:p-6">
         {/* Head: score ring + band */}
         <div className="flex items-center gap-5">

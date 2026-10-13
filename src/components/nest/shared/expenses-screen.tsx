@@ -177,7 +177,7 @@ export function ExpensesScreen() {
                 }
               />
             ) : (
-              <Card>
+              <Card className="py-0 gap-0">
                 <CardContent className="p-4 sm:p-6">
                   <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] leading-5 text-muted-foreground">
                     {t("expenses.month")}
@@ -433,14 +433,14 @@ function ExpensesSkeleton() {
   return (
     <div className="space-y-4 sm:space-y-6" aria-busy="true">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <Card>
+        <Card className="py-0 gap-0">
           <CardContent className="p-4 sm:p-6 space-y-3" aria-hidden="true">
             <Skeleton className="h-3.5 w-24" />
             <Skeleton className="h-8 w-36" />
             <Skeleton className="h-3 w-28" />
           </CardContent>
         </Card>
-        <Card>
+        <Card className="py-0 gap-0">
           <CardContent className="p-4 sm:p-6 space-y-3" aria-hidden="true">
             <Skeleton className="h-3.5 w-20" />
             <Skeleton className="h-8 w-40" />

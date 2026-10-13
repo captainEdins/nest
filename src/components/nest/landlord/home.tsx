@@ -164,10 +164,12 @@ export function LandlordHome() {
                   </span>
                 }
               />
-              {/* KPI 3 — occupancy */}
+              {/* KPI 3 — occupancy (Phase 19: Building2 icon — every KPI in the
+               * quad now carries the same icon anatomy). */}
               <KpiCard
                 label={t("landlord.occupancyRate")}
                 value={`${totals.occupancyRatePct}%`}
+                icon={Building2}
                 progressPct={totals.occupancyRatePct}
                 sub={t("common.ofUnits", { occupied: totals.occupied, total: totals.units })}
               />
@@ -354,7 +356,7 @@ function MiniTrendCard({ monthly }: { monthly: AnalyticsMonthDto[] }) {
   const last = monthly[monthly.length - 1]!;
 
   return (
-    <Card>
+    <Card className="py-0 gap-0">
       <CardContent className="p-4 sm:p-5 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
@@ -520,7 +522,7 @@ function VacancyFunnelCard() {
         aria-label={`${t("agent.funnelCardTitle")} — ${t("agent.pendingDecisions", { count: pending.length })}`}
         className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
       >
-        <Card className="border-l-4 border-l-warning/70 bg-warning/15 dark:bg-warning/10">
+        <Card className="py-0 gap-0 border-l-4 border-l-warning/70 bg-warning/15 dark:bg-warning/10">
           <CardContent className="p-4 sm:p-6 space-y-2.5">
             <div className="flex items-center gap-2 min-w-0">
               <Megaphone className="size-4 text-attention shrink-0" aria-hidden />
@@ -570,7 +572,7 @@ function VacancyFunnelCard() {
         })}`}
         className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
       >
-        <Card className="border-l-4 border-l-success/70 bg-success/10 dark:bg-success/10">
+        <Card className="py-0 gap-0 border-l-4 border-l-success/70 bg-success/10 dark:bg-success/10">
           <CardContent className="p-4 sm:p-6 space-y-2.5">
             <div className="flex items-center gap-2 min-w-0">
               <CheckCircle2 className="size-4 text-success shrink-0" aria-hidden />
@@ -606,7 +608,7 @@ function VacancyFunnelCard() {
         aria-label={`${t("agent.funnelCardTitle")} — ${primary.unitLabel}. ${formatKes(primary.rentAmountMinor)}`}
         className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
       >
-        <Card>
+        <Card className="py-0 gap-0">
           <CardContent className="p-4 sm:p-6 space-y-2.5">
             <div className="flex items-center gap-2 min-w-0">
               <Megaphone className="size-4 text-muted-foreground shrink-0" aria-hidden />
@@ -640,7 +642,7 @@ function VacancyFunnelCard() {
       aria-label={`${t("agent.funnelCardTitle")} — ${t("landlord.funnelAllLet")}`}
       className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
     >
-      <Card className="bg-muted/40">
+      <Card className="py-0 gap-0 bg-muted/40">
         <CardContent className="p-4 flex items-center gap-2.5 text-muted-foreground">
           <Megaphone className="size-5 shrink-0" aria-hidden />
           <p className="text-body flex-1 min-w-0 truncate">{t("landlord.funnelAllLet")}</p>
@@ -670,7 +672,7 @@ function PropertyCard({ property }: { property: PropertyDto }) {
   const { t } = useI18n();
   const vacant = property.unitCount - property.occupiedCount;
   return (
-    <Card>
+    <Card className="py-0 gap-0">
       <CardContent className="p-4 sm:p-6">
         <div className="flex items-center gap-3 min-w-0">
           {/* Letter tile — the reference's rounded-square property avatar. */}

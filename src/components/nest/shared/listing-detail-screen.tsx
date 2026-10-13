@@ -124,7 +124,7 @@ function ListingActions({
 
   if (status === "LET") {
     return (
-      <Card className="bg-muted/40">
+      <Card className="py-0 gap-0 bg-muted/40">
         <CardContent className="p-4 flex items-center gap-2.5 text-muted-foreground">
           <CheckCircle2 className="size-5 shrink-0" aria-hidden />
           <p className="text-body">{t("agent.letDone")}</p>
