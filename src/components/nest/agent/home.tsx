@@ -6,6 +6,9 @@
  * vacancy-funnel hero (the live listing, or the create-listing CTA when a
  * vacant unit has none, or a quiet "no vacancies" state), a live-listings
  * preview, and the portfolio property cards.
+ *
+ * Phase 21 (D-034): the classic ledger frame — masthead greeting, ruled
+ * figure boxes for the funnel KPIs, classic sections.
  */
 
 import { Building2, CheckCircle2, ChevronRight, Megaphone, Plus } from "lucide-react";
@@ -16,6 +19,7 @@ import { formatKes } from "@/lib/money";
 import type { ListingDto } from "@/lib/types";
 import { timeAgo } from "@/components/nest/shared/format";
 import { SectionHeader } from "@/components/nest/shared/section-header";
+import { ClassicMasthead, MastheadSkeleton } from "@/components/nest/shared/classic-masthead";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
 import { HeroSkeleton, ListSkeleton } from "@/components/nest/shared/skeletons";
@@ -50,25 +54,25 @@ export function AgentHome() {
 
   return (
     <div className="space-y-4 sm:space-y-6 nest-stagger">
-      <h1 className="text-h2 font-semibold tracking-tight">{t(greetingKeyForHour(), { name })}</h1>
+      {/* MASTHEAD (D-034) — the letterhead greeting. */}
+      <ClassicMasthead eyebrow={t("role.agent")} greeting={t(greetingKeyForHour(), { name })} />
 
       {isPending || !totals ? (
         <div className="space-y-4 sm:space-y-6" aria-busy>
+          <MastheadSkeleton />
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <KpiCellSkeleton />
             <KpiCellSkeleton />
             <KpiCellSkeleton />
             <KpiCellSkeleton />
           </div>
-          <HeroSkeleton className="h-36" />
+          <HeroSkeleton className="h-36 nest-classic" />
           <ListSkeleton rows={2} />
         </div>
       ) : (
         <>
-          {/* Funnel KPIs — 2×2 on mobile, 4 across from sm.
-              Phase 18 (D-031): the v2 stat cell — borderless white card,
-              soft shadow, uppercase micro-label (the bordered divs were the
-              last pre-v2 pattern on any desk). */}
+          {/* Funnel KPIs — 2×2 on mobile, 4 across from sm: the ruled figure
+              boxes (D-034) — the ledger column heads for the funnel. */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <KpiCell label={t("agent.vacantUnits")} value={String(totals.vacantUnits)} />
             <KpiCell label={t("agent.liveListings")} value={String(totals.liveListings)} />
@@ -88,12 +92,13 @@ export function AgentHome() {
           {liveListings.length > 0 ? (
             <section aria-label={t("nav.listings")}>
               <SectionHeader
+                variant="classic"
                 title={t("nav.listings")}
                 actionLabel={t("common.viewAll")}
                 onAction={() => setTab("listings")}
                 className="mb-3"
               />
-              <Card className="divide-y gap-0 py-0">
+              <Card className="divide-y gap-0 py-0 nest-classic">
                 {liveListings.slice(0, 2).map((listing) => (
                   <ListingPreviewRow key={listing.id} listing={listing} />
                 ))}
@@ -104,6 +109,7 @@ export function AgentHome() {
           {/* Properties */}
           <section aria-label={t("nav.properties")}>
             <SectionHeader
+              variant="classic"
               title={t("nav.properties")}
               count={properties.length}
               className="mb-3"
@@ -119,7 +125,7 @@ export function AgentHome() {
                       ? Math.round((property.occupiedCount / property.unitCount) * 100)
                       : 0;
                   return (
-                    <Card className="py-0 gap-0" key={property.id}>
+                    <Card className="py-0 gap-0 nest-classic" key={property.id}>
                       <CardContent className="p-4 sm:p-6">
                         <p className="text-h3 font-semibold truncate">{property.name}</p>
                         <p className="text-caption text-muted-foreground truncate">
@@ -133,7 +139,7 @@ export function AgentHome() {
                           })}
                         </p>
                         <div className="flex items-center gap-3 mt-3">
-                          <Progress className="h-2 flex-1" value={occupancyPct} aria-hidden />
+                          <Progress className="h-1.5 flex-1" value={occupancyPct} aria-hidden />
                           <span className="text-caption text-muted-foreground tabular-nums shrink-0">
                             {occupancyPct}%
                           </span>
@@ -177,9 +183,9 @@ function FunnelCard({
         aria-label={`${t("agent.funnelCardTitle")} — ${liveListing.unitLabel}. ${formatKes(
           liveListing.rentAmountMinor,
         )}`}
-        className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
+        className="w-full text-left rounded-[6px] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
       >
-        <Card className="py-0 gap-0 animate-in fade-in duration-300">
+        <Card className="py-0 gap-0 nest-classic animate-in fade-in duration-300">
           <CardContent className="p-4 sm:p-6 space-y-3">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
@@ -222,10 +228,10 @@ function FunnelCard({
   }
 
   // 2. Vacant units with no live listing — the funnel starts here
-  //    (Phase 18 D-031: tinted surface, no left rail — v2 canvas).
+  //    (the amber tint in the classic frame — urgency via tint, no rail).
   if (unlistedCount > 0) {
     return (
-      <Card className="py-0 gap-0 bg-warning/10 dark:bg-warning/10 animate-in fade-in duration-300">
+      <Card className="py-0 gap-0 nest-classic-tint border border-warning/40 bg-warning/10 dark:bg-warning/10 animate-in fade-in duration-300">
         <CardContent className="p-4 sm:p-6 space-y-3">
           <p className="text-label font-medium text-muted-foreground">
             {t("agent.funnelCardTitle")}
@@ -242,7 +248,7 @@ function FunnelCard({
 
   // 3. Nothing vacant — the portfolio is full (the quiet success state).
   return (
-    <Card className="py-0 gap-0 bg-muted/30 dark:bg-muted/20 animate-in fade-in duration-300">
+    <Card className="py-0 gap-0 nest-classic bg-muted/30 dark:bg-muted/20 animate-in fade-in duration-300">
       <CardContent className="p-4 sm:p-6 flex items-center gap-3 text-muted-foreground">
         <CheckCircle2 className="size-5 text-success shrink-0" aria-hidden />
         <p className="text-body">{t("agent.emptyVacancies")}</p>
@@ -294,8 +300,8 @@ function ListingPreviewRow({ listing }: { listing: ListingDto }) {
 
 function KpiCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-card nest-card-shadow p-3 min-w-0">
-      <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground truncate">
+    <div className="nest-classic-rule p-3 min-w-0">
+      <p className="text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-muted-foreground truncate">
         {label}
       </p>
       <p className="text-kpi font-bold tabular-nums mt-1 truncate">{value}</p>
@@ -306,7 +312,7 @@ function KpiCell({ label, value }: { label: string; value: string }) {
 /** Compact 2-line cell skeleton for the 2×2 / 4-up KPI grid. */
 function KpiCellSkeleton() {
   return (
-    <div className="rounded-xl bg-card nest-card-shadow p-3 space-y-2" aria-hidden>
+    <div className="nest-classic-rule p-3 space-y-2" aria-hidden>
       <Skeleton className="h-3 w-2/3" />
       <Skeleton className="h-7 w-1/2" />
     </div>

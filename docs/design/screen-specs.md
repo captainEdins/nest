@@ -154,6 +154,7 @@ Conventions applying to **every** screen (not repeated below): shell header + na
 - **Desktop xl (12-col)**: KPI1 spans 12; KPI2 pair spans 6+6 or Arrears 4 / Occupancy 4 / Unmatched 4; arrears list col-span-8; right rail col-span-4 = unmatched alert, recent payments, vacancies (stacked); properties full width (3-col grid).
 - **States**: loading — KPI skeletons `h-28`, 5 list-row skeletons, chip skeletons; empty arrears → inline success-tinted line (`empty.arrears` + `CheckCircle2`); empty payments → `empty.payments` mini-empty; zero unmatched → alert card hidden (never a "0" alert); error — each section keeps its own retry (`errors.couldNotLoad`).
 - **Copy**: `landlord.*`, `common.thisMonth`, `status.arrears`, `arrears.*` **[gap]**, `empty.arrears`, `empty.payments`.
+- **Phase 21 (D-034) — the classic home**: the warm-canvas hero panel + illustration are retired; the home opens with the LEDGER MASTHEAD (`ClassicMasthead`: small-caps eyebrow `role.landlord · month` · serif greeting `font-serif text-h2 lg:text-display` · the `nest-rule` double rule · `heroContext` estate figures · collection-rate `MastheadAside` right, under stats on mobile). The KPI quad is full-width ledger figure boxes (`variant="classic"` on KpiCard: `nest-classic-rule` 2px top rule, inline muted icons, plain-text deltas, paper-tint highlight — never a solid green slab; mobile 1-col, ≥sm 2×2). Sections: `SectionHeader variant="classic"` (serif `text-h3` title + full-width hairline + underlined View-all) over `nest-classic` list cards. Funnel/alert panels: `nest-classic-tint` + warning/success borders (the retired `border-l-4` rails removed). Vacancy chips + property monogram tiles (serif initial, square) squared to 6px.
 
 ---
 
@@ -251,6 +252,7 @@ step 2 (confirm):
 - Unit row: `label` semibold + tenant name or "—" · status badge (§9.2) · balance `text-attention` only when >0. Tap occupied row → S-06 picker pre-filtered to that tenancy (still 2 taps to confirm).
 - Recent collections: `recentPayments` (source CASH/MPESA badge, `recordedByName` caption).
 - **Phase 18 (D-031) — the v2 hero**: the caretaker home mirrors the landlord's asymmetric split (§S-03). ≥lg: LEFT briefing panel (cream `bg-primary/5` + `nest-hero-soft`: greeting `text-h2 lg:text-display`, property · month caption, `caretaker.heroContext` line, arrears alert row amber-tinted → S-11, TODAY pill `bg-card shadow-sm` with `caretaker.todaysCollections` + amount) / RIGHT: 3 action tiles (`grid-cols-3` — Record cash solid primary, Request M-Pesa, Record expense; icon-in-tinted-container, §9.1) above the KPI quad (`grid-cols-2`: month collected [highlight + MoM delta + progress + expected sub] → collections tab, arrears [amber] → S-11, open repairs [amber] → repairs tab, unmatched [amber-if-any] → collections tab w/ UNMATCHED filter). Mobile: briefing first, tiles + quad follow (actions stay within the first fold — Phase 9 rule). Units + recent collections side-by-side ≥xl.
+- **Phase 21 (D-034) — the classic home**: the cream briefing panel is retired; the home opens with the LEDGER MASTHEAD (eyebrow `property · month`, serif greeting, double rule, `caretaker.heroContext` figures, today's-collections `MastheadAside`), then the arrears amber row (classic tint frame), the 3 action tiles (squared `rounded-[6px]` hairline tiles, flat hover — Record cash keeps the solid primary), and the KPI quad as ledger figure boxes (`variant="classic"`, 2-col at all widths — the pre-Phase-21 arrangement). Sections: classic headers + `nest-classic` list cards; SecurityCard `variant="classic"`.
 - **States**: loading — hero skeleton `h-36`, unit row skeletons ×5; empty units → `empty.units` **[gap]**; empty collections → `empty.payments`; error per section; offline — quick actions stay enabled (cash queues offline, S-06).
 - **Copy**: `common.greeting`, `common.today`, `caretaker.*` (+ **[gap]** `caretaker.expectedToday`, `caretaker.collectedToday`, `caretaker.recentCollections`, `caretaker.heroContext`), `status.occupied`, `status.vacant`, `nav.units`.
 
@@ -404,6 +406,7 @@ FAILED (final):
 - **Desktop lg**: hero+Pay now left (col-span-7), stats + receipts right rail (col-span-5); charges full width in 2-col rows.
 - **States**: loading — hero `h-40` skeleton, accordion skeletons; balance 0 → success variant hero + Pay now becomes secondary "View receipts"; empty receipts `empty.receipts`; empty charges — impossible (tenancy active); error — Alert + retry (screen-level); offline — Pay now disabled w/ offline caption (M-Pesa needs network).
 - **Copy**: `common.greeting`, `tenant.yourRent`? (hero uses unit title; "Your rent" heading optional), `tenant.balance`, `tenant.nextDue`, `tenant.payNow`, `money.*`, `status.*`, `empty.receipts`, `notifications.receiptIssued`.
+- **Phase 21 (D-034) — the classic home**: letterhead masthead (eyebrow `property · location`, serif greeting, double rule) above the BALANCE STATEMENT card (`nest-classic-rule`: small-caps `tenant.yourRent · unit` head, `money.balance` label, `text-kpi` figure, hairline above the next-due line); Pay now = squared primary (`rounded-[6px]`); stats row cells squared with hairlines; RentScoreCard wears the `nest-classic-rule` frame; sections + NotificationsList `variant="classic"`.
 
 ---
 
@@ -571,6 +574,7 @@ STEP 3 — STATUS (role="status" aria-live="polite")
 - **Desktop**: KPI row 3-col; properties 2-col grid; notice card full width.
 - **States**: loading — KPI + card skeletons; empty properties — `empty.properties` **[gap]**; error — Alert + retry.
 - **Copy**: `common.greeting`, `nav.properties`, `landlord.occupancy`, `landlord.vacancies`, `phase.agentNotice` **[gap]**.
+- **Phase 21 (D-034) — the classic home**: letterhead masthead (eyebrow `role.agent`, serif greeting, double rule); funnel KPIs as `nest-classic-rule` figure boxes (KpiCell local component); funnel card + property cards in classic frames (`nest-classic` / `nest-classic-tint` + warning border); sections `variant="classic"`.
 
 ---
 
@@ -601,6 +605,7 @@ STEP 3 — STATUS (role="status" aria-live="polite")
 - Preview tiles: `opacity-60 pointer-events-none`, caption badge "NEXT PHASE" (muted); meet contrast — muted, not invisible.
 - **States**: loading — notice + tile skeletons; error — silent degradation (notice card still renders from i18n; property name omitted).
 - **Copy**: `common.greeting`, `phase.guardNotice` **[gap]**.
+- **Phase 21 (D-034) — the classic home**: letterhead masthead (eyebrow `role.guard`, serif greeting, double rule) + property station badge; duty cards in classic frames (`nest-classic-tint` + success border when on duty, `nest-classic` muted when off); quick-action tiles squared (`rounded-[6px]`, log-visitor solid primary, report-incident amber tint + warning border); the gate-count figure box `nest-classic` with hairline column dividers; recent visitors in `nest-classic` list card.
 
 ---
 

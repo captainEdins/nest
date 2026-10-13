@@ -236,9 +236,12 @@ function FeedControls({ filter, setFilter, unreadCount, totalCount, onMarkAll, m
 export function NotificationsList({
   notifications,
   matchTab = null,
+  variant = "soft",
 }: {
   notifications: NotificationDto[];
   matchTab?: "payments" | "collections" | null;
+  /** D-034: "classic" = the ledger frame (home screens). Default soft. */
+  variant?: "soft" | "classic";
 }) {
   const { t } = useI18n();
   const groups = groupByDay(notifications, t);
@@ -249,7 +252,7 @@ export function NotificationsList({
           <h2 className="text-label font-medium text-muted-foreground uppercase tracking-wide mb-2">
             {group.label}
           </h2>
-          <Card className="divide-y gap-0 py-0">
+          <Card className={cn("divide-y gap-0 py-0", variant === "classic" && "nest-classic")}>
             {group.items.map((notification) => (
               <NotificationRow
                 key={notification.id}
