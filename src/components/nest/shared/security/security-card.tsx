@@ -17,7 +17,14 @@ import { useUIStore } from "@/lib/ui-store";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-export function SecurityCard({ security }: { security: SecurityDigestDto }) {
+export function SecurityCard({
+  security,
+  variant = "soft",
+}: {
+  security: SecurityDigestDto;
+  /** D-034: "classic" = the ledger frame (home screens). Default soft. */
+  variant?: "soft" | "classic";
+}) {
   const { t } = useI18n();
   const setTab = useUIStore((s) => s.setTab);
   const setSecuritySegment = useUIStore((s) => s.setSecuritySegment);
@@ -39,9 +46,14 @@ export function SecurityCard({ security }: { security: SecurityDigestDto }) {
       aria-label={`${t("security.cardTitle")} — ${t("security.visitorsToday", {
         count: security.visitorsToday,
       })}`}
-      className="w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
+      className={cn(
+        "w-full text-left rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]",
+        // D-034: the classic ledger frame squares the hit surface to match
+        // the card it wraps (6px corners).
+        variant === "classic" && "rounded-md",
+      )}
     >
-      <Card className="py-0 gap-0">
+      <Card className={cn("py-0 gap-0", variant === "classic" && "nest-classic")}>
         <CardContent className="p-4 sm:p-6 space-y-3">
           <div className="flex items-center gap-2">
             <Shield className="size-4 text-muted-foreground shrink-0" aria-hidden />

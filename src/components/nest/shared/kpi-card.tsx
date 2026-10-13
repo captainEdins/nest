@@ -2,7 +2,12 @@
 
 /**
  * KPI card — Monty-inspired "Soft SaaS" stat card (D-022, Phase 9), refined
- * by the Phase 17 reference (D-030, warm canvas).
+ * by the Phase 17 reference (D-030, warm canvas). Phase 21 (D-034) adds the
+ * opt-in CLASSIC variant — the ledger figure box — for the role homes: hairline
+ * box + 2px top rule (primary; warning on the amber tone), wider-tracked
+ * micro-label, inline muted icon (no tinted round tile), plain-text delta (no
+ * pill), 1.5px progress, and a paper-tint highlight (no solid green slab).
+ * The default "soft" variant is unchanged — every other screen keeps D-030.
  *
  * Anatomy: uppercase micro-label · 28px tabular bold value · optional
  * month-over-month delta (arrow + pct + context) · optional icon in a tinted
@@ -40,6 +45,7 @@ export function KpiCard({
   lastMonthValue,
   sparkline,
   className,
+  variant = "soft",
 }: {
   label: string;
   value: string;
@@ -57,15 +63,28 @@ export function KpiCard({
    *  sparkline, drawn beside the value; decorative (direction, not numbers). */
   sparkline?: number[];
   className?: string;
+  /** D-034: "classic" = the ledger figure box (home screens). Default soft. */
+  variant?: "soft" | "classic";
 }) {
   const { t } = useI18n();
-  const valueTone = highlight
-    ? "text-primary-foreground"
-    : tone === "amber"
-      ? "text-attention"
-      : tone === "success"
-        ? "text-success"
-        : "text-foreground";
+  const classic = variant === "classic";
+  // Classic highlight: paper tint + primary value (statement ink), never a
+  // solid green slab — the ledger prints its hero figure, it doesn't shout it.
+  const valueTone = classic
+    ? highlight
+      ? "text-primary"
+      : tone === "amber"
+        ? "text-attention"
+        : tone === "success"
+          ? "text-success"
+          : "text-foreground"
+    : highlight
+      ? "text-primary-foreground"
+      : tone === "amber"
+        ? "text-attention"
+        : tone === "success"
+          ? "text-success"
+          : "text-foreground";
 
   const sparkTone = highlight
     ? "text-primary-foreground"
@@ -87,15 +106,23 @@ export function KpiCard({
         // h-full fills the grid cell / the clickable KpiButton wrapper so
         // every card in a row shares one bottom edge.
         "transition-shadow py-0 gap-0 h-full",
-        highlight &&
-          "relative overflow-hidden border-transparent bg-primary nest-card-shadow nest-hero-surface",
+        classic
+          ? cn(
+              // D-034 classic: the ledger figure box — 2px top rule (amber
+              // tone warns), hairline box, no shadow. Highlight = paper tint.
+              tone === "amber" ? "nest-classic-rule-amber" : "nest-classic-rule",
+              highlight && "bg-primary/5 dark:bg-primary/10",
+            )
+          : highlight &&
+            "relative overflow-hidden border-transparent bg-primary nest-card-shadow nest-hero-surface",
         className,
       )}
     >
       {/* Hero decoration (D-029): concentric rings rising out of the
        * bottom-right corner — clipped by overflow-hidden, aria-hidden,
-         pointer-events-none. Purely paint, never information. */}
-      {highlight ? (
+         pointer-events-none. Purely paint, never information. (Soft variant
+         only — the classic ledger prints, it doesn't decorate.) */}
+      {!classic && highlight ? (
         <>
           <span
             aria-hidden
@@ -111,9 +138,14 @@ export function KpiCard({
         <div className="flex items-start justify-between gap-3">
           <p
             className={cn(
-              // Monty micro-label: uppercase, tracked, muted.
-              "text-[0.6875rem] font-semibold uppercase tracking-[0.08em] leading-5",
-              highlight ? "text-primary-foreground/80" : "text-muted-foreground",
+              // Monty micro-label: uppercase, tracked, muted. Classic (D-034):
+              // wider tracking — the ledger's engraved column label.
+              classic
+                ? "text-[0.6875rem] font-medium uppercase tracking-[0.14em] leading-5 text-muted-foreground"
+                : cn(
+                    "text-[0.6875rem] font-semibold uppercase tracking-[0.08em] leading-5",
+                    highlight ? "text-primary-foreground/80" : "text-muted-foreground",
+                  ),
             )}
           >
             {label}
@@ -121,23 +153,36 @@ export function KpiCard({
           {/* The reference's KPI anatomy: a sparkline REPLACES the icon tile
            * when a trend series exists — direction lives beside the number.
            * Phase 19: the tile's tint FOLLOWS the card's tone so the icon
-           * never contradicts the number it sits above (arrears = amber). */}
+           * never contradicts the number it sits above (arrears = amber).
+           * Classic (D-034): no tinted round tile — a small inline icon,
+           * muted ink beside the label (the figure box prints, it doesn't
+           * decorate). */}
           {!sparkline && Icon ? (
-            <span
-              aria-hidden
-              className={cn(
-                "size-8 shrink-0 flex items-center justify-center rounded-full",
-                highlight
-                  ? "bg-primary-foreground/15 text-primary-foreground"
-                  : tone === "amber"
-                    ? "bg-attention/10 text-attention"
-                    : tone === "success"
-                      ? "bg-success/10 text-success"
-                      : "bg-primary/10 text-primary",
-              )}
-            >
-              <Icon className="size-4" />
-            </span>
+            classic ? (
+              <Icon
+                aria-hidden
+                className={cn(
+                  "size-3.5 shrink-0 mt-0.5",
+                  tone === "amber" ? "text-attention/80" : "text-muted-foreground",
+                )}
+              />
+            ) : (
+              <span
+                aria-hidden
+                className={cn(
+                  "size-8 shrink-0 flex items-center justify-center rounded-full",
+                  highlight
+                    ? "bg-primary-foreground/15 text-primary-foreground"
+                    : tone === "amber"
+                      ? "bg-attention/10 text-attention"
+                      : tone === "success"
+                        ? "bg-success/10 text-success"
+                        : "bg-primary/10 text-primary",
+                )}
+              >
+                <Icon className="size-4" />
+              </span>
+            )
           ) : null}
         </div>
 
@@ -154,12 +199,33 @@ export function KpiCard({
               <p
                 className={cn(
                   "text-caption mt-1.5 tabular-nums",
-                  highlight ? "text-primary-foreground/75" : "text-muted-foreground",
+                  !classic && highlight ? "text-primary-foreground/75" : "text-muted-foreground",
                 )}
               >
                 {lastMonthValue}
               </p>
             ) : null
+          ) : classic ? (
+            // Classic (D-034): ruled text, not a pill — the trend reads as a
+            // printed annotation under the figure.
+            <div className="flex items-baseline gap-1.5 mt-1.5 min-w-0">
+              <span
+                className={cn(
+                  "inline-flex items-center gap-0.5 text-caption font-semibold tabular-nums",
+                  delta.deltaPct >= 0 ? "text-success" : "text-destructive",
+                )}
+              >
+                {delta.deltaPct >= 0 ? (
+                  <TrendingUp className="size-3 shrink-0" aria-hidden />
+                ) : (
+                  <TrendingDown className="size-3 shrink-0" aria-hidden />
+                )}
+                {formatDeltaPct(delta.deltaPct)}
+              </span>
+              <span className="text-caption truncate text-muted-foreground">
+                {t("common.vsLastMonth")}
+              </span>
+            </div>
           ) : (
             <div className="flex items-center gap-1.5 mt-1.5 min-w-0">
               <span
@@ -197,7 +263,7 @@ export function KpiCard({
           <div
             className={cn(
               "text-caption mt-1",
-              highlight ? "text-primary-foreground/75" : "text-muted-foreground",
+              !classic && highlight ? "text-primary-foreground/75" : "text-muted-foreground",
             )}
           >
             {sub}
@@ -205,7 +271,24 @@ export function KpiCard({
         ) : null}
 
         {clamped !== undefined ? (
-          highlight ? (
+          classic ? (
+            // Classic (D-034): a thin 1.5px ruled bar, squared ends.
+            <div
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={clamped}
+              className="h-1.5 mt-3 w-full bg-muted overflow-hidden"
+            >
+              <div
+                className={cn(
+                  "h-full origin-left nest-anim-grow",
+                  tone === "amber" ? "bg-warning" : "bg-primary",
+                )}
+                style={{ width: `${clamped}%` }}
+              />
+            </div>
+          ) : highlight ? (
             // On the solid-primary hero the stock Progress (bg-primary fill)
             // would vanish — a custom track keeps it visible in both themes.
             <div
