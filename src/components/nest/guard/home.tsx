@@ -8,6 +8,9 @@
  * incident — still openable off duty, the sheets explain), today's gate
  * stats (visitors / on-site / unseen incidents — never money), and the last
  * visitors through the gate. Everything else lives in the tabs.
+ *
+ * Phase 21 (D-034): the classic ledger frame — masthead greeting, squared
+ * tiles, ruled figure boxes. Never money on this desk either way.
  */
 
 import * as React from "react";
@@ -30,6 +33,7 @@ import { useSession, useGuardOverview } from "@/hooks/use-overview";
 import { useDurationTicker } from "@/hooks/use-guard";
 import { formatTime, timeAgo } from "@/components/nest/shared/format";
 import { SectionHeader } from "@/components/nest/shared/section-header";
+import { ClassicMasthead } from "@/components/nest/shared/classic-masthead";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
 import { HeroSkeleton, ListSkeleton } from "@/components/nest/shared/skeletons";
@@ -57,10 +61,16 @@ export function GuardHome() {
 
   return (
     <div className="space-y-4 sm:space-y-6 nest-stagger">
-      <div className="flex items-center justify-between gap-2">
-        <h1 className="text-h2 font-semibold tracking-tight truncate">{t(greetingKeyForHour(), { name })}</h1>
+      {/* MASTHEAD (D-034) — the letterhead greeting; the property badge is
+       * the desk's station line. */}
+      <div className="flex items-end justify-between gap-3">
+        <ClassicMasthead
+          eyebrow={t("role.guard")}
+          greeting={t(greetingKeyForHour(), { name })}
+          className="min-w-0 flex-1"
+        />
         {data?.property ? (
-          <Badge variant="secondary" className="text-caption shrink-0 max-w-44 gap-1">
+          <Badge variant="secondary" className="text-caption shrink-0 max-w-44 gap-1 mb-1">
             <Building2 className="size-3" aria-hidden />
             <span className="truncate">{data.property.name}</span>
           </Badge>
@@ -77,7 +87,7 @@ export function GuardHome() {
               Phase 18 (D-031): tinted surface (no left accent bar — the v2
               canvas separates by shadow/tint, not rails). */}
           {activeShift ? (
-            <Card className="py-0 gap-0 bg-success/5 dark:bg-success/10 animate-in fade-in duration-300">
+            <Card className="py-0 gap-0 nest-classic-tint border border-success/40 bg-success/5 dark:bg-success/10 animate-in fade-in duration-300">
               <CardContent className="p-4 sm:p-6 space-y-3">
                 <div className="flex items-center justify-between gap-2">
                   <Badge className="border-transparent bg-success text-success-foreground gap-1.5">
@@ -117,7 +127,7 @@ export function GuardHome() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="py-0 gap-0 bg-muted/30 dark:bg-muted/20 animate-in fade-in duration-300">
+            <Card className="py-0 gap-0 nest-classic bg-muted/30 dark:bg-muted/20 animate-in fade-in duration-300">
               <CardContent className="p-4 sm:p-6 space-y-3">
                 <div className="flex items-center gap-2 text-muted-foreground">
                   <Clock className="size-5" aria-hidden />
@@ -133,16 +143,16 @@ export function GuardHome() {
           )}
 
           {/* Quick actions — ≤3 taps from cold to a logged visitor.
-              Phase 18 (D-031): the report-incident tile wears the amber
-              surface so the emergency action reads as one (outline read
-              as disabled in the audit); never red — urgency via tint. */}
+              The report-incident tile wears the amber surface so the
+              emergency action reads as one; never red — urgency via tint.
+              D-034: squared classic tiles. */}
           <div className="grid grid-cols-2 gap-4">
             <button
               type="button"
               onClick={() => setLogVisitorOpen(true)}
-              className="group rounded-xl h-auto min-h-20 py-3 px-2 flex flex-col items-center justify-center gap-1.5 text-body font-semibold bg-primary text-primary-foreground nest-card-shadow outline-none transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="group rounded-[6px] h-auto min-h-20 py-3 px-2 flex flex-col items-center justify-center gap-1.5 text-body font-semibold bg-primary text-primary-foreground border border-primary outline-none transition-colors duration-200 hover:bg-primary/90 active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <span aria-hidden className="size-9 rounded-lg grid place-items-center bg-primary-foreground/15">
+              <span aria-hidden className="size-9 rounded-[4px] grid place-items-center bg-primary-foreground/15">
                 <UserPlus className="size-[18px]" />
               </span>
               {t("guard.visitors.logVisitor")}
@@ -156,9 +166,9 @@ export function GuardHome() {
               type="button"
               onClick={() => setReportIncidentOpen(true)}
               aria-label={t("guard.incidents.report")}
-              className="group rounded-xl h-auto min-h-20 py-3 px-2 flex flex-col items-center justify-center gap-1.5 text-body font-semibold bg-warning/15 dark:bg-warning/10 text-attention nest-card-shadow outline-none transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="group rounded-[6px] h-auto min-h-20 py-3 px-2 flex flex-col items-center justify-center gap-1.5 text-body font-semibold bg-warning/15 dark:bg-warning/10 text-attention border border-warning/40 outline-none transition-colors duration-200 hover:bg-warning/20 dark:hover:bg-warning/15 active:scale-[0.97] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
-              <span aria-hidden className="size-9 rounded-lg grid place-items-center bg-warning/20 dark:bg-warning/20">
+              <span aria-hidden className="size-9 rounded-[4px] grid place-items-center bg-warning/20 dark:bg-warning/20">
                 <ShieldAlert className="size-[18px]" />
               </span>
               {t("guard.incidents.report")}
@@ -170,8 +180,9 @@ export function GuardHome() {
             </button>
           </div>
 
-          {/* Today at the gate — counts only, never money (matrix §6) */}
-          <Card>
+          {/* Today at the gate — counts only, never money (matrix §6); the
+              ruled figure box with hairline dividers between the columns. */}
+          <Card className="nest-classic">
             <CardContent className="grid grid-cols-3 divide-x p-0">
               <StatCell
                 icon={Users}
@@ -194,6 +205,7 @@ export function GuardHome() {
           {/* Recent visitors — the last faces through the gate */}
           <section aria-label={t("guard.visitors.recent")}>
             <SectionHeader
+              variant="classic"
               title={t("guard.visitors.recent")}
               actionLabel={t("common.viewAll")}
               onAction={() => setTab("visitors")}
@@ -202,7 +214,7 @@ export function GuardHome() {
             {data.recentVisitors.length === 0 ? (
               <EmptyState icon={BookOpen} title={t("guard.visitors.emptyHistory")} />
             ) : (
-              <Card className="divide-y gap-0 py-0">
+              <Card className="divide-y gap-0 py-0 nest-classic">
                 {data.recentVisitors.slice(0, 3).map((visitor) => (
                   <RecentVisitorRow key={visitor.id} visitor={visitor} />
                 ))}
@@ -270,12 +282,12 @@ function RecentVisitorRow({
 function GuardHomeSkeleton() {
   return (
     <div className="space-y-4 sm:space-y-6" aria-busy>
-      <HeroSkeleton className="h-44" />
+      <HeroSkeleton className="h-44 nest-classic" />
       <div className="grid grid-cols-2 gap-4">
-        <Skeleton className="h-20 rounded-xl" />
-        <Skeleton className="h-20 rounded-xl" />
+        <Skeleton className="h-20 rounded-[6px]" />
+        <Skeleton className="h-20 rounded-[6px]" />
       </div>
-      <Card className="py-0 gap-0">
+      <Card className="py-0 gap-0 nest-classic">
         <CardContent className="grid grid-cols-3 divide-x p-0">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex flex-col items-center gap-2 p-4">

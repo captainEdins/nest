@@ -1,10 +1,11 @@
 "use client";
 
 /**
- * S-08 · Tenant home — ONE call (TenantOverviewDto). Balance hero, Pay now,
- * stats row (deposit cell → deposit ledger), receipts preview, repairs preview
- * (Phase 2), visitors to your unit (Phase 3), charges accordion,
- * notifications preview.
+ * S-08 · Tenant home — ONE call (TenantOverviewDto). The classic ledger
+ * statement (D-034): the letterhead masthead (property eyebrow · serif
+ * greeting · double rule), the balance statement card (small-caps head, the
+ * ruled figure, the pay action), figure-box stats row, receipts preview,
+ * repairs preview, visitors, charges accordion, notifications preview.
  */
 
 import { Bell, ChevronRight, Receipt, Users, Wrench } from "lucide-react";
@@ -22,6 +23,7 @@ import { NoticeBanner } from "@/components/nest/shared/give-notice-sheet";
 import { AvatarInitials } from "@/components/nest/shared/avatar-initials";
 import { visitorPurposeLabel } from "@/components/nest/shared/security/visitor-row";
 import { SectionHeader } from "@/components/nest/shared/section-header";
+import { ClassicMasthead, MastheadSkeleton } from "@/components/nest/shared/classic-masthead";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
 import { HeroSkeleton, ListSkeleton, RowSkeleton } from "@/components/nest/shared/skeletons";
@@ -65,7 +67,9 @@ export function TenantHome() {
     if (endedLease) {
       return (
         <section aria-label={t("tenant.yourRent")} className="space-y-4">
-          <h1 className="text-h2 font-semibold tracking-tight">{t(greetingKeyForHour(), { name: session?.profile.fullName.split(" ")[0] ?? "" })}</h1>
+          <ClassicMasthead
+            greeting={t(greetingKeyForHour(), { name: session?.profile.fullName.split(" ")[0] ?? "" })}
+          />
           <EmptyState icon={Receipt} title={t("tenant.noTenancyTitle")} hint={t("tenant.noTenancyBody")} />
         </section>
       )
@@ -92,37 +96,44 @@ export function TenantHome() {
 
   return (
     <div className="space-y-4 sm:space-y-6 nest-stagger">
-      <h1 className="text-h2 font-semibold tracking-tight">{t(greetingKeyForHour(), { name })}</h1>
-
       {isPending || !tenancy || !totals ? (
         <div className="space-y-4 sm:space-y-6" aria-busy>
-          <HeroSkeleton className="h-40" />
+          <MastheadSkeleton />
+          <HeroSkeleton className="h-40 nest-classic" />
           <ListSkeleton rows={3} />
         </div>
       ) : (
         <>
-          {/* Hero */}
-          <Card className="py-0 gap-0">
-            <CardContent className="p-4 sm:p-6">
-              <p className="text-caption text-muted-foreground uppercase tracking-wide truncate">
-                {tenancy.propertyName} · {tenancy.propertyLocation}
+          {/* MASTHEAD (D-034) — the letterhead: property eyebrow, serif
+           * greeting, the double rule. */}
+          <ClassicMasthead
+            eyebrow={`${tenancy.propertyName} · ${tenancy.propertyLocation}`}
+            greeting={t(greetingKeyForHour(), { name })}
+          />
+
+          {/* The balance statement — the ledger's ruled figure block. */}
+          <Card className="py-0 gap-0 nest-classic-rule">
+            <CardContent className="p-4 sm:p-6 space-y-3">
+              <p className="text-caption font-medium uppercase tracking-[0.14em] text-muted-foreground truncate">
+                {t("tenant.yourRent")} · {tenancy.unitLabel}
               </p>
-              <p className="text-h2 font-semibold mt-1">{t("tenant.yourRent")} · {tenancy.unitLabel}</p>
-              <p className="text-label text-muted-foreground mt-3">{t("money.balance")}</p>
-              <p
-                className={
-                  balance > 0
-                    ? "text-kpi font-bold tabular-nums text-attention"
-                    : "text-kpi font-bold tabular-nums text-success"
-                }
-              >
-                {formatKes(balance)}
-              </p>
-              {balance > 0 ? null : (
-                <p className="text-caption text-success mt-1">{t("tenant.allPaidUp")}</p>
-              )}
+              <div>
+                <p className="text-label text-muted-foreground">{t("money.balance")}</p>
+                <p
+                  className={
+                    balance > 0
+                      ? "text-kpi font-bold tabular-nums text-attention"
+                      : "text-kpi font-bold tabular-nums text-success"
+                  }
+                >
+                  {formatKes(balance)}
+                </p>
+                {balance > 0 ? null : (
+                  <p className="text-caption text-success mt-1">{t("tenant.allPaidUp")}</p>
+                )}
+              </div>
               {totals.nextDueDate ? (
-                <p className="text-caption text-muted-foreground mt-1 tabular-nums">
+                <p className="text-caption text-muted-foreground tabular-nums border-t border-border pt-3">
                   {t("tenant.nextPaymentDue")}: {formatDate(totals.nextDueDate)} ·{" "}
                   {formatKes(totals.nextDueAmountMinor)}
                 </p>
@@ -141,11 +152,12 @@ export function TenantHome() {
             />
           ) : null}
 
-          {/* Pay now */}
+          {/* Pay now — the squared primary action (the ONE solid green
+           * surface on the tenant's desk) */}
           {balance > 0 ? (
             <div className="space-y-1.5">
               <Button
-                className="w-full h-12 text-body-lg"
+                className="w-full h-12 text-body-lg rounded-[6px]"
                 disabled={!online}
                 onClick={() => setPayFlowOpen(true)}
               >
@@ -158,7 +170,7 @@ export function TenantHome() {
               ) : null}
             </div>
           ) : (
-            <Button variant="secondary" className="w-full h-12 text-body-lg" onClick={() => setTab("receipts")}>
+            <Button variant="secondary" className="w-full h-12 text-body-lg rounded-[6px]" onClick={() => setTab("receipts")}>
               {t("tenant.yourReceipts")}
             </Button>
           )}
@@ -172,7 +184,7 @@ export function TenantHome() {
               type="button"
               onClick={() => pushDeposit()}
               aria-label={`${t("money.deposit")}: ${formatKes(tenancy.depositHeldMinor)}`}
-              className="rounded-lg border p-3 min-w-0 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98] hover:bg-muted/40"
+              className="rounded-[6px] border p-3 min-w-0 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset transition-colors duration-200 hover:bg-muted/40 active:scale-[0.98]"
             >
               <p className="text-caption text-muted-foreground truncate flex items-center gap-0.5">
                 <span className="truncate">{t("money.deposit")}</span>
@@ -189,6 +201,7 @@ export function TenantHome() {
           {/* Receipts preview */}
           <section aria-label={t("tenant.yourReceipts")}>
             <SectionHeader
+              variant="classic"
               title={t("tenant.yourReceipts")}
               actionLabel={t("arrears.viewAll")}
               onAction={() => setTab("receipts")}
@@ -197,7 +210,7 @@ export function TenantHome() {
             {data.receipts.length === 0 ? (
               <EmptyState icon={Receipt} title={t("empty.receipts")} />
             ) : (
-              <Card className="divide-y gap-0 py-0">
+              <Card className="divide-y gap-0 py-0 nest-classic">
                 {data.receipts.slice(0, 3).map((receipt) => (
                   <button
                     key={receipt.receiptNo}
@@ -226,13 +239,14 @@ export function TenantHome() {
           {ticketsError == null ? (
             <section aria-label={t("repairs.yourReports")}>
               <SectionHeader
+                variant="classic"
                 title={t("repairs.yourReports")}
                 actionLabel={t("arrears.viewAll")}
                 onAction={() => setTab("repairs")}
                 className="mb-3"
               />
               {ticketsPending ? (
-                <Card className="divide-y gap-0 py-0" aria-busy>
+                <Card className="divide-y gap-0 py-0 nest-classic" aria-busy>
                   <RowSkeleton />
                   <RowSkeleton />
                 </Card>
@@ -245,7 +259,7 @@ export function TenantHome() {
                   onAction={() => setReportIssueOpen(true)}
                 />
               ) : (
-                <Card className="divide-y gap-0 py-0">
+                <Card className="divide-y gap-0 py-0 nest-classic">
                   {(tickets ?? []).slice(0, 2).map((ticket) => (
                     <TicketRow key={ticket.id} ticket={ticket} />
                   ))}
@@ -257,6 +271,7 @@ export function TenantHome() {
           {/* Visitors to your unit (Phase 3) — what the guard logged at the gate */}
           <section aria-label={t("tenant.visitors.title")}>
             <SectionHeader
+              variant="classic"
               title={t("tenant.visitors.title")}
               count={data.recentVisitors.length}
               className="mb-3"
@@ -264,7 +279,7 @@ export function TenantHome() {
             {data.recentVisitors.length === 0 ? (
               <EmptyState icon={Users} title={t("tenant.visitors.empty")} />
             ) : (
-              <Card className="divide-y gap-0 py-0">
+              <Card className="divide-y gap-0 py-0 nest-classic">
                 {data.recentVisitors.slice(0, 3).map((visitor) => (
                   <div key={visitor.id} className="p-4 min-h-14 flex items-center gap-3">
                     <AvatarInitials fullName={visitor.visitorName} size="sm" />
@@ -306,12 +321,13 @@ export function TenantHome() {
               the header action so the two money views stay one tap apart. */}
           <section aria-label={t("tenant.chargesBreakdown")}>
             <SectionHeader
+              variant="classic"
               title={t("tenant.chargesBreakdown")}
               actionLabel={t("statement.viewStatement")}
               onAction={() => setTab("statement")}
               className="mb-3"
             />
-            <Card className="py-0 gap-0">
+            <Card className="py-0 gap-0 nest-classic">
               <CardContent className="p-0">
                 <Accordion type="single" collapsible defaultValue={periods[0]}>
                   {periods.map((period) => {
@@ -364,6 +380,7 @@ export function TenantHome() {
           {/* Notifications preview */}
           <section aria-label={t("notifications.title")}>
             <SectionHeader
+              variant="classic"
               title={t("notifications.title")}
               actionLabel={t("arrears.viewAll")}
               onAction={() => setTab("notifications")}
@@ -372,7 +389,7 @@ export function TenantHome() {
             {data.notifications.length === 0 ? (
               <EmptyState icon={Bell} title={t("notifications.empty")} />
             ) : (
-              <NotificationsList notifications={data.notifications.slice(0, 3)} />
+              <NotificationsList notifications={data.notifications.slice(0, 3)} variant="classic" />
             )}
           </section>
         </>
@@ -383,7 +400,7 @@ export function TenantHome() {
 
 function StatCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border p-3 min-w-0">
+    <div className="rounded-[6px] border p-3 min-w-0">
       <p className="text-caption text-muted-foreground truncate">{label}</p>
       <p className="text-body font-semibold tabular-nums truncate mt-0.5" title={value}>
         {value}

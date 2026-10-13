@@ -99,6 +99,24 @@ Body sets `font-family: var(--font-poppins)`. `--radius: 0.625rem` is already co
 > `opacity-*` utility or a muted colour. QA gates must grep for
 > `text-(custom-size)/N` before merge (phase20-qa-gate.md §13).
 
+> **D-034 (Phase 21, issue #101 — the classic home)**: the five role homes
+> wear the LEDGER language (user report: "make the ui ux for home to be more
+> classic"). Classic documents separate by the RULE, not the float: the
+> `nest-classic*` recipes (hairline border, **6px corners, no diffuse
+> shadow**; `nest-rule` = the 2px-primary + 1px-hairline print double-rule)
+> are OPT-IN — every other surface keeps D-030's warm canvas. Headings on
+> home screens (masthead greeting, section titles) speak in the SYSTEM serif
+> stack (`--font-serif`: Georgia/Times/Noto Serif/Liberation — zero download,
+> amends the "Poppins only" rule for DISPLAY use; data stays Poppins).
+> The shared primitives gained opt-in `variant="classic"` (KpiCard,
+> SectionHeader, SecurityCard, NotificationsList) — defaults unchanged.
+> Cascade rule: the recipes are UNLAYERED so they beat `rounded-*`/`shadow-*`
+> utilities and the Card base shadow — never combine `nest-classic` with
+> border-*/shadow-* utilities on the same element; tinted panels use
+> `nest-classic-tint` + their own utilities. Utility-level classic radii are
+> written explicitly (`rounded-[6px]` frames, `rounded-[4px]` nested) because
+> this project's `rounded-md` token = 10px, not Tailwind's 6px.
+
 | Token | Value | Primary use |
 |---|---|---|
 | `--background` | `oklch(0.98 0.007 96)` | Page background (warm cream, #F9F7F2 family) |
@@ -208,7 +226,9 @@ const poppins = Poppins({
 })
 ```
 
-`layout.tsx` applies `className={poppins.variable}` and `globals.css` sets `--font-sans: var(--font-poppins)`. **No other font, no fallback stacks beyond the system tail, no monospace** — "code-like" references (account refs, receipt numbers) are Poppins `font-medium tabular-nums tracking-wide uppercase` instead of a mono font.
+`layout.tsx` applies `className={poppins.variable}` and `globals.css` sets `--font-sans: var(--font-poppins)`. **No other webfont, no fallback stacks beyond the system tail, no monospace** — "code-like" references (account refs, receipt numbers) are Poppins `font-medium tabular-nums tracking-wide uppercase` instead of a mono font.
+
+**D-034 amendment (display serif, home screens only):** the classic home's letterhead voice is the SYSTEM serif stack — `--font-serif: Georgia, "Times New Roman", "Noto Serif", "Liberation Serif", serif` (Tailwind `font-serif`), used ONLY for the home masthead greeting and section titles. Zero download (Android falls back to Noto Serif), so the low-end-Android rule holds. **Data (numbers, body, labels, tables) stays Poppins** — serif speaks, sans counts. Money never sets in serif: `text-kpi` keeps `font-bold tabular-nums`.
 
 | Token | Weight | Size / line | Tailwind class | Usage |
 |---|---|---|---|---|
@@ -226,8 +246,8 @@ Rules:
 - Body copy that a user *reads* (tenant charges explanation, empty states): `text-body-lg sm:text-body`. Dense UI copy (card rows, table cells) stays `text-body`.
 - **All numbers that can change width (money, counts) get `tabular-nums`.** Money in tables is additionally right-aligned.
 - Long names (tenant, property): `truncate` on a `min-w-0` flex child; full value in `title` attr.
-- No italics. No ALL-CAPS except account references. No letterspacing except references.
-- Headings are text, never images; each screen's `h1` is `display` and visually can double as the header title.
+- No italics. No ALL-CAPS except account references and the small-caps eyebrows/labels (D-034: `uppercase tracking-[0.14em]` micro-labels on classic home). No letterspacing except references and those labels.
+- Headings are text, never images; each screen's `h1` is `display` and visually can double as the header title. On the classic homes the `h1` is the serif masthead greeting (`font-serif text-h2 lg:text-display`).
 
 ## 4. Contrast compliance (measured on final tokens)
 
@@ -329,7 +349,7 @@ All icon-only buttons: `h-11 w-11` (44px target) with `sr-only` labels. The offl
 
 ### 9.1 Card / Table / lists
 
-- **Card is borderless** (D-030): white surface, 16px radius, separation by the layered diffuse shadow alone (`.nest-card-shadow`). Explicit `border-*` utilities only for deliberate edges (dashed receipt divider, semantic alert panels inside sheets).
+- **Card is borderless** (D-030): white surface, 16px radius, separation by the layered diffuse shadow alone (`.nest-card-shadow`). Explicit `border-*` utilities only for deliberate edges (dashed receipt divider, semantic alert panels inside sheets). **D-034 exception (home screens only):** the classic ledger frame — `.nest-classic` / `.nest-classic-tint` / `.nest-classic-rule` recipes (hairline border, 6px corners, `box-shadow: none`; the `-rule` variants carry a 2px primary top rule, amber for warning tones). Classic frames never combine with `border-*`/`shadow-*` utilities on the same element (unlayered recipes win the cascade — see D-034).
 - **Card** is the universal container for KPIs and rows. Money rows: label (`text-label text-muted-foreground`) left, value (`text-body font-semibold tabular-nums`) right.
 - KPI cards may carry a **sparkline** (D-030): decorative SVG gradient trend beside the value, `currentColor`-tinted, aria-hidden — exact numbers stay in text.
 - **Table only ≥sm.** The same data renders as stacked cards on mobile (one list component, two presentations — never a horizontally-scrolling table).
@@ -405,7 +425,7 @@ All icon-only buttons: `h-11 w-11` (44px target) with `sr-only` labels. The offl
 Reviewer rejects a build that violates any of these:
 
 1. Any color value not in §1 (or any blue/indigo/violet/purple anywhere).
-2. Any font that is not Poppins 400/500/600/700.
+2. Any font that is not Poppins 400/500/600/700 — **except the D-034 system serif stack** (`--font-serif`), which is allowed ONLY for home masthead greetings and section titles (no downloads, no webfont, no data text).
 3. Money rendered as float, without `tabular-nums`, or right-alignment missing in a table.
 4. Red used for arrears/pending anywhere.
 5. Amber body-size text via `text-warning` in light mode (must be `text-attention`).

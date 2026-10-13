@@ -12,6 +12,9 @@
  *   persona pays no bundle tax for one arc.
  * - Score colours: EXCELLENT success · GOOD primary · FAIR attention ·
  *   BUILDING muted (design-system semantic tokens, no new colours).
+ * - Phase 21 (D-034): the classic home frame — hairline box + 2px top rule
+ *   in the band's colour (the score's own ink); the ring/typography keep
+ *   their anatomy (data is data in any language).
  */
 
 import { useState } from "react";
@@ -57,7 +60,7 @@ export function RentScoreCard({
 
   if (isPending || !data) {
     return (
-      <Card className="py-0 gap-0" aria-busy>
+      <Card className="py-0 gap-0 nest-classic-rule" aria-busy>
         <CardContent className="p-4 sm:p-6">
           <HeroSkeleton className="h-32" />
         </CardContent>
@@ -70,7 +73,7 @@ export function RentScoreCard({
   const dashOffset = RING_CIRCUMFERENCE * (1 - progress);
 
   return (
-    <Card className="py-0 gap-0">
+    <Card className="py-0 gap-0 nest-classic-rule">
       <CardContent className="p-4 sm:p-6">
         {/* Head: score ring + band */}
         <div className="flex items-center gap-5">
@@ -143,7 +146,7 @@ export function RentScoreCard({
                   </p>
                 </div>
                 <div
-                  className="mt-1 h-1.5 rounded-full bg-muted overflow-hidden"
+                  className="mt-1 h-1.5 bg-muted overflow-hidden"
                   role="progressbar"
                   aria-valuemin={0}
                   aria-valuemax={factor.max}
@@ -151,7 +154,7 @@ export function RentScoreCard({
                   aria-label={t(factorLabelKey(factor.key))}
                 >
                   <div
-                    className={cn("h-full rounded-full transition-all duration-700 ease-out", band.dot)}
+                    className={cn("h-full transition-all duration-700 ease-out", band.dot)}
                     style={{ width: `${Math.round(ratio * 100)}%` }}
                   />
                 </div>
