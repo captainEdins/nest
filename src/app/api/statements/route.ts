@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic"
 export async function GET(request: Request) {
   try {
     const profile = await requireProfile()
-    if (profile.role === "GUARD" || profile.role === "AGENT") {
+    if (profile.role === "GUARD") {
       throw forbidden("Statements are not available for this role")
     }
     const statement = await getStatement(profile, request)

@@ -1,28 +1,45 @@
 "use client";
 
 /**
- * S-12 · Agent home (Phase 4 rewrite, issue #47) — ONE call
- * (AgentOverviewDto). Funnel KPIs (vacant / live / new / in-pipeline), the
- * vacancy-funnel hero (the live listing, or the create-listing CTA when a
- * vacant unit has none, or a quiet "no vacancies" state), a live-listings
- * preview, and the portfolio property cards.
+ * S-12 · Agent home (Phase 4 rewrite, issue #47; Phase 23 issue #109 — agent
+ * parity) — ONE call (AgentOverviewDto) + the shared ["analytics"] cache.
  *
- * Phase 21 (D-034): the classic ledger frame — masthead greeting, ruled
- * figure boxes for the funnel KPIs, classic sections.
+ * The appointed manager's desk now mirrors the landlord's: the ledger
+ * letterhead with estate figures, the money KPI quad (collected + MoM,
+ * arrears, occupancy, open repairs), the mini collection trend, the security
+ * digest, the unmatched alert, and the arrears + recent-payments previews —
+ * every number scoped to `Properties WHERE agentId = SELF`. The leasing
+ * funnel (the agent's own lever) keeps its ruled column heads and hero card.
+ *
+ * Phase 21 (D-034): the classic ledger frame throughout.
  */
 
-import { Building2, CheckCircle2, ChevronRight, Megaphone, Plus } from "lucide-react";
+import {
+  Building2,
+  CheckCircle2,
+  ChevronRight,
+  HelpCircle,
+  Megaphone,
+  Plus,
+  TriangleAlert,
+  Wrench,
+} from "lucide-react";
 import { greetingKeyForHour, useI18n } from "@/lib/i18n";
-import { useAgentOverview, useSession } from "@/hooks/use-overview";
+import { useAgentOverview, useSession, useStaffAnalytics } from "@/hooks/use-overview";
 import { useUIStore } from "@/lib/ui-store";
 import { formatKes } from "@/lib/money";
 import type { ListingDto } from "@/lib/types";
-import { timeAgo } from "@/components/nest/shared/format";
+import { formatMonthKey, timeAgo } from "@/components/nest/shared/format";
 import { SectionHeader } from "@/components/nest/shared/section-header";
-import { ClassicMasthead, MastheadSkeleton } from "@/components/nest/shared/classic-masthead";
+import { ClassicMasthead, MastheadAside, MastheadSkeleton } from "@/components/nest/shared/classic-masthead";
+import { KpiCard, momDeltaPct } from "@/components/nest/shared/kpi-card";
+import { MiniTrendCard } from "@/components/nest/shared/mini-trend-card";
+import { SecurityCard } from "@/components/nest/shared/security/security-card";
+import { ArrearsRow } from "@/components/nest/shared/arrears-row";
+import { PaymentRow } from "@/components/nest/shared/payment-row";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
-import { HeroSkeleton, ListSkeleton } from "@/components/nest/shared/skeletons";
+import { HeroSkeleton, KpiSkeleton, ListSkeleton } from "@/components/nest/shared/skeletons";
 import { ListingStatusChip, NewBadge } from "@/components/nest/shared/listing-chips";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,11 +49,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function AgentHome() {
   const { t } = useI18n();
-  const { data: session } = useSession();
-  const { data, isPending, error, refetch } = useAgentOverview();
   const setTab = useUIStore((s) => s.setTab);
+  const setPaymentsFilter = useUIStore((s) => s.setPaymentsFilter);
   const openListing = useUIStore((s) => s.openListing);
   const setCreateListingOpen = useUIStore((s) => s.setCreateListingOpen);
+  const { data: session } = useSession();
+  const { data, isPending, error, refetch } = useAgentOverview();
+  // Shared ["analytics"] cache — the SAME series the Analytics tab reads
+  // (free navigation; the agent's scope comes from the session server-side).
+  const { data: analytics } = useStaffAnalytics();
 
   if (error != null) {
     return (
@@ -51,34 +72,145 @@ export function AgentHome() {
   const properties = data?.portfolioProperties ?? [];
   const liveListings = data?.liveListings ?? [];
   const unlistedCount = data?.unlistedVacantUnits?.length ?? 0;
+  const unmatchedCount = totals?.unmatchedPayments ?? 0;
+  const arrears = [...(data?.arrears ?? [])]
+    .sort((a, b) => b.balanceMinor - a.balanceMinor)
+    .slice(0, 5);
+  const recentPayments = data?.recentPayments ?? [];
+  const monthly = analytics?.monthly ?? [];
+  const collectedSpark = monthly.map((m) => m.collectedMinor);
 
   return (
     <div className="space-y-4 sm:space-y-6 nest-stagger">
-      {/* MASTHEAD (D-034) — the letterhead greeting. */}
-      <ClassicMasthead eyebrow={t("role.agent")} greeting={t(greetingKeyForHour(), { name })} />
+      {/* MASTHEAD (D-034) — the letterhead: the appointment's estate figures
+       * (plots · units · this month's expected rent) + the collection-rate
+       * aside. Same anatomy as the landlord's — one record, two desks. */}
+      <section aria-label={t("role.agent")}>
+        {isPending || !data || !totals ? (
+          <MastheadSkeleton />
+        ) : (
+          <ClassicMasthead
+            eyebrow={`${t("role.agent")} · ${formatMonthKey(data.month)}`}
+            greeting={t(greetingKeyForHour(), { name })}
+            stats={
+              <p className="text-body text-muted-foreground tabular-nums">
+                {t("landlord.heroContext", {
+                  plots: properties.length,
+                  units: totals.units,
+                  amount: formatKes(totals.monthExpectedMinor),
+                })}
+              </p>
+            }
+            aside={
+              <MastheadAside
+                label={t("landlord.collectionRate")}
+                value={`${totals.collectionRatePct}%`}
+              />
+            }
+          />
+        )}
+      </section>
 
       {isPending || !totals ? (
         <div className="space-y-4 sm:space-y-6" aria-busy>
-          <MastheadSkeleton />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <KpiCellSkeleton />
-            <KpiCellSkeleton />
-            <KpiCellSkeleton />
-            <KpiCellSkeleton />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <KpiSkeleton />
+            <KpiSkeleton />
+            <KpiSkeleton />
+            <KpiSkeleton />
           </div>
           <HeroSkeleton className="h-36 nest-classic" />
           <ListSkeleton rows={2} />
         </div>
       ) : (
         <>
-          {/* Funnel KPIs — 2×2 on mobile, 4 across from sm: the ruled figure
-              boxes (D-034) — the ledger column heads for the funnel. */}
+          {/* MONEY KPI QUAD (Phase 23) — the landlord's ledger figure boxes,
+              scoped to the appointed plots. */}
+          <section aria-label={t("landlord.collectedThisMonth")}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <KpiCard
+                variant="classic"
+                label={t("landlord.collectedThisMonth")}
+                value={formatKes(totals.monthCollectedMinor)}
+                highlight
+                sparkline={collectedSpark}
+                delta={{
+                  deltaPct: momDeltaPct(totals.monthCollectedMinor, totals.monthCollectedPrevMinor),
+                }}
+                lastMonthValue={
+                  totals.monthCollectedPrevMinor > 0
+                    ? t("common.lastMonthCollected", {
+                        amount: formatKes(totals.monthCollectedPrevMinor),
+                      })
+                    : t("common.noHistoryYet")
+                }
+                sub={
+                  <span className="tabular-nums">
+                    {t("money.expected")} {formatKes(totals.monthExpectedMinor)} ·{" "}
+                    {t("landlord.collectionRate")} {totals.collectionRatePct}%
+                  </span>
+                }
+                progressPct={totals.collectionRatePct}
+              />
+              <KpiCard
+                variant="classic"
+                label={t("landlord.arrears")}
+                value={formatKes(totals.arrearsMinor)}
+                tone="amber"
+                icon={TriangleAlert}
+                sub={
+                  <span className="tabular-nums">
+                    {t("landlord.tenantsInArrears")}: {totals.arrearsTenantCount}
+                  </span>
+                }
+              />
+              <KpiCard
+                variant="classic"
+                label={t("landlord.occupancyRate")}
+                value={`${totals.occupancyRatePct}%`}
+                icon={Building2}
+                progressPct={totals.occupancyRatePct}
+                sub={t("common.ofUnits", { occupied: totals.occupied, total: totals.units })}
+              />
+              <button
+                type="button"
+                onClick={() => setTab("repairs")}
+                aria-label={`${t("repairs.openRepairs")}: ${totals.openTickets}`}
+                className="text-left w-full h-full rounded-[6px] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
+              >
+                <KpiCard
+                  variant="classic"
+                  label={t("repairs.openRepairs")}
+                  value={String(totals.openTickets)}
+                  icon={Wrench}
+                  tone={totals.openTickets > 0 ? "amber" : "default"}
+                  sub={
+                    <span className="flex items-center gap-1">
+                      <span className="tabular-nums">
+                        {t("repairs.ticketsCount", { count: totals.openTickets })}
+                      </span>
+                      <ChevronRight className="size-3.5" aria-hidden />
+                    </span>
+                  }
+                />
+              </button>
+            </div>
+          </section>
+
+          {/* Funnel KPIs — the agent's own leasing column heads (Phase 4),
+              kept as ruled figure boxes under the money quad. */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <KpiCell label={t("agent.vacantUnits")} value={String(totals.vacantUnits)} />
             <KpiCell label={t("agent.liveListings")} value={String(totals.liveListings)} />
             <KpiCell label={t("agent.newApplicants")} value={String(totals.newApplications)} />
             <KpiCell label={t("agent.inPipeline")} value={String(totals.activeApplications)} />
           </div>
+
+          {/* Compact 6-month collection trend (shared chart + cache). */}
+          {monthly.length >= 3 ? <MiniTrendCard monthly={monthly} /> : null}
+
+          {/* Security digest (Phase 3) — eyes on the ground, scoped. */}
+          {data ? <SecurityCard security={data.security} variant="classic" /> : null}
 
           {/* Vacancy funnel — the live listing, the create CTA, or the quiet state */}
           <FunnelCard
@@ -87,6 +219,74 @@ export function AgentHome() {
             onOpenListing={() => liveListings[0] && openListing(liveListings[0].id)}
             onCreateListing={() => setCreateListingOpen(true)}
           />
+
+          {/* Unmatched alert card (amber tint — hidden when zero) — the
+              appointed manager can reconcile too (Phase 23). */}
+          {unmatchedCount > 0 ? (
+            <button
+              type="button"
+              onClick={() => {
+                setPaymentsFilter("UNMATCHED");
+                setTab("payments");
+              }}
+              className="w-full text-left rounded-[6px] border border-warning/40 bg-warning/15 dark:bg-warning/10 p-4 flex items-center gap-3 focus-visible:ring-2 focus-visible:ring-ring outline-none"
+            >
+              <HelpCircle className="size-5 text-attention shrink-0" aria-hidden />
+              <p className="min-w-0 flex-1 text-attention font-medium">
+                {t("landlord.unmatchedPayments")}:{" "}
+                <span className="tabular-nums">{unmatchedCount}</span>
+              </p>
+              <span className="text-label text-attention flex items-center gap-1 shrink-0">
+                {t("unmatched.review")}
+                <ChevronRight className="size-4" aria-hidden />
+              </span>
+            </button>
+          ) : null}
+
+          {/* Arrears + recent payments — the money previews, side by side ≥xl. */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 items-start">
+            <section aria-label={t("landlord.arrears")}>
+              <SectionHeader
+                variant="classic"
+                title={t("landlord.arrears")}
+                count={data?.arrears.length}
+                actionLabel={t("arrears.viewAll")}
+                onAction={() => setTab("arrears")}
+                className="mb-3"
+              />
+              {arrears.length === 0 ? (
+                <p className="flex items-center gap-2 text-body text-muted-foreground py-4">
+                  <CheckCircle2 className="size-4 text-success shrink-0" aria-hidden />
+                  {t("empty.arrears")}
+                </p>
+              ) : (
+                <Card className="divide-y gap-0 py-0 nest-classic">
+                  {arrears.map((row) => (
+                    <ArrearsRow key={row.tenancyId} row={row} />
+                  ))}
+                </Card>
+              )}
+            </section>
+
+            <section aria-label={t("landlord.recentPayments")}>
+              <SectionHeader
+                variant="classic"
+                title={t("landlord.recentPayments")}
+                actionLabel={t("arrears.viewAll")}
+                onAction={() => setTab("payments")}
+                className="mb-3"
+              />
+              {recentPayments.length === 0 ? (
+                <EmptyState icon={CheckCircle2} title={t("empty.payments")} success />
+              ) : (
+                <Card className="divide-y gap-0 py-0 nest-classic">
+                  {recentPayments.map((payment) => (
+                    <PaymentRow key={payment.id} payment={payment} />
+                  ))}
+                </Card>
+              )}
+            </section>
+          </div>
 
           {/* Live listings preview */}
           {liveListings.length > 0 ? (
@@ -112,6 +312,8 @@ export function AgentHome() {
               variant="classic"
               title={t("nav.properties")}
               count={properties.length}
+              actionLabel={t("arrears.viewAll")}
+              onAction={() => setTab("properties")}
               className="mb-3"
             />
             {properties.length === 0 ? (

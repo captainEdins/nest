@@ -53,8 +53,9 @@ export const TABS: Record<Role, TabDef[]> = {
   ],
   AGENT: [
     { id: "home", labelKey: "nav.home", icon: Home },
+    { id: "arrears", labelKey: "nav.arrears", icon: AlertTriangle },
+    { id: "payments", labelKey: "nav.payments", icon: Receipt },
     { id: "listings", labelKey: "nav.listings", icon: Megaphone },
-    { id: "applicants", labelKey: "nav.applicants", icon: Users },
   ],
   GUARD: [
     { id: "home", labelKey: "nav.home", icon: Home },
@@ -91,6 +92,19 @@ export const MORE_TABS: Partial<Record<Role, TabDef[]>> = {
     { id: "expenses", labelKey: "nav.expenses", icon: TrendingDown },
   ],
   CARETAKER: [
+    { id: "security", labelKey: "nav.security", icon: Shield },
+    { id: "expenses", labelKey: "nav.expenses", icon: TrendingDown },
+  ],
+  /** Agent overflow (Phase 23, issue #109 — agent parity): the applicant
+   * queue moves one tap deep (the leasing core stays in the bottom bar);
+   * properties/analytics/security/expenses/repairs mirror the landlord's
+   * desk, scoped to the appointed plots. KRA stays landlord-only — the
+   * owner's tax liability is the "almost" in "almost the same features". */
+  AGENT: [
+    { id: "applicants", labelKey: "nav.applicants", icon: Users },
+    { id: "properties", labelKey: "nav.properties", icon: Building2 },
+    { id: "repairs", labelKey: "nav.repairs", icon: Wrench },
+    { id: "analytics", labelKey: "nav.analytics", icon: ChartColumn },
     { id: "security", labelKey: "nav.security", icon: Shield },
     { id: "expenses", labelKey: "nav.expenses", icon: TrendingDown },
   ],

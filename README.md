@@ -34,6 +34,7 @@ One plot. Five roles. One record of truth.
 | Capability | Status |
 |---|---|
 | Five role-based home screens (landlord / agent / caretaker / tenant / guard) | ✅ shipped |
+| **Agent parity (P23)** — the appointed agent gets the landlord's desk scoped to their plots: money KPIs + MoM, arrears with bulk reminders, payments with match, analytics, security digest, read-only expenses, staff statements. Tax (KRA) + money-out writes stay the owner's | ✅ shipped |
 | Demo auth with role switching (Supabase phone-OTP adapter boundary) | ✅ shipped |
 | M-Pesa **STK Push** + Daraja-format callbacks (simulated sandbox, live-ready boundary) | ✅ shipped |
 | **Automatic reconciliation engine** — waterfall allocation, idempotent callbacks, unmatched-payment review queue | ✅ shipped |
@@ -124,7 +125,7 @@ bun run dev                 # http://localhost:3000
 | 🏠 Tenant — Grace Wanjiku | +254711000003 | Pay rent via M-Pesa (sandbox sim), get instant receipt, report a repair, **see your Rent Score + monthly Statement (More tab)** |
 | 🏠 Tenant — David Otieno | +254711000004 | See arrears balance + reminder |
 | 🔒 Guard — Peter Njoroge | +254711000006 | Log a visitor, report an incident, start/end shift |
-| 🤝 Agent — Wanjiku Kamau | +254711000007 | **Amina's appointed agent** — runs both plots on her behalf: publish a listing, record applicants, run the pipeline |
+| 🤝 Agent — Wanjiku Kamau | +254711000007 | **Amina's appointed agent** — the landlord's desk scoped to both plots: money KPIs, **arrears + Remind all**, payments, **match an unmatched payment**, analytics, statement print — plus publish a listing, record applicants, run the pipeline |
 
 > M-Pesa runs in `MPESA_MODE=sim` — a full Daraja-shaped sandbox (real STK callback JSON, real idempotency path) with the network call stubbed and clearly labelled. Set Daraja keys + `MPESA_MODE=live` to hit the real sandbox.
 

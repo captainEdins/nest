@@ -467,10 +467,13 @@ export async function getTenantOverview(profile: Profile): Promise<TenantOvervie
 }
 
 // ---------------------------------------------------------------------------
-// AGENT — portfolio KPIs only, no money fields (matrix §5 + §6)
+// AGENT — the appointed manager's desk: funnel KPIs + the scoped money
+// graph (Phase 23, issue #109 — agent parity; matrix §4.2/§5)
 // ---------------------------------------------------------------------------
 
 export async function getAgentOverview(profile: Profile): Promise<AgentOverviewDto> {
+  const now = new Date()
+
   const properties = await db.property.findMany({
     where: { agentId: profile.id },
     include: { units: { select: { id: true, label: true, status: true, rentAmountMinor: true } } },
@@ -479,19 +482,33 @@ export async function getAgentOverview(profile: Profile): Promise<AgentOverviewD
   const occupied = units.filter((u) => u.status !== "VACANT").length
   const vacant = units.filter((u) => u.status === "VACANT")
 
-  // Phase 4 funnel: listings on the agent's portfolio (any status) + the
-  // live application pipeline scoped to the same portfolio.
-  const [listings, applications] = await Promise.all([
-    db.listing.findMany({
-      where: { property: { agentId: profile.id } },
-      include: listingInclude,
-      orderBy: { updatedAt: "desc" },
-    }),
-    db.listingApplication.findMany({
-      where: { property: { agentId: profile.id } },
-      select: { status: true },
-    }),
+  // Phase 23 (issue #109 — agent parity): the money graph, scoped to the
+  // appointed plots. Same helpers as the landlord's desk — one computation,
+  // two desks (D-018 seam pattern).
+  const [rollup, funnel] = await Promise.all([
+    (async () => {
+      const tenancies = await scopedActiveTenancies(properties.flatMap((p) => p.units.map((u) => u.id)))
+      return computeMoneyRollup(profile, tenancies, now)
+    })(),
+    // Phase 4 funnel: listings on the agent's portfolio (any status) + the
+    // live application pipeline scoped to the same portfolio.
+    (async () => {
+      const [listings, applications] = await Promise.all([
+        db.listing.findMany({
+          where: { property: { agentId: profile.id } },
+          include: listingInclude,
+          orderBy: { updatedAt: "desc" },
+        }),
+        db.listingApplication.findMany({
+          where: { property: { agentId: profile.id } },
+          select: { status: true },
+        }),
+      ])
+      return { listings, applications }
+    })(),
   ])
+
+  const { listings, applications } = funnel
 
   // A vacant unit is "listed" when it has a listing in a live state (anything
   // but LET — a LET listing means the funnel closed and the unit is taken).
@@ -513,6 +530,19 @@ export async function getAgentOverview(profile: Profile): Promise<AgentOverviewD
     (a) => a.status === "NEW" || a.status === "CONTACTED" || a.status === "VIEWING",
   ).length
 
+  const [recentPayments, openTickets, security] = await Promise.all([
+    db.payment.findMany({
+      where: await paymentScopeWhere(profile),
+      orderBy: { receivedAt: "desc" },
+      take: 5,
+      include: paymentInclude,
+    }),
+    db.maintenanceTicket.count({
+      where: { status: { in: ["OPEN", "IN_PROGRESS"] }, unit: { property: { agentId: profile.id } } },
+    }),
+    securityDigest({ agentId: profile.id }),
+  ])
+
   return {
     portfolioProperties: properties.map((p) =>
       toPropertyDto(p, p.units.length, p.units.filter((u) => u.status !== "VACANT").length)
@@ -525,9 +555,23 @@ export async function getAgentOverview(profile: Profile): Promise<AgentOverviewD
       liveListings: liveListings.length,
       newApplications,
       activeApplications,
+      occupied,
+      monthExpectedMinor: rollup.monthExpectedMinor,
+      monthCollectedMinor: rollup.monthCollectedMinor,
+      monthCollectedPrevMinor: rollup.monthCollectedPrevMinor,
+      todayCollectedMinor: rollup.todayCollectedMinor,
+      collectionRatePct: pct(rollup.monthCollectedMinor, rollup.monthExpectedMinor),
+      arrearsMinor: rollup.arrearsMinor,
+      arrearsTenantCount: rollup.arrearsTenantCount,
+      unmatchedPayments: rollup.unmatchedPayments,
+      openTickets,
     },
+    arrears: rollup.arrears,
+    recentPayments: recentPayments.map(toPaymentDto),
     unlistedVacantUnits,
     liveListings: liveListings.map(toListingDto),
+    security,
+    month: rollup.month,
   }
 }
 
