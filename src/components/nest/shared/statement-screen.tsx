@@ -341,7 +341,11 @@ export function OpenStatementButton({
     <Button
       variant="ghost"
       size="icon"
-      className="h-11 w-11"
+      // Phase 20 (issue #98): h-11 = 44px touch target on mobile; sm:h-9
+      // tracks SendReminderButton's desktop shrink so table rows keep one
+      // rhythm (44px button in a 36px row looked misaligned and kept rows
+      // at 65px instead of the ledger's cadence).
+      className="h-11 w-11 sm:h-9 sm:w-9"
       onClick={() => openStatement(tenancyId)}
       aria-label={label}
       title={label}
