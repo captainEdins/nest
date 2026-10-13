@@ -19,7 +19,7 @@ One plot. Five roles. One record of truth.
 
 ## 📊 For investors — the one-pager
 
-**The problem.** A typical Kenyan rental plot involves a landlord (often in another city), an agent, a caretaker collecting cash, tenants who want receipts, and a guard at the gate. Rent is tracked in exercise books and WhatsApp messages. Arrears are invisible until they're large. Deposits vanish in disputes. The caretaker — the person who actually runs the plot — is the least tooled and the most accused.
+**The problem.** A typical Kenyan rental plot involves a landlord (often in another city), an agent appointed to run the plot on their behalf, a caretaker collecting cash, tenants who want receipts, and a guard at the gate. Rent is tracked in exercise books and WhatsApp messages. Arrears are invisible until they're large. Deposits vanish in disputes. The caretaker — the person who actually runs the plot — is the least tooled and the most accused.
 
 **The wedge.** *Caretaker + M-Pesa: "who has paid, and can they prove it?"* NEST starts at the exact moment money changes hands: STK Push and C2B rent collection, an automatic reconciliation engine that matches every payment to tenant, unit and charge, and instant shareable receipts. Cash collections by caretakers are recorded in under 3 taps — with a receipt that protects *them* as much as the landlord.
 
@@ -124,7 +124,7 @@ bun run dev                 # http://localhost:3000
 | 🏠 Tenant — Grace Wanjiku | +254711000003 | Pay rent via M-Pesa (sandbox sim), get instant receipt, report a repair, **see your Rent Score + monthly Statement (More tab)** |
 | 🏠 Tenant — David Otieno | +254711000004 | See arrears balance + reminder |
 | 🔒 Guard — Peter Njoroge | +254711000006 | Log a visitor, report an incident, start/end shift |
-| 🤝 Agent — Wanjiku Kamau | +254711000007 | Publish a listing, record applicants, run the pipeline |
+| 🤝 Agent — Wanjiku Kamau | +254711000007 | **Amina's appointed agent** — runs both plots on her behalf: publish a listing, record applicants, run the pipeline |
 
 > M-Pesa runs in `MPESA_MODE=sim` — a full Daraja-shaped sandbox (real STK callback JSON, real idempotency path) with the network call stubbed and clearly labelled. Set Daraja keys + `MPESA_MODE=live` to hit the real sandbox.
 
