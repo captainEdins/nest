@@ -36,7 +36,7 @@ export const sw: Record<TranslationKey, string> = {
   "role.tenant": "Mpangaji",
   "role.guard": "Mlinzi",
   "roleDesc.landlord": "Fuatilia mapato, madeni na vyumba vilivyo wazi",
-  "roleDesc.agent": "Simamia mali zote kwa mahali pamoja",
+  "roleDesc.agent": "Simamia mali kwa niaba ya mmiliki",
   "roleDesc.caretaker": "Kusanya kodi na kufuatilia kazi za kila siku",
   "roleDesc.tenant": "Lipa kodi na hifadhi risiti zako",
   "roleDesc.guard": "Sajili wageni na matukio",
@@ -286,8 +286,7 @@ export const sw: Record<TranslationKey, string> = {
   "tenant.confirmPayment": "Thibitisha malipo",
   "tenant.receiptReady": "Risiti iko tayari",
 
-  // ----- Phase notices (S-12/S-13) -------------------------------------------
-  "phase.agentNotice": "Zana za wakala — orodha za nyumba, usajili wa wapangaji na ripoti — zitafika katika {phase}.",
+  // ----- Phase notices (S-13) ---------------------------------------------
   "phase.guardNotice": "Kumbukumbu za wageni na ripoti za matukio zitafika katika {phase}.",
   "guard.visitorLog": "Kumbukumbu za wageni",
   "guard.incidents": "Matukio",

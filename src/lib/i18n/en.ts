@@ -33,7 +33,7 @@ export const en = {
   "role.tenant": "Tenant",
   "role.guard": "Guard",
   "roleDesc.landlord": "Track income, arrears and vacancies",
-  "roleDesc.agent": "Watch over a portfolio of plots",
+  "roleDesc.agent": "Manage the plot on the landlord's behalf",
   "roleDesc.caretaker": "Collect rent and handle the day-to-day",
   "roleDesc.tenant": "Pay rent and keep your receipts",
   "roleDesc.guard": "Log visitors and incidents",
@@ -298,8 +298,7 @@ export const en = {
   "tenant.confirmPayment": "Confirm payment",
   "tenant.receiptReady": "Receipt ready",
 
-  // ----- Phase notices (S-12/S-13) -------------------------------------------
-  "phase.agentNotice": "Agent tools — listings, onboarding and reports — arrive in Phase {phase}.",
+  // ----- Phase notices (S-13) ---------------------------------------------
   "phase.guardNotice": "Visitor log and incident reports arrive in Phase {phase}.",
   "guard.visitorLog": "Visitor log",
   "guard.incidents": "Incidents",
