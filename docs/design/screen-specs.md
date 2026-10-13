@@ -122,8 +122,8 @@ Conventions applying to **every** screen (not repeated below): shell header + na
 │                                            │
 │  ARREARS (7)                    View all → │ h2 + link → S-11
 │  ┌──────────────────────────────────────┐  │
-│  │ David Otieno            ⚠ KSh 18,000 │  │
-│  │ B4 · Baraka Plot · 2 months behind   │  │
+│  │ David Otieno [chip]            ⚠ KSh 18k │  │
+│  │ B4 · Baraka          1 month behind    │  │
 │  │                    [Send reminder]    │  │ ghost button
 │  └──────────────────────────────────────┘  │
 │  … top 5 by balance …                      │
@@ -239,8 +239,8 @@ step 2 (confirm):
 │                                            │
 │  RECENT COLLECTIONS                        │ h2
 │  ┌──────────────────────────────────────┐  │
-│  │ David Otieno · B4       KSh 6,000    │  │
-│  │ ▣ Cash · recorded by you · 12 Feb    │  │
+│  │ David Otieno [chip]            ⚠ KSh 18k │  │
+│  │ B4 · Baraka          1 month behind    │  │
 │  └──────────────────────────────────────┘  │
 │  … 5 rows (recentPayments) …              │
 └────────────────────────────────────────────
@@ -270,15 +270,15 @@ STEP 1 — TENANCY PICKER (drawer <sm / dialog ≥sm, full-height)
 │  │ Grace Wanjiku · B1 · Baraka          │  │
 │  │ ⚠ Balance KSh 12,000                 │  │
 │  ├──────────────────────────────────────┤  │
-│  │ David Otieno · B4 · Baraka           │  │
-│  │ ⚠ Balance KSh 18,000                 │  │
+│  │ David Otieno [chip]            ⚠ KSh 18k │  │
+│  │ B4 · Baraka          1 month behind    │  │
 │  └──────────────────────────────────────┘  │
 │  (balance 0 tenancies last, tinted ✓)     │
 
 STEP 2 — AMOUNT
 │  Record cash                       (2/3)  │
-│  David Otieno · B4 · Baraka Plot          │
-│  Balance KSh 18,000                        │
+│  │ David Otieno [chip]            ⚠ KSh 18k │  │
+│  │ B4 · Baraka          1 month behind    │  │
 │  ┌──────────────────────────────────────┐  │
 │  │ KES   18,000        (text-kpi,       │  │ pre-filled = balance,
 │  │                    inputMode=numeric)│  │ editable, tabular-nums
@@ -293,8 +293,8 @@ STEP 3 — SUCCESS (auto-dismiss ~2.5s)
 │  Cash collection recorded                 │
 │  ┌──────────────────────────────────────┐  │
 │  │ NEST-R-000042   (text-kpi, tracking) │  │
-│  │ KSh 18,000 · David Otieno · B4       │  │
-│  └──────────────────────────────────────┘  │
+│  │ David Otieno [chip]            ⚠ KSh 18k │  │
+│  │ B4 · Baraka          1 month behind    │  │
 │  [Share receipt]      [Done]              │
 ```
 
@@ -326,15 +326,15 @@ STEP 3 — STATUS CARD (live, role="status" aria-live="polite")
 │  │ confirmation…                         │  │
 │  │ Ask David to enter the M-Pesa PIN     │  │
 │  │ on their phone.                       │  │
-│  │ KSh 18,000 · David Otieno · B4        │  │
-│  │ Sandbox demo — no real money moves.   │  │ caption
+│  │ David Otieno [chip]            ⚠ KSh 18k │  │
+│  │ B4 · Baraka          1 month behind    │  │
 │  └──────────────────────────────────────┘  │
 │         [Cancel request]                  │
 
 CONFIRMED (final):
 │  ✓ Confirmed                              │
-│  KSh 18,000 received from David Otieno    │
-│  [View receipt]  (→ S-10b)               │
+│  │ David Otieno [chip]            ⚠ KSh 18k │  │
+│  │ B4 · Baraka          1 month behind    │  │
 
 FAILED (final):
 │  ✗ M-Pesa request failed                  │
@@ -458,8 +458,8 @@ STEP 3 — STATUS (role="status" aria-live="polite")
 │ Receipts                                   │
 │  ┌──────────────────────────────────────┐  │
 │  │ NEST-R-000042        KSh 18,000      │  │
-│  │ David Otieno · B4 · Baraka Plot      │  │
-│  │ ▣ CASH · 12 Feb 2026                 │  │
+│  │ David Otieno [chip]            ⚠ KSh 18k │  │
+│  │ B4 · Baraka          1 month behind    │  │
 │  ├──────────────────────────────────────┤  │
 │  │ NEST-R-000041        KSh 12,000      │  │
 │  │ Grace Wanjiku · B1 · Baraka Plot     │  │
@@ -471,8 +471,8 @@ STEP 3 — STATUS (role="status" aria-live="polite")
 │  NEST                       Receipt        │
 │  NEST-R-000042            (text-kpi)      │
 │  ────────────────────────────────────────  │
-│  Received from   David Otieno              │
-│  Unit            B4 · Baraka Plot          │
+│  │ David Otieno [chip]            ⚠ KSh 18k │  │
+│  │ B4 · Baraka          1 month behind    │  │
 │  Account ref     NEST-B4-0031              │
 │  Date            12 Feb 2026               │
 │  Source          [▣ CASH]                  │
@@ -504,28 +504,33 @@ STEP 3 — STATUS (role="status" aria-live="polite")
 375px ─────────────────────────────────────────
 │ Arrears                       KSh 41,500    │
 │  7 tenants across 4 buckets                 │
-│  ┌──────┐┌──────┐┌──────┐┌──────┐           │ aging chips (scroll-x
-│  │Now 2 ││1–30  ││31–60 ││61+   │           │ on <sm, grid ≥sm)
-│  │KSh 6k││KSh 9k││KSh 12k││KSh 14k│         │
-│  │2 tenants│1   ││2     ││2     │           │
-│  └──────┘└──────┘└──────┘└──────┘           │
+│  ┌──────────┐┌──────────┐                   │ aging buckets — 2×2
+│  │Now       ││1–30 days │                   │ grid on <sm (grid-
+│  │KSh 6k    ││KSh 9k    │                   │ cols-4 ≥sm); D-032
+│  │2 tenants ││1 tenant  │                   │ flat-card anatomy;
+│  └──────────┘└──────────┘                   │ deepest non-empty
+│  ┌──────────┐┌──────────┐                   │ bucket owns the
+│  │31–60 days││61+ days  │                   │ warning tint
+│  │KSh 12k   ││KSh 14k   │                   │
+│  │2 tenants ││2 tenants │                   │
+│  └──────────┘└──────────┘                   │
 │  CURRENT (2)                                │ h3 + count
 │  ┌──────────────────────────────────────┐  │
-│  │ Mary Achieng · A1 · Baraka           │  │
-│  │ Current month              ⚠ KSh 6k  │  │
+│  │ Mary Achieng [chip]            ⚠ KSh 6k │  │
+│  │ A1 · Baraka             Current month │  │ debt block: amount
 │  │                     [Send reminder]   │  │
 │  └──────────────────────────────────────┘  │
 │  1–30 DAYS (1)                              │
 │  ┌──────────────────────────────────────┐  │
-│  │ David Otieno · B4 · Baraka           │  │
-│  │ 1 month behind            ⚠ KSh 18k │  │
-│  │                     [Send reminder]   │  │
+│  │ David Otieno [chip]            ⚠ KSh 18k │  │
+│  │ B4 · Baraka          1 month behind    │  │ debt block: months
+│  │                     [Send reminder]   │  │ NEVER truncates
 │  └──────────────────────────────────────┘  │
 └────────────────────────────────────────────
 ```
 
-- Buckets **[gap keys]**: `arrears.aging.current` "Current" (oldest unpaid period = current month) · `arrears.aging.1_30` "1–30 days" · `arrears.aging.31_60` "31–60 days" · `arrears.aging.61plus` "61+ days" (computed from days past `oldestUnpaidPeriod` due date). Chip: amount `text-attention font-semibold` + tenant count caption. 61+ chip can add `border-warning` emphasis (still amber — never red).
-- Rows grouped under bucket headings, sorted by balance desc; row = S-03 arrears card (name, unit·property, `arrears.monthsBehind` **[gap]**, balance amber, Send reminder ghost → `arrears.reminderSent` **[gap]** toast; button → "Sent" disabled 60s to prevent spam).
+- Buckets **[gap keys]**: `arrears.aging.current` "Current" (oldest unpaid period = current month) · `arrears.aging.1_30` "1–30 days" · `arrears.aging.31_60` "31–60 days" · `arrears.aging.61plus` "61+ days" (computed from days past `oldestUnpaidPeriod` due date — NOT `monthsBehind`: a one-period-behind tenant can sit in 31–60). Bucket card: D-032 flat anatomy (root `py-0 gap-0`, inner `p-3 gap-1`), amount `text-attention font-bold` on the deepest non-empty bucket + tenant count caption (amber — never red).
+- Rows grouped under bucket headings, sorted by balance desc; row = S-03 arrears card (name + optional rent-score chip; caption unit·property; Phase 20 debt block on the right — amber bold balance over `arrears.monthsBehind` **[gap]** caption, so months NEVER truncates; Send reminder ghost → `arrears.reminderSent` **[gap]** toast; button → "Sent" disabled 60s to prevent spam).
 - Tap row (not button) → tenant detail not in Phase 1 — rows are non-navigating; reminder is the action.
 - **Desktop ≥sm**: `Table` — Tenant · Unit · Property · Months behind · Balance (right, amber) · Bucket · Action. Mobile: grouped cards.
 - **States**: loading — 4 chip + 6 row skeletons; empty — `empty.arrears` centered with `CheckCircle2` success icon (a *good* state); error — Alert + retry; offline — read-only, Send reminder disabled with offline caption; reminder failure → toast `errors.somethingWrong`.

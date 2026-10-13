@@ -90,6 +90,15 @@ Body sets `font-family: var(--font-poppins)`. `--radius: 0.625rem` is already co
 > KPI icon tiles follow the card's tone (amber cards wear amber tiles —
 > the arrears icon must never sit green above an amber number).
 
+> **D-033 (Phase 20, issue #98 — the slash-modifier rule)**: on custom
+> Tailwind v4 font-size tokens (`text-caption`, `text-body`, `text-h2`,
+> `text-kpi`, …) a slash suffix is a **LEADING modifier**, never opacity:
+> `text-caption/90` rendered `line-height: 360px` (90 × 0.25rem) and
+> inflated every arrears table row to 387px. Only COLOUR tokens take the
+> slash for alpha (`text-attention/90`). To de-emphasise type, use the
+> `opacity-*` utility or a muted colour. QA gates must grep for
+> `text-(custom-size)/N` before merge (phase20-qa-gate.md §13).
+
 | Token | Value | Primary use |
 |---|---|---|
 | `--background` | `oklch(0.98 0.007 96)` | Page background (warm cream, #F9F7F2 family) |

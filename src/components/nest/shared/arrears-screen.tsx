@@ -91,8 +91,9 @@ export function ArrearsScreen({
       <div className="flex items-baseline justify-between gap-2 mb-1">
         <h1 className="text-h2 font-semibold">{t("landlord.arrears")}</h1>
         {/* Phase 18 (D-031): the total is the page's primary number —
-            display weight, amber, tabular. */}
-        <p className="text-h3 font-bold text-attention tabular-nums">{formatKes(totalMinor)}</p>
+            display weight, amber, tabular. Phase 20 (issue #98): text-h2 —
+            the primary number may not be the smaller element on the page. */}
+        <p className="text-h2 font-bold text-attention tabular-nums">{formatKes(totalMinor)}</p>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <p className="text-caption text-muted-foreground">
@@ -106,7 +107,7 @@ export function ArrearsScreen({
         <div className="space-y-4" aria-busy>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i} className="h-24 nest-skeleton bg-muted" />
+              <Card key={i} className="h-20 py-0 gap-0 nest-skeleton bg-muted" />
             ))}
           </div>
           <Card className="divide-y gap-0 py-0">
@@ -122,8 +123,13 @@ export function ArrearsScreen({
           {/* Aging buckets — Phase 18 (D-031): borderless v2 mini-cards
               (the outlined divs read as broken/empty boxes in the warm
               canvas); the DEEPEST non-empty bucket owns the warning tint
-              so urgency lives where the oldest debt actually is. */}
-          <div className="flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:overflow-visible">
+              so urgency lives where the oldest debt actually is.
+              Phase 20 (issue #98): D-032 flat-card anatomy — the Card base's
+              gap-6 put 24px between an 11px label and a 14px number (133px
+              cards); the root zeroes py/gap and an inner wrapper owns p-3.
+              Mobile moves to a 2×2 grid — the deepest bucket may not hide
+              behind a scroll affordance. */}
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {(() => {
               const deepest = [...BUCKET_ORDER].reverse().find((b) => (byBucket.get(b) ?? []).length > 0);
               return BUCKET_ORDER.map((bucket) => {
@@ -134,16 +140,17 @@ export function ArrearsScreen({
                   <Card
                     key={bucket}
                     className={cn(
-                      "shrink-0 w-32 sm:w-auto rounded-xl p-3",
+                      "py-0 gap-0 rounded-xl",
                       urgent && "bg-warning/10 dark:bg-warning/10",
                     )}
                   >
+                    <div className="flex flex-col gap-1 p-3">
                     <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                       {t(BUCKET_KEY[bucket])}
                     </p>
                     <p
                       className={cn(
-                        "font-semibold tabular-nums text-body mt-1",
+                        "font-semibold tabular-nums text-body",
                         urgent ? "text-attention" : "text-foreground",
                       )}
                     >
@@ -152,6 +159,7 @@ export function ArrearsScreen({
                     <p className="text-caption text-muted-foreground">
                       {t("arrears.bucketTenants", { count: bucketRows.length })}
                     </p>
+                    </div>
                   </Card>
                 );
               });
@@ -215,7 +223,7 @@ export function ArrearsScreen({
                       <TableCell>
                         {score ? <RentScoreChip score={score.score} band={score.band} /> : "—"}
                       </TableCell>
-                      <TableCell className="text-right text-attention font-semibold tabular-nums">
+                      <TableCell className="text-right text-attention font-bold tabular-nums">
                         {formatKes(row.balanceMinor)}
                       </TableCell>
                       <TableCell className="text-right">
