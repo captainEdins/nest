@@ -71,6 +71,14 @@ export function useGuardOverview(): UseQueryResult<GuardOverviewDto> {
  * separate from ["overview"]: charts invalidate independently, payments
  * mutations don't recompute trends on every keystroke.
  */
+/**
+ * Phase 23 (issue #109 — agent parity): role-neutral alias for the SAME
+ * ["analytics"] cache — /api/analytics now serves LANDLORD + AGENT (scoped).
+ * The agent home + Analytics tab share this key with the landlord's, so the
+ * series stays warm across desks after a sign-out/sign-in.
+ */
+export const useStaffAnalytics = useLandlordAnalytics;
+
 export function useLandlordAnalytics(): UseQueryResult<LandlordAnalyticsDto> {
   return useQuery({
     queryKey: ["analytics"],

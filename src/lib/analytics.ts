@@ -1,17 +1,19 @@
 /**
- * NEST — landlord analytics aggregation (Phase 5 wedge A, issue #57).
+ * NEST — staff analytics aggregation (Phase 5 wedge A, issue #57; Phase 23
+ * issue #109 — generalized to the agent's desk).
  *
- * One read-only payload for the landlord's Analytics screen (single API call,
- * per the design-system perf rule — queries are fixed-count, never N+1):
+ * One read-only payload for the Analytics screen (single API call, per the
+ * design-system perf rule — queries are fixed-count, never N+1):
  *   1. monthly        — 6-month collection trend (billed vs collected),
  *   2. arrearsAging   — tenants bucketed by outstanding-balance age,
- *   3. occupancy      — occupied/vacant units per owned property.
+ *   3. occupancy      — occupied/vacant units per in-scope property.
  *
  * Scope + money rules (mirrors src/lib/overview.ts — the same seam):
- * - LANDLORD scope: properties where landlordId = profile.id, via
- *   Tenancy → Unit → Property. Aging balances use ACTIVE tenancies and the
- *   SAME math as the landlord home arrears (Σ charges − Σ matched COMPLETED
- *   payments; negative = tenant credit and is skipped, ADR-0007).
+ * - LANDLORD scope: properties where landlordId = profile.id; AGENT scope
+ *   (Phase 23): properties where agentId = profile.id — one computation,
+ *   two desks. Aging balances use ACTIVE tenancies and the SAME math as
+ *   the home arrears (Σ charges − Σ matched COMPLETED payments; negative =
+ *   tenant credit and is skipped, ADR-0007).
  * - Money is ALWAYS integer KES minor units — no floats, no fractional
  *   division anywhere in this module.
  * - Read-only: this module never writes (analytics records no AuditLog).
@@ -30,7 +32,7 @@
  * "current" additionally holds tenants whose balance is exactly zero.
  */
 
-import type { Profile } from "@prisma/client"
+import type { Prisma, Profile } from "@prisma/client"
 import { db } from "@/lib/db"
 import type {
   AnalyticsMonthDto,
@@ -90,11 +92,23 @@ function daysOverdue(dueDate: Date, now: Date): number {
 }
 
 export async function getLandlordAnalytics(profile: Profile): Promise<LandlordAnalyticsDto> {
+  return computeAnalytics({ landlordId: profile.id })
+}
+
+/** Phase 23 (issue #109 — agent parity): the agent's scoped analytics —
+ * the same three charts, computed over `Properties WHERE agentId = SELF`. */
+export async function getAgentAnalytics(profile: Profile): Promise<LandlordAnalyticsDto> {
+  return computeAnalytics({ agentId: profile.id })
+}
+
+async function computeAnalytics(
+  propertyWhere: Prisma.PropertyWhereInput,
+): Promise<LandlordAnalyticsDto> {
   const now = new Date()
 
-  // --- Scope: owned properties → their units → ACTIVE tenancies -----------
+  // --- Scope: in-scope properties → their units → ACTIVE tenancies ---------
   const properties = await db.property.findMany({
-    where: { landlordId: profile.id },
+    where: propertyWhere,
     include: { units: { select: { id: true, status: true } } },
   })
 

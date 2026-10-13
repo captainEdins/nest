@@ -88,7 +88,9 @@ export function PropertiesScreen() {
   );
 }
 
-function PropertyCard({ property }: { property: PropertyDto }) {
+/** Phase 23 (issue #109): exported for the agent's Properties tab —
+ * same card, agent-scoped data source (see agent/properties.tsx). */
+export function PropertyCard({ property }: { property: PropertyDto }) {
   const { t } = useI18n();
   const vacant = Math.max(0, property.unitCount - property.occupiedCount);
   const occupancyPct =

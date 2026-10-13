@@ -128,7 +128,7 @@ primitive above, e.g. caretaker:
 | listing applications + events (P4) | READ, WRITE(decide) | `application.propertyId IN (Properties WHERE landlordId = SELF)`. WRITE limited to APPROVED/REJECTED decisions (sets `decidedById/At`); pipeline moves are the agent's. |
 | move-ins (P8) | WRITE(convert) | `POST /api/move-ins` on an application satisfying 4.1's scope (miss ⇒ 404). Guards: application APPROVED (409 otherwise / 409 if already CONVERTED), unit VACANT with no ACTIVE tenancy (409), applicant phone must not belong to a staff account (409). The single transaction creates the tenancy + tenant profile (find-or-create) + deposit (HOLD, actor = SELF) + first RENT charge, flips unit → OCCUPIED and listing → LET, appends the CONVERTED event. |
 
-### 4.2 AGENT — *appointed by the landlord to run their plot; manages the pipeline, not the ledger* (demo: Wanjiku Kamau)
+### 4.2 AGENT — *appointed by the landlord to run their plot: the landlord's desk, scoped to it* (Phase 23, issue #109 — parity: money graph, arrears action, reconciliation, analytics, statements; the owner keeps tax (KRA) and money-out writes) (demo: Wanjiku Kamau)
 
 | Resource | Access | Exact condition |
 |---|---|---|
@@ -138,16 +138,20 @@ primitive above, e.g. caretaker:
 | units | READ | `unit.property.agentId = SELF`. WRITE: NONE (rent changes are the landlord's). |
 | tenancies | READ | `tenancy.unit.property.agentId = SELF`. WRITE: NONE in Phase 1. |
 | charges | READ | `charge.tenancy.unit.property.agentId = SELF`. WRITE: NONE. |
-| payments | READ | `payment.tenancy.unit.property.agentId = SELF` (money-endpoint rule §5 lets agents READ scoped money). WRITE: NONE in Phase 1 — agents neither record cash nor match. |
+| payments | READ | `payment.tenancy.unit.property.agentId = SELF` (money-endpoint rule §5; Phase 23: the overview money graph — expected/collected/MoM/today, arrears — is the same computation as the landlord's, scoped). WRITE(match): Phase 23 — `POST /api/payments/unmatched/match` on a payment visible via the unmatched-queue rule below + a tenancy satisfying this row's READ scope; recording cash stays LANDLORD/CARETAKER. |
 | receipts | READ | `receipt.payment.tenancy.unit.property.agentId = SELF` |
 | notifications | READ | `notification.profileId = SELF` (WRITE, P7: mark read — own rows only, sets `readAt`). |
 | mpesa transactions | READ | `mpesaTransaction.tenancy.unit.property.agentId = SELF` |
-| unmatched queue | READ | `payment.status = 'UNMATCHED' AND payment.phone IN (tenant phones of Properties WHERE agentId = SELF)` — i.e. an agent only sees unmatched money plausibly belonging to their portfolio. WRITE(match): NONE in Phase 1. |
+| unmatched queue | READ | `payment.status = 'UNMATCHED' AND payment.phone IN (tenant phones of Properties WHERE agentId = SELF)` — i.e. an agent only sees unmatched money plausibly belonging to their portfolio. WRITE(match): Phase 23 — the appointed manager reconciles on the landlord's behalf (audit-logged). |
 | audit log | NONE | |
 | deposits, movements (P2) | READ | `deposit.tenancy.unit.property.agentId = SELF`. WRITE: NONE. |
 | maintenance tickets, updates (P2) | READ, WRITE | `ticket.propertyId IN (Properties WHERE agentId = SELF)` |
 | condition reports (P2) | READ | `report.tenancy.unit.property.agentId = SELF` |
-| visitor logs, incident reports, guard shifts (P3) | READ | `record.propertyId IN (Properties WHERE agentId = SELF)` |
+| visitor logs, incident reports, guard shifts (P3) | READ | `record.propertyId IN (Properties WHERE agentId = SELF)` — Phase 23: the route gate now admits AGENT (the spec's intent; the code used to 403). |
+| bulk arrears reminders (P13/D-026) | WRITE(send) | Phase 23 — `POST /api/notifications/remind-all` as a valid sender, scoped by `tenancyScopeWhere`; same 30-min audit-row replay lock. |
+| statements (P15/P6) | READ | Phase 23 — staff statement view + print on tenancies in scope (`tenancyScopeWhere`); same seam as LANDLORD/CARETAKER. |
+| analytics (P5) | READ | Phase 23 — `GET /api/analytics` scoped to `Properties WHERE agentId = SELF` (trend, aging, occupancy — the same charts). |
+| KRA tax assistant (P5) | NONE | The owner's tax liability — the "almost" in agent parity. Real 403. |
 | listings (P4) | READ, WRITE | `listing.propertyId IN (Properties WHERE agentId = SELF)` (their core Phase 4 module). CREATE only from a VACANT unit in scope; status moves DRAFT→PUBLISHED↔PAUSED→LET. |
 | listing applications + events (P4) | READ, WRITE(record/pipeline) | `application.propertyId IN (Properties WHERE agentId = SELF)`. Agent records applicants and moves NEW→CONTACTED→VIEWING (+WITHDRAWN). APPROVED/REJECTED are the LANDLORD's alone — agents never decide. Events are append-only. |
 

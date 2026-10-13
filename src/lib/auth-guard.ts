@@ -330,7 +330,8 @@ export async function guardActiveShift(profile: Profile) {
  *   SHARED — a relieving guard must see today's entries),
  * - LANDLORD/CARETAKER: logs on their property chain,
  * - TENANT: logs for their ACTIVE-tenancy unit only (who came to my unit),
- * - AGENT: nothing (marketing role — not operations).
+ * - AGENT: logs on managed properties (Phase 23, issue #109 — agent parity;
+ *   the appointed manager sees the register, same as the landlord's eyes-on-the-ground).
  */
 export function visitorLogScopeWhere(profile: Profile): Prisma.VisitorLogWhereInput {
   switch (profile.role) {
@@ -338,6 +339,8 @@ export function visitorLogScopeWhere(profile: Profile): Prisma.VisitorLogWhereIn
       return { property: { landlordId: profile.id } }
     case "CARETAKER":
       return { property: { caretakerId: profile.id } }
+    case "AGENT":
+      return { property: { agentId: profile.id } }
     case "GUARD":
       // property → guardShifts(guardId) — sync form of guardPropertyIds.
       return { property: { guardShifts: { some: { guardId: profile.id } } } }
@@ -352,8 +355,9 @@ export function visitorLogScopeWhere(profile: Profile): Prisma.VisitorLogWhereIn
  * Prisma `where` for IncidentReport rows visible to `profile` (Phase 3 matrix):
  * - GUARD: incidents at properties they have worked at (shared history —
  *   context for the next shift),
- * - LANDLORD/CARETAKER: incidents on their property chain,
- * - TENANT/AGENT: nothing (incidents are operations data, not tenant-facing).
+ * - LANDLORD/CARETAKER/AGENT: incidents on their property chain (Phase 23,
+ *   issue #109 — the agent reads the register scoped to managed plots),
+ * - TENANT: nothing (incidents are operations data, not tenant-facing).
  */
 export function incidentScopeWhere(profile: Profile): Prisma.IncidentReportWhereInput {
   switch (profile.role) {
@@ -361,9 +365,11 @@ export function incidentScopeWhere(profile: Profile): Prisma.IncidentReportWhere
       return { property: { landlordId: profile.id } }
     case "CARETAKER":
       return { property: { caretakerId: profile.id } }
+    case "AGENT":
+      return { property: { agentId: profile.id } }
     case "GUARD":
       return { property: { guardShifts: { some: { guardId: profile.id } } } }
-    default: // TENANT + AGENT — deny by default.
+    default: // TENANT — deny by default.
       return { id: "__never__" }
   }
 }

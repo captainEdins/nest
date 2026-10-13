@@ -10,8 +10,9 @@
  * kra.ts seam pattern, D-018).
  *
  * Scope + money rules (mirrors kra.ts / analytics.ts — the same seam):
- * - TENANT → own live tenancy (matrix §4.4). LANDLORD/CARETAKER → tenancies
- *   in their scope via tenancyScopeWhere, ?tenancyId= required. GUARD/AGENT →
+ * - TENANT → own live tenancy (matrix §4.4). LANDLORD/CARETAKER/AGENT
+ *   (Phase 23, issue #109 — agent parity) → tenancies in their scope via
+ *   tenancyScopeWhere, ?tenancyId= required. GUARD →
  *   403 at the route.
  * - Money is ALWAYS integer KES minor units — no floats on the wire.
  * - Read-only: this module never writes (no AuditLog rows, D-018).

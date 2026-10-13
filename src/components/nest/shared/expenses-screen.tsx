@@ -20,8 +20,7 @@ import { Loader2, Receipt, TrendingDown, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { useUIStore } from "@/lib/ui-store";
-import { useExpenses, useReverseExpense, useSession } from "@/hooks/use-overview";
-import { useCaretakerOverview, useLandlordOverview } from "@/hooks/use-overview";
+import { useAgentOverview, useCaretakerOverview, useExpenses, useLandlordOverview, useReverseExpense, useSession } from "@/hooks/use-overview";
 import { EmptyState } from "@/components/nest/shared/empty-state";
 import { ErrorState } from "@/components/nest/shared/error-state";
 import { KpiCard, momDeltaPct } from "@/components/nest/shared/kpi-card";
@@ -86,10 +85,14 @@ export function ExpensesScreen() {
 
   const { data: landlordOverview } = useLandlordOverview();
   const { data: caretakerOverview } = useCaretakerOverview();
+  // Phase 23 (issue #109): the agent reads the P&L too — scoped overview.
+  const { data: agentOverview } = useAgentOverview();
   const monthCollectedMinor =
     role === "CARETAKER"
       ? caretakerOverview?.totals.monthCollectedMinor
-      : landlordOverview?.totals.monthCollectedMinor;
+      : role === "AGENT"
+        ? agentOverview?.totals.monthCollectedMinor
+        : landlordOverview?.totals.monthCollectedMinor;
 
   const expenses = selected.data?.expenses ?? [];
   const totals = selected.data?.totals;

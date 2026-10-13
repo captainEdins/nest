@@ -74,7 +74,7 @@ const reportSchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    const profile = await requireRole("GUARD", "LANDLORD", "CARETAKER")
+    const profile = await requireRole("GUARD", "LANDLORD", "CARETAKER", "AGENT")
     const query = parseSearchParams(request, listQuerySchema)
 
     const incidents = await db.incidentReport.findMany({

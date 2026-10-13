@@ -17,7 +17,7 @@ import { I18nProvider, useI18n, en as enDict, sw as swDict } from "@/lib/i18n";
 import type { Role, SessionDto } from "@/lib/types";
 import { useUIStore } from "@/lib/ui-store";
 import { syncOutbox } from "@/hooks/use-outbox";
-import { useCaretakerOverview, useLandlordOverview } from "@/hooks/use-overview";
+import { useAgentOverview, useCaretakerOverview, useLandlordOverview } from "@/hooks/use-overview";
 import { Providers } from "@/components/nest/providers";
 import { LoginScreen } from "@/components/nest/login-screen";
 import { ShellHeader } from "@/components/nest/shell-header";
@@ -48,6 +48,7 @@ import { TenantNotificationsScreen, NotificationsModal } from "@/components/nest
 import { AgentHome } from "@/components/nest/agent/home";
 import { AgentListingsScreen } from "@/components/nest/agent/listings-screen";
 import { AgentApplicantsScreen } from "@/components/nest/agent/applicants-screen";
+import { AgentPropertiesScreen } from "@/components/nest/agent/properties";
 import { CreateListingSheet } from "@/components/nest/agent/create-listing-sheet";
 import { RecordApplicantSheet } from "@/components/nest/agent/record-applicant-sheet";
 import { MoveInSheet } from "@/components/nest/shared/move-in-sheet";
@@ -281,7 +282,7 @@ function Shell({ session }: { session: SessionDto }) {
               {/* Caretaker (Phase 3) passes the tenancy id; tenant reads /mine. */}
               <DepositDetailScreen tenancyId={role === "CARETAKER" ? (depositTenancyId ?? undefined) : undefined} />
             </section>
-          ) : pushedScreen === "statement" && statementTenancyId != null && (role === "LANDLORD" || role === "CARETAKER") ? (
+          ) : pushedScreen === "statement" && statementTenancyId != null && (role === "LANDLORD" || role === "CARETAKER" || role === "AGENT") ? (
             <section aria-label={t("statement.staffTitle")}>
               {/* print:hidden — the pushed-screen title is screen furniture;
                *  the print sheet carries its own letterhead (S-19b). */}
@@ -342,10 +343,10 @@ function Shell({ session }: { session: SessionDto }) {
       {role === "CARETAKER" ? <CashFlowModal /> : null}
       {role === "CARETAKER" ? <StkRequestModal /> : null}
       {role === "TENANT" ? <PayFlowModal /> : null}
-      {role === "LANDLORD" || role === "CARETAKER" ? <MatchModal /> : null}
+      {role === "LANDLORD" || role === "CARETAKER" || role === "AGENT" ? <MatchModal /> : null}
       {role !== "GUARD" ? <ReceiptDetailModal /> : null}
       {role !== "TENANT" ? (
-        <NotificationsModal matchTab={role === "LANDLORD" ? "payments" : role === "CARETAKER" ? "collections" : null} />
+        <NotificationsModal matchTab={role === "LANDLORD" || role === "AGENT" ? "payments" : role === "CARETAKER" ? "collections" : null} />
       ) : null}
       {/* Phase 2: report-an-issue sheet (tenant + caretaker) */}
       {role === "TENANT" || role === "CARETAKER" ? <ReportIssueSheet /> : null}
@@ -432,6 +433,16 @@ function TabContent({ role, tab }: { role: Role; tab: string }) {
       return <TenantHome />;
     }
     case "AGENT": {
+      // Phase 23 (issue #109 — agent parity): the landlord's desk, scoped to
+      // the appointed plots. KRA stays landlord-only (the owner's tax
+      // liability); expense writes stay landlord+caretaker (read-only here).
+      if (tab === "arrears") return <AgentArrears />;
+      if (tab === "payments") return <PaymentsLedger variant="landlord" />;
+      if (tab === "properties") return <AgentPropertiesScreen />;
+      if (tab === "repairs") return <LandlordTickets />;
+      if (tab === "analytics") return <LandlordAnalyticsScreen />;
+      if (tab === "security") return <SecurityScreen />;
+      if (tab === "expenses") return <ExpensesScreen />;
       if (tab === "listings") return <AgentListingsScreen />;
       if (tab === "applicants") return <AgentApplicantsScreen />;
       return <AgentHome />;
@@ -447,6 +458,23 @@ function TabContent({ role, tab }: { role: Role; tab: string }) {
 /** Landlord arrears tab (S-11) — data from the cached overview. */
 function LandlordArrears() {
   const { data, isPending, error, refetch } = useLandlordOverview();
+  return (
+    <ArrearsScreen
+      rows={data?.arrears ?? []}
+      totalMinor={data?.totals.arrearsMinor ?? 0}
+      tenantCount={data?.totals.arrearsTenantCount ?? 0}
+      isPending={isPending}
+      error={error != null}
+      onRetry={() => refetch()}
+    />
+  );
+}
+
+/** Agent arrears tab (Phase 23, issue #109 — agent parity): the SAME shared
+ * ArrearsScreen (S-11 rhythm, D-033), fed by the agent overview's scoped
+ * money graph. Remind-all rides along — the API gate now admits AGENT. */
+function AgentArrears() {
+  const { data, isPending, error, refetch } = useAgentOverview();
   return (
     <ArrearsScreen
       rows={data?.arrears ?? []}

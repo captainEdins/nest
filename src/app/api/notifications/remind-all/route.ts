@@ -3,7 +3,8 @@
  *
  * One verified action that notifies EVERY in-scope tenant with a balance.
  *
- * Roles: LANDLORD + CARETAKER only (a bulk blast is a bigger hammer than the
+ * Roles: LANDLORD + CARETAKER + AGENT (Phase 23, issue #109 — the appointed
+ * manager chases rent on the landlord's behalf; a bulk blast is a bigger hammer than the
  * per-tenant reminder in /api/notifications/reminders, which also allows
  * agents — ROLE-SCOPE-MATRIX §5.6).
  *
@@ -44,7 +45,7 @@ const remindAllSchema = z.object({}).strict()
 
 export async function POST(request: Request) {
   try {
-    const profile = await requireRole("LANDLORD", "CARETAKER")
+    const profile = await requireRole("LANDLORD", "CARETAKER", "AGENT")
     await parseJsonBody(request, remindAllSchema)
 
     // Idempotency lock — the sender's most recent successful bulk run.
