@@ -45,6 +45,8 @@ export const en = {
   "login.signIn": "Sign in",
   "login.signingIn": "Signing you in…",
   "login.demoNote": "Demo mode — pick an account below to walk in as that person.",
+  "login.demoUnavailableTitle": "Demo accounts aren't available right now",
+  "login.demoUnavailableHint": "We couldn't load the demo identities. You can still sign in with your phone number below.",
 
   // ----- Language names (native labels, never translated) -------------------
   "lang.en": "English",

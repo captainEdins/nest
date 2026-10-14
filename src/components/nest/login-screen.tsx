@@ -10,7 +10,7 @@ import * as React from "react";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Globe, Loader2, TriangleAlert } from "lucide-react";
+import { Globe, Loader2, TriangleAlert, UserSearch } from "lucide-react";
 import { apiPost, ApiError } from "@/lib/api";
 import { useI18n, LANGS } from "@/lib/i18n";
 import type { ProfileDto, Role, SessionDto } from "@/lib/types";
@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { RoleSelectSkeleton } from "@/components/nest/shared/skeletons";
 import { ErrorState } from "@/components/nest/shared/error-state";
+import { EmptyState } from "@/components/nest/shared/empty-state";
 
 const ROLE_ORDER: Role[] = ["LANDLORD", "CARETAKER", "TENANT", "AGENT", "GUARD"];
 
@@ -163,6 +164,18 @@ export function LoginScreen() {
         <div className="mt-8 space-y-4 nest-stagger">
           {isPending ? <RoleSelectSkeleton /> : null}
           {error ? <ErrorState onRetry={() => refetch()} /> : null}
+          {/* Issue #113: a 200-but-empty list (seed data unavailable) previously
+           * rendered as a silent blank — the front door must be honest in every
+           * state, so it gets the same tinted-blob treatment as any other gap. */}
+          {!isPending && !error && demoCards.length === 0 ? (
+            <EmptyState
+              icon={UserSearch}
+              title={t("login.demoUnavailableTitle")}
+              hint={t("login.demoUnavailableHint")}
+              actionLabel={t("common.retry")}
+              onAction={() => refetch()}
+            />
+          ) : null}
           {demoCards.map((profile) => {
             const isBusy = busyPhone === profile.phone;
             const roleLabel = t(ROLE_KEY[profile.role]);
