@@ -48,7 +48,7 @@ One plot. Five roles. One record of truth.
 | **Guard module** — visitor gate register, incident reporting with acknowledgement, shift lifecycle | ✅ shipped |
 | **Agent funnel** — listings → applicants → landlord approve/reject, append-only event timelines | ✅ shipped |
 | **PWA** — installable, service worker (production registration), offline-tolerant collections | ✅ shipped |
-| **Landlord analytics** — 6-month collection trend, arrears-by-age buckets, occupancy donuts (hand-rolled SVG, zero deps) | ✅ shipped |
+| **Landlord analytics** — 6-month collection trend (CSS-first bar chart: real-text labels at every width, headroom by construction), arrears-by-age buckets, occupancy donuts (zero chart deps) | ✅ shipped |
 | **KRA/MRI tax assistant** — monthly rent summary, 7.5% MRI estimate, CSV export (record-keeping only, never tax advice) | ✅ shipped |
 | **Tenant monthly statement** — brought-forward → billed → settled → carried-forward per month; cross-month payments shown where they landed | ✅ shipped |
 | **Rent Score (tenant + staff views)** — 0–800 from four documented factors, factor breakdown on the card, same engine output on arrears rows | ✅ shipped |
@@ -56,6 +56,7 @@ One plot. Five roles. One record of truth.
 | **Move-in** — approved applicant → active tenancy in one transaction: tenant profile (find-or-create), deposit HELD with append-only movement, first rent charge raised, unit flips OCCUPIED, listing closes LET, CONVERTED timeline event, agent + tenant notified, audited | ✅ shipped |
 | **Monty-inspired visual refresh + MoM deltas** — Soft-SaaS execution layer (2xl radius, layered shadows, pastel chips, segmented controls, floating bottom dock, login hero) and month-over-month KPI deltas computed server-side in the same overview call | ✅ shipped |
 | **Lease exit arc** — notice to vacate (tenant or landlord) with move-out date + reason on the audit record, withdrawable before execution; move-out inspection sheet (the evidence the deposit settlement reads against); one-transaction move-out (tenancy ENDED, unit VACANT); settle action survives the exit (ENDED + deposit HELD rows stay reachable) | ✅ shipped |
+| **Property drill-down (P26)** — tap a property card (home or Properties tab) to open THAT plot: its units with tenants (type · rent · balance · status), every exit-arc row action preserved, and an Add-unit flow (label/type/rent/deposit, LANDLORD-only `POST /api/units`, 409 on duplicate label, unit born VACANT, audited) — the flat all-plots unit list is retired | ✅ shipped |
 | English & Kiswahili, light/dark | ✅ shipped |
 | Consent-gated external Rent Score API, financing & insurance partners, load/security hardening | 🗺 next tail (see [roadmap](#-roadmap)) |
 
@@ -70,8 +71,14 @@ Every shot below is the real app, captured from the running release (no mockups 
       <sub><b>The landlord's desk</b> — classic ledger language (D-034): masthead, figure-box KPIs, one record of truth.</sub>
     </td>
     <td width="50%" valign="top" align="center">
-      <a href="docs/shots/readme/analytics.png"><img src="docs/shots/readme/analytics.png" alt="Analytics view: six-month collection trend bars (billed, collected, money out), arrears aging buckets, and occupancy donut charts with a profit-and-loss hero"></a><br>
-      <sub><b>Analytics</b> — collection trend, aging, occupancy, and the P&L hero; hand-rolled SVG, zero chart deps.</sub>
+      <a href="docs/shots/readme/analytics.png"><img src="docs/shots/readme/analytics.png" alt="Analytics view: a six-month collection-trend bar chart with real-text month labels and gridline-anchored axis ticks, arrears aging buckets, and occupancy donut charts with a profit-and-loss hero"></a><br>
+      <sub><b>Analytics</b> — collection trend (CSS-first bars, D-038), aging, occupancy, and the P&L hero; zero chart deps.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top" align="center">
+      <a href="docs/shots/readme/property-detail.png"><img src="docs/shots/readme/property-detail.png" alt="Property drill-down (P26): Baraka Court's masthead with units-occupied-vacant summary and occupancy bar, an Add unit button, and its unit list — each row with tenant name, type, monthly rent, balance and status"></a><br>
+      <sub><b>Property drill-down (P26)</b> — tap a plot card to open ITS units with their tenants; add a unit from here (born vacant, audited).</sub>
     </td>
   </tr>
   <tr>
@@ -206,6 +213,8 @@ DECISIONS.md        every assumption, trade-off and rejected alternative
 | 22-wedge | **The agent's mandate (D-035)**: role framing corrected at the contract level — agents are *appointed by landlords to manage the property on their behalf* (EN "Manage the plot on the landlord's behalf" / SW "Simamia mali kwa niaba ya mmiliki"); role descriptions, demo story, agent home masthead and README demo table all speak the appointment framing; schema already carried `Property.agentId` | ✅ v0.22.0 (this repo) |
 | 23-wedge | **Agent parity (D-036 — the "almost")**: the appointed agent receives the landlord's desk scoped to appointed plots — the same `computeMoneyRollup` seam feeds the agent overview's money block (expected/collected/MoM/today, collection rate, arrears, occupancy, open tickets), arrears rows, recent payments, and security digest; nav opens home/arrears/payments/listings + applicants/properties/repairs/analytics/security/expenses; match modal + remind-all + visitors/incidents READ + statements + staff statement view; **the "almost"**: KRA (owner's tax) and expense writes stay 403 | ✅ v0.23.0 (this repo) |
 | 24-wedge | **Show the product (D-037 — honest states, carried evidence)**: the demo login degrades visibly when identities are unavailable (200-but-empty list → tinted-blob empty state + retry, EN/SW — previously a silent blank, found in the post-reset production audit); the README gains a product gallery — five release screenshots (login five-role cards, landlord classic desk, agent parity desk, arrears ledger, analytics/P&L) with described alt text; roadmap rows restored for P22–P24 | ✅ v0.24.0 (this repo) |
+| 25-wedge | **The bar chart redesign (D-038 — read honestly at every width)**: both trend charts (CollectionTrendChart + MiniTrendCard) rebuilt as CSS/flex bar charts — div bars with % heights, real HTML text labels (no viewBox text scaling: month labels were ~6px at 375px), y-gutter ticks anchored to gridlines, solid baseline, billed series as primary tint (was ~15%-contrast gray), headroom by construction (axis = max × 1.18 nice-rounded + MAX_BAR_SHARE 0.92 → tallest bar ~77% of the row); a11y contract intact (focusable month groups + summary labels); DOM-verified against VLM false-positives | ✅ v0.25.0 (this repo) |
+| 26-wedge | **The property drill-down (D-039 — tap in, it's cleaner)**: property cards become tappable (home + Properties tab) → a pushed detail screen scoped to THAT plot — masthead (letter tile, units · occupied · vacant, occupancy), its full unit list with current tenants (type · rent · balance · status) and every row action the old flat directory carried (statement opener, complete move-out, settle deposit), plus the **Add unit** flow (label + 6-type chip grid + rent + deposit prefilling to rent; confirm dialog states exact values; `POST /api/units` is LANDLORD-only — structural writes are the owner's; duplicate label → 409 inline EN/SW; unit born VACANT; `UNIT_CREATED` audit); the noisy all-plots unit directory is retired | ✅ v0.26.0 (this repo) |
 | 6-tail | Consent-gated external Rent Score API, financing & insurance partners, load/security/a11y hardening, pilot readiness | planned |
 
 ## 📚 Documentation

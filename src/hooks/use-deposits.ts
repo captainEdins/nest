@@ -20,6 +20,7 @@ import { useSession } from "@/hooks/use-overview";
 import type {
   ConditionReportDto,
   CreateConditionReportRequest,
+  CreateUnitRequest,
   DepositDto,
   DepositSettlementLine,
   UnitDto,
@@ -55,6 +56,27 @@ export function useUnits(enabled = true) {
     queryFn: () => apiGet<UnitDto[]>("/api/units"),
     enabled,
     staleTime: 30_000,
+  });
+}
+
+/**
+ * Phase 26 (issue #121) — POST /api/units: the landlord adds a unit to an
+ * owned property (born VACANT). On success the directory + every overview-
+ * flavoured query refresh (unit counts, occupancy, vacancies), and the
+ * landlord gets a bilingual toast. The 409 duplicate-label case is NOT
+ * toasted — the AddUnitSheet surfaces it inline next to the label field.
+ */
+export function useCreateUnit() {
+  const { t } = useI18n();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CreateUnitRequest) => apiPost<UnitDto>("/api/units", body),
+    onSuccess: (unit) => {
+      void queryClient.invalidateQueries({ queryKey: ["units"] });
+      void queryClient.invalidateQueries({ queryKey: ["overview"] });
+      void queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      toast.success(t("property.unitAddedToast", { label: unit.label }));
+    },
   });
 }
 

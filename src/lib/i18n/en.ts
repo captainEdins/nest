@@ -496,6 +496,27 @@ export const en = {
   "property.unitsSummary": "{units} units · {occupied} occupied · {vacant} vacant",
   "property.caretaker": "Caretaker: {name}",
 
+  // ----- Property drill-down (Phase 26, issue #121) --------------------------------
+  "property.viewUnitsAria": "View units for {name}",
+  "property.addUnit": "Add unit",
+  "property.addUnitAria": "Add a unit to {name}",
+  "property.addUnitSubtitle": "The new unit starts vacant on {property}",
+  "property.unitLabelLabel": "Unit label",
+  "property.unitLabelPlaceholder": "e.g. B1",
+  "property.unitTypeLabel": "Unit type",
+  "property.rentLabel": "Monthly rent",
+  "property.depositLabel": "Deposit",
+  "property.depositPlaceholder": "Same as rent",
+  "property.depositHint": "Refundable — editable at move-in",
+  "property.addUnitConfirmBody": "{label} · {type} · {rent}/month · deposit {deposit} · {property}. The unit starts vacant.",
+  "property.addUnitConfirmAction": "Add unit",
+  "property.unitAddedToast": "Unit {label} added — it starts vacant",
+  "property.unitDuplicate": "A unit labelled {label} already exists on this property",
+  "property.noUnitsTitle": "No units yet",
+  "property.noUnitsHint": "Add the first unit to start tracking rent.",
+  "property.notFoundTitle": "Property not found",
+  "property.notFoundHint": "It may have been removed. Go back and pick a property.",
+
   // ----- PWA -----------------------------------------------------------------------
   "pwa.installed": "Installed",
 

@@ -19,14 +19,36 @@
  * move-out story); balanceMinor is the honest economic position (Σ charges −
  * Σ matched COMPLETED payments, identical definition to computeMoneyRollup —
  * negative = tenant credit, ADR-0007).
+ *
+ * Phase 26 (issue #121): POST creates a unit — the structural write stays
+ * LANDLORD-only (the owner's decision; caretaker/agent read the directory but
+ * never reshape the building). Label uniqueness rides the model's
+ * @@unique([propertyId, label]) — a duplicate answers 409 CONFLICT. New
+ * units start VACANT; every creation lands in AuditLog (UNIT_CREATED).
  */
 
+import { z } from "zod"
 import { db } from "@/lib/db"
-import { handleRouteError, ok, requireRole } from "@/lib/auth-guard"
+import { audit } from "@/lib/audit"
+import { conflict, handleRouteError, notFound, ok, parseJsonBody, requireRole } from "@/lib/auth-guard"
 import type { UnitDto, UnitStatus, UnitType } from "@/lib/types"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
+
+/** Label shape kept generous but bounded: "A1", "B 2", "Shop 3"… */
+const createSchema = z.object({
+  propertyId: z.string().min(1),
+  label: z
+    .string()
+    .trim()
+    .min(1, "label is required")
+    .max(12, "label must be at most 12 characters")
+    .regex(/^[A-Za-z0-9][A-Za-z0-9 /-]*$/, "label may only use letters, digits, spaces and dashes"),
+  type: z.enum(["BEDSITTER", "SINGLE", "ONE_BR", "TWO_BR", "THREE_BR", "SHOP"]),
+  rentAmountMinor: z.number().int().positive().max(100_000_000), // ≤ KSh 1,000,000
+  depositAmountMinor: z.number().int().min(0).max(100_000_000), // 0 = negotiated at move-in
+})
 
 export async function GET() {
   try {
@@ -110,6 +132,79 @@ export async function GET() {
     })
 
     return ok(dtos)
+  } catch (error) {
+    return handleRouteError(error)
+  }
+}
+
+/**
+ * Phase 26 (issue #121) — POST /api/units: the landlord adds a unit to an
+ * owned property. Structural writes are the owner's alone (caretaker/agent
+ * read the directory; they never reshape the building) — 403 otherwise.
+ *
+ * Guarantees:
+ * - property must be OWNED by the caller (miss → 404, no existence leak);
+ * - label unique within the property (pre-check + the model's
+ *   @@unique([propertyId, label]) as backstop) → 409 CONFLICT on a duplicate;
+ * - the unit is born VACANT — tenancies (and their deposits) are the
+ *   move-in flow's business, never this route's;
+ * - AuditLog UNIT_CREATED rides every creation (post-commit by design).
+ */
+export async function POST(request: Request) {
+  try {
+    const profile = await requireRole("LANDLORD")
+    const input = await parseJsonBody(request, createSchema)
+
+    // Scope the property to the caller — a miss is a 404 either way.
+    const property = await db.property.findFirst({
+      where: { id: input.propertyId, landlordId: profile.id },
+      select: { id: true, name: true },
+    })
+    if (!property) throw notFound("Property not found")
+
+    // Label uniqueness within the property (model constraint as backstop).
+    const duplicate = await db.unit.findFirst({
+      where: { propertyId: property.id, label: input.label },
+      select: { id: true },
+    })
+    if (duplicate != null) {
+      throw conflict(`A unit labelled ${input.label} already exists on this property`)
+    }
+
+    const unit = await db.unit.create({
+      data: {
+        propertyId: property.id,
+        label: input.label,
+        type: input.type,
+        rentAmountMinor: input.rentAmountMinor,
+        depositAmountMinor: input.depositAmountMinor,
+        status: "VACANT",
+      },
+    })
+
+    await audit(profile.id, "UNIT_CREATED", "Unit", unit.id, {
+      propertyId: property.id,
+      propertyName: property.name,
+      label: input.label,
+      type: input.type,
+      rentAmountMinor: input.rentAmountMinor,
+      depositAmountMinor: input.depositAmountMinor,
+      createdBy: profile.fullName,
+    })
+
+    // A fresh unit has no tenancy — the DTO's economic fields start at zero.
+    const dto: UnitDto = {
+      id: unit.id,
+      propertyId: unit.propertyId,
+      propertyName: property.name,
+      label: unit.label,
+      type: unit.type as UnitType,
+      status: unit.status as UnitStatus,
+      rentAmountMinor: unit.rentAmountMinor,
+      depositAmountMinor: unit.depositAmountMinor,
+      tenancy: null,
+    }
+    return ok(dto, 201)
   } catch (error) {
     return handleRouteError(error)
   }
