@@ -55,3 +55,9 @@ bars look clipped…") reported clipping; the objective DOM measurement
 headroom. DOM geometry is the ground truth for this gate.
 
 **QA verdict: 11/11 gates PASS. Release-ready.**
+
+## Post-release smoke (main @ 957960d) — PASS
+
+- Home (mobile): mini trend renders on the landlord desk; footer `Phase 25 · v0.25.0` — PASS (`smoke-main-mini-trend.png`)
+- Analytics (mobile): 6 focusable month groups; tallest bar = 108px (the headroom geometry holds on the released build) — PASS (`smoke-main-analytics.png`)
+- 0 page/console errors — PASS
