@@ -6,9 +6,10 @@
  * this must run on low-end Android), driven by ONE call:
  * GET /api/analytics → LandlordAnalyticsDto.
  *
- * - Collection trend: grouped bars, billed (muted/outlined) vs collected
- *   (primary), last 6 months. Month groups are keyboard-focusable with a
- *   <title> tooltip; exact values sit in the table below (screen-reader
+ * - Collection trend: grouped bars, billed (primary tint) vs collected
+ *   (primary) vs money-out (attention), last 6 months — CSS/flex bars with
+ *   real-text labels (#117). Month groups are keyboard-focusable with a
+ *   title tooltip; exact values sit in the table below (screen-reader
  *   caption included) — money is never guessable from bar heights alone.
  * - Arrears aging: four horizontal rows (current / 1–30d / 31–60d / 61+d)
  *   on the semantic ladder primary → warning → attention → destructive.
@@ -145,57 +146,35 @@ export function LandlordAnalyticsScreen() {
 }
 
 // ---------------------------------------------------------------------------
-// Chart 1 — collection trend (grouped bars, hand-written SVG)
+// Chart 1 — collection trend (grouped bars, CSS/flex — issue #117)
 // ---------------------------------------------------------------------------
 
-/** viewBox geometry — scales to any width; renders ~1:1 at 375px. */
-const TREND_W = 340;
-const TREND_H = 224;
-const PLOT_LEFT = 64;
-const PLOT_RIGHT = 332;
-const PLOT_TOP = 12;
-const PLOT_BOTTOM = 192;
-const PLOT_WIDTH = PLOT_RIGHT - PLOT_LEFT;
-const PLOT_HEIGHT = PLOT_BOTTOM - PLOT_TOP;
-// Phase 12: three bars per group (billed, collected, money out).
-// Phase 17 (D-030): wider reference-style bars — 12px bars in 3px gutters
-// fill ~94% of each month's category width (the reference's chunky look).
-const BAR_W = 12;
-const BAR_GAP = 3;
-const BAR_GROUP_W = BAR_W * 3 + BAR_GAP * 2;
-const MONTH_LABEL_Y = 210;
+/** #117: CSS/flex bar chart — no viewBox, no fixed-px text. Tallest bar
+ *  occupies ≤ MAX_BAR_SHARE of the bar zone so rounded tops always render. */
+const MAX_BAR_SHARE = 0.92;
+/** Axis headroom: the data max is inflated before nice-rounding — the old
+ *  defect was axisMax == dataMax (84k → 84k), pinning the tallest bar to the
+ *  plot ceiling, which read as clipped. */
+const AXIS_HEADROOM = 1.18;
 
 /**
  * Axis maximum rounded up so the top + mid gridline labels stay round
- * (integer math only — money never becomes a float). 37k of data → a 38k
- * axis with a 19k midline; a 2px bar keeps its shape when the value is 0.
+ * (integer math only — money never becomes a float). The data max is
+ * inflated by AXIS_HEADROOM first (#117). 84k of data → a 100k axis with a
+ * 50k midline; a 2px-min bar keeps its shape when the value is 0.
  */
 function niceAxisMaxMinor(maxMinor: number): number {
   if (maxMinor <= 0) return 0;
-  const wholeShillings = Math.ceil(maxMinor / 100);
+  const withHeadroom = Math.ceil(maxMinor * AXIS_HEADROOM);
+  const wholeShillings = Math.ceil(withHeadroom / 100);
   const digits = wholeShillings.toString().length;
   const unitSh = wholeShillings < 100 ? 25 : 10 ** Math.max(0, digits - 2);
   const steps = Math.ceil(wholeShillings / (2 * unitSh));
   return steps * 2 * unitSh * 100;
 }
 
-/** Bar path with rounded TOP only, so the base sits flat on the baseline. */
-function topRoundedBarPath(x: number, top: number, width: number, bottom: number): string {
-  // D-022: radius 4 — Monty's soft bar geometry (was 3).
-  const radius = Math.min(4, bottom - top, width / 2);
-  return [
-    `M ${x} ${bottom}`,
-    `L ${x} ${top + radius}`,
-    `Q ${x} ${top} ${x + radius} ${top}`,
-    `L ${x + width - radius} ${top}`,
-    `Q ${x + width} ${top} ${x + width} ${top + radius}`,
-    `L ${x + width} ${bottom}`,
-    "Z",
-  ].join(" ");
-}
-
 function LegendSwatch({ className }: { className: string }) {
-  return <span className={cn("inline-block size-2 rounded-full shrink-0", className)} aria-hidden />;
+  return <span className={cn("inline-block size-2.5 rounded-[4px] shrink-0", className)} aria-hidden />;
 }
 
 /** Legend pill chip (D-030) — the reference's bordered pill toggles: 1px
@@ -218,13 +197,14 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
     0,
   );
   const axisMaxMinor = niceAxisMaxMinor(maxMinor);
-  const groupWidth = monthly.length > 0 ? PLOT_WIDTH / monthly.length : PLOT_WIDTH;
 
-  /** Bar height in viewBox units — always ≥ 2 so zero keeps its shape. */
-  const barHeight = (valueMinor: number) =>
-    axisMaxMinor > 0 ? Math.max(2, Math.round((valueMinor / axisMaxMinor) * PLOT_HEIGHT)) : 2;
-  const gridY = (valueMinor: number) =>
-    axisMaxMinor > 0 ? PLOT_BOTTOM - Math.round((valueMinor / axisMaxMinor) * PLOT_HEIGHT) : PLOT_BOTTOM;
+  /** Bar height as a % of the bar zone — ≥ 0.6% so zero keeps its sliver. */
+  const barHeightPct = (valueMinor: number) =>
+    axisMaxMinor > 0 ? Math.max(0.6, (valueMinor / axisMaxMinor) * MAX_BAR_SHARE * 100) : 0.6;
+
+  /** Gridline/tick position as a % up the bar zone (0 = baseline). */
+  const tickPct = (valueMinor: number) =>
+    axisMaxMinor > 0 ? Math.min(100, (valueMinor / axisMaxMinor) * 100) : 0;
 
   // 2–3 gridline ticks: 0, half, max (skipping duplicates on an all-zero chart).
   const ticks = axisMaxMinor > 0 ? [0, Math.round(axisMaxMinor / 2), axisMaxMinor] : [0];
@@ -232,10 +212,10 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
   return (
     <Card className="py-0 gap-0">
       <CardContent className="p-4 sm:p-6 space-y-3">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center justify-between gap-2 gap-y-2 flex-wrap">
           <p className="text-caption text-muted-foreground">{t("analytics.last6Months")}</p>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <LegendChip swatch="border border-border bg-muted">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            <LegendChip swatch="border border-border bg-primary/15 dark:bg-primary/25">
               {t("analytics.billed")}
             </LegendChip>
             <LegendChip swatch="bg-primary">
@@ -247,97 +227,86 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
           </div>
         </div>
 
-        <svg
-          viewBox={`0 0 ${TREND_W} ${TREND_H}`}
-          className="w-full h-auto"
-          role="group"
-          aria-label={t("analytics.collectionTrend")}
-        >
-          {/* Gridlines + tick labels (decorative — exact values live in the
-              table). D-022: non-baseline gridlines dashed + lighter — Monty's
-              quiet grid. */}
-          {ticks.map((tick) => (
-            <g key={tick}>
-              <line
-                x1={PLOT_LEFT}
-                x2={PLOT_RIGHT}
-                y1={gridY(tick)}
-                y2={gridY(tick)}
-                className={tick === 0 ? "stroke-foreground/25" : "stroke-border"}
-                strokeWidth={1}
-                strokeDasharray={tick === 0 ? undefined : "3 4"}
-              />
-              <text
-                x={PLOT_LEFT - 8}
-                y={gridY(tick) + 3}
-                textAnchor="end"
-                fontSize={10}
-                className="fill-muted-foreground"
-                style={{ fontVariantNumeric: "tabular-nums" }}
+        {/* Plot — CSS/flex bars (#117): real-text labels at every width, bars
+            as % heights, headroom by construction (the tallest bar tops out
+            well below the top gridline). Anatomy: a y-axis gutter whose tick
+            labels hug their gridlines + the bar zone on a solid baseline. */}
+        <div className="flex gap-2 sm:gap-3">
+          {/* Y-axis gutter — ticks anchored to their lines, right-aligned. */}
+          <div aria-hidden className="relative w-11 sm:w-12 shrink-0 h-40 sm:h-44">
+            {ticks.map((tick) => (
+              <span
+                key={tick}
+                className="absolute right-0 -translate-y-1/2 text-[10px] leading-none text-muted-foreground tabular-nums whitespace-nowrap"
+                style={{ bottom: `${tickPct(tick)}%` }}
               >
                 {formatKesCompact(tick)}
-              </text>
-            </g>
-          ))}
+              </span>
+            ))}
+          </div>
 
-          {/* Month groups — focusable, with a native <title> tooltip. */}
-          {monthly.map((month, index) => {
-            const groupX = PLOT_LEFT + index * groupWidth;
-            const group0X = groupX + (groupWidth - BAR_GROUP_W) / 2;
-            const billedH = barHeight(month.billedMinor);
-            const collectedH = barHeight(month.collectedMinor);
-            const expensesH = barHeight(month.expensesMinor);
-            const summary = t("analytics.monthSummary", {
-              month: month.label,
-              billed: formatKes(month.billedMinor),
-              collected: formatKes(month.collectedMinor),
-              expenses: formatKes(month.expensesMinor),
-              net: formatKes(month.netMinor),
-            });
-            return (
-              <g
-                key={month.monthKey}
-                tabIndex={0}
-                role="img"
-                aria-label={summary}
-                className="outline-none focus-visible:[outline:2px_solid_var(--ring)]"
-              >
-                <title>{summary}</title>
-                <path
-                  d={topRoundedBarPath(group0X, PLOT_BOTTOM - billedH, BAR_W, PLOT_BOTTOM)}
-                  className="fill-muted"
-                />
-                <path
-                  d={topRoundedBarPath(
-                    group0X + BAR_W + BAR_GAP,
-                    PLOT_BOTTOM - collectedH,
-                    BAR_W,
-                    PLOT_BOTTOM,
-                  )}
-                  className="fill-primary"
-                />
-                <path
-                  d={topRoundedBarPath(
-                    group0X + (BAR_W + BAR_GAP) * 2,
-                    PLOT_BOTTOM - expensesH,
-                    BAR_W,
-                    PLOT_BOTTOM,
-                  )}
-                  className="fill-attention"
-                />
-                <text
-                  x={groupX + groupWidth / 2}
-                  y={MONTH_LABEL_Y}
-                  textAnchor="middle"
-                  fontSize={11}
-                  className="fill-muted-foreground"
-                >
-                  {month.label}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
+          {/* Bar zone — gridlines behind, month groups on top. */}
+          <div className="relative flex-1 h-40 sm:h-44">
+            {ticks.map((tick) => (
+              <div
+                key={tick}
+                aria-hidden
+                className={cn(
+                  "absolute inset-x-0 h-px",
+                  tick === 0 ? "bg-foreground/25" : "bg-border",
+                )}
+                style={{ bottom: `${tickPct(tick)}%` }}
+              />
+            ))}
+
+            {/* Month groups — focusable, with a native title tooltip (same
+                a11y contract as before). Bars sit on the baseline. */}
+            <div className="absolute inset-x-0 top-0 bottom-0 flex items-stretch justify-around gap-1 sm:gap-2">
+              {monthly.map((month) => {
+                const summary = t("analytics.monthSummary", {
+                  month: month.label,
+                  billed: formatKes(month.billedMinor),
+                  collected: formatKes(month.collectedMinor),
+                  expenses: formatKes(month.expensesMinor),
+                  net: formatKes(month.netMinor),
+                });
+                return (
+                  <div
+                    key={month.monthKey}
+                    tabIndex={0}
+                    role="img"
+                    aria-label={summary}
+                    title={summary}
+                    className="group relative flex-1 min-w-0 max-w-20 flex flex-col focus-visible:outline-2 focus-visible:outline-ring rounded-md focus-visible:-outline-offset-2 transition-colors"
+                  >
+                    {/* Bars row — fixed height above the label strip so %
+                        heights resolve. */}
+                    <div className="flex items-end justify-center gap-1 h-[calc(100%-20px)]">
+                      <div
+                        aria-hidden
+                        className="w-3 sm:w-3.5 rounded-t-[4px] bg-primary/15 dark:bg-primary/25 transition-colors group-hover:bg-primary/25 dark:group-hover:bg-primary/35"
+                        style={{ height: `${barHeightPct(month.billedMinor)}%` }}
+                      />
+                      <div
+                        aria-hidden
+                        className="w-3 sm:w-3.5 rounded-t-[4px] bg-primary transition-colors group-hover:bg-primary/90"
+                        style={{ height: `${barHeightPct(month.collectedMinor)}%` }}
+                      />
+                      <div
+                        aria-hidden
+                        className="w-3 sm:w-3.5 rounded-t-[4px] bg-attention/80 transition-colors group-hover:bg-attention"
+                        style={{ height: `${barHeightPct(month.expensesMinor)}%` }}
+                      />
+                    </div>
+                    <p className="h-5 flex items-center justify-center text-caption leading-none text-muted-foreground tabular-nums">
+                      <span className="truncate px-0.5">{month.label}</span>
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
 
         {/* Exact values — visible (low-end phones have no hover) and the
             screen-reader fallback, with an sr-only caption. */}
