@@ -34,6 +34,8 @@ import { LandlordKraScreen } from "@/components/nest/landlord/kra";
 import { ArrearsScreen } from "@/components/nest/shared/arrears-screen";
 import { PaymentsLedger } from "@/components/nest/landlord/payments-ledger";
 import { PropertiesScreen } from "@/components/nest/landlord/properties";
+import { PropertyDetailScreen } from "@/components/nest/landlord/property-detail";
+import { AddUnitSheet } from "@/components/nest/landlord/add-unit-sheet";
 import { LandlordTickets } from "@/components/nest/landlord/tickets";
 import { SettleDepositModal } from "@/components/nest/landlord/settle-deposit";
 import { LandlordListingsScreen } from "@/components/nest/landlord/listings-screen";
@@ -141,6 +143,9 @@ function useUnauthorizedHandler() {
         recordApplicantListingId: null,
         listingViewId: null,
         applicationViewId: null,
+        propertyViewId: null,
+        addUnitOpen: false,
+        addUnitPropertyId: null,
         // Phase 11: exit-arc flows reset with everything else.
         giveNoticeOpen: false,
         moveOutFlow: { open: false },
@@ -197,6 +202,7 @@ function Shell({ session }: { session: SessionDto }) {
   const applicationViewId = useUIStore((s) => s.applicationViewId);
   const moreOpen = useUIStore((s) => s.moreOpen);
   const setMoreOpen = useUIStore((s) => s.setMoreOpen);
+  const propertyViewId = useUIStore((s) => s.propertyViewId);
   const role: Role = session.profile.role;
 
   // Seed the profile's language once (a stored device choice outranks it).
@@ -248,7 +254,7 @@ function Shell({ session }: { session: SessionDto }) {
            * the role homes' nest-stagger). Key includes the pushed ids so
            * navigating between two tickets also re-animates. */}
           <div
-            key={`${role}:${tab}:${pushedScreen ?? "root"}:${ticketViewId ?? ""}:${listingViewId ?? ""}:${applicationViewId ?? ""}:${statementTenancyId ?? ""}:${depositTenancyId ?? ""}`}
+            key={`${role}:${tab}:${pushedScreen ?? "root"}:${ticketViewId ?? ""}:${listingViewId ?? ""}:${applicationViewId ?? ""}:${statementTenancyId ?? ""}:${depositTenancyId ?? ""}:${propertyViewId ?? ""}`}
             className="nest-anim-fade"
           >
           {pushedScreen === "arrears" && role === "CARETAKER" ? (
@@ -326,6 +332,19 @@ function Shell({ session }: { session: SessionDto }) {
               </div>
               <ApplicationDetailScreen applicationId={applicationViewId} />
             </section>
+          ) : pushedScreen === "property" && propertyViewId != null && role === "LANDLORD" ? (
+            <section aria-label={t("nav.properties")}>
+              {/* Phase 26 (issue #121) — the property drill-down: tap a property
+               *  card (home or Properties tab) to open ITS units + tenants +
+               *  the add-unit CTA. Back returns to the tab the user came from. */}
+              <div className="flex items-center gap-2 mb-4">
+                <Button variant="ghost" size="icon" className="h-11 w-11" onClick={popScreen} aria-label={t("common.back")}>
+                  <ArrowLeft aria-hidden />
+                </Button>
+                <h1 className="text-h2 font-semibold">{t("nav.properties")}</h1>
+              </div>
+              <PropertyDetailScreen propertyId={propertyViewId} />
+            </section>
           ) : (
             <TabContent role={role} tab={tab} />
           )}
@@ -371,6 +390,10 @@ function Shell({ session }: { session: SessionDto }) {
 
       {/* Phase 8: the landlord's move-in sheet (landlord only). */}
       {role === "LANDLORD" ? <MoveInSheet /> : null}
+
+      {/* Phase 26 (issue #121): the landlord's add-unit sheet — anchored to
+       *  the property detail screen the CTA was tapped on. */}
+      {role === "LANDLORD" ? <AddUnitSheet /> : null}
 
       {/* Phase 11: the exit arc — tenant gives notice; landlord/caretaker
        *  complete the move-out. Deposit settlement stays the Phase 2 modal. */}

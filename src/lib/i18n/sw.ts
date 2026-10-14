@@ -484,6 +484,27 @@ export const sw: Record<TranslationKey, string> = {
   "property.unitsSummary": "Vyumba {units} · {occupied} vimekaliwa · {vacant} tupu",
   "property.caretaker": "Msimamizi: {name}",
 
+  // ----- Property drill-down (Phase 26, issue #121) --------------------------------
+  "property.viewUnitsAria": "Angalia vyumba vya {name}",
+  "property.addUnit": "Ongeza chumba",
+  "property.addUnitAria": "Ongeza chumba kwa {name}",
+  "property.addUnitSubtitle": "Chumba kipya kitaanza kuwa bapa kwenye {property}",
+  "property.unitLabelLabel": "Lebo ya chumba",
+  "property.unitLabelPlaceholder": "mf. B1",
+  "property.unitTypeLabel": "Aina ya chumba",
+  "property.rentLabel": "Kodi ya mwezi",
+  "property.depositLabel": "Amana",
+  "property.depositPlaceholder": "Sawa na kodi",
+  "property.depositHint": "Inarudishwa — inabadilika wakati wa kuhamia",
+  "property.addUnitConfirmBody": "{label} · {type} · {rent}/mwezi · amana {deposit} · {property}. Chumba kitaanza bapa.",
+  "property.addUnitConfirmAction": "Ongeza chumba",
+  "property.unitAddedToast": "Chumba {label} kimeongezwa — kinaanza bapa",
+  "property.unitDuplicate": "Chumba chenye lebo {label} tayari kipo kwenye mali hii",
+  "property.noUnitsTitle": "Hakuna vyumba bado",
+  "property.noUnitsHint": "Ongeza chumba cha kwanza kuanza kufuatilia kodi.",
+  "property.notFoundTitle": "Mali haipatikani",
+  "property.notFoundHint": "Inaweza kuwa imeondolewa. Rudi nyuma na uchague mali.",
+
   // ----- PWA -----------------------------------------------------------------------
   "pwa.installed": "Imesakinishwa",
 

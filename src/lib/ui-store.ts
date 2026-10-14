@@ -43,8 +43,8 @@ interface UIState {
   /** Active bottom-nav / sidebar tab. */
   tab: TabId;
   setTab: (tab: TabId) => void;
-  /** Secondary screen pushed over the tab content (caretaker arrears; Phase 2: ticket + deposit detail; Phase 3: guard shift log; Phase 4: listing + application detail; Phase 15: staff statement). */
-  pushedScreen: "arrears" | "ticket" | "deposit" | "shift" | "listing" | "application" | "statement" | null;
+  /** Secondary screen pushed over the tab content (caretaker arrears; Phase 2: ticket + deposit detail; Phase 3: guard shift log; Phase 4: listing + application detail; Phase 15: staff statement; Phase 26: property detail — the unit drill-down). */
+  pushedScreen: "arrears" | "ticket" | "deposit" | "shift" | "listing" | "application" | "statement" | "property" | null;
   /** Tenancy whose statement the pushed screen shows (Phase 15, landlord + caretaker — the same record the tenant sees). */
   statementTenancyId: string | null;
   /** Tenancy whose deposit the pushed screen shows (caretaker, Phase 3); tenants use /api/deposits/mine. */
@@ -53,6 +53,9 @@ interface UIState {
   listingViewId: string | null;
   /** Application whose detail the pushed screen shows (Phase 4, agent + landlord). */
   applicationViewId: string | null;
+  /** Property whose detail the pushed screen shows (Phase 26, landlord — tap a property card to open its units + add-unit). */
+  propertyViewId: string | null;
+  openProperty: (id: string) => void;
   pushArrears: () => void;
   pushDeposit: (tenancyId?: string) => void;
   /** Phase 15 — open a tenancy's statement (landlord + caretaker). */
@@ -153,6 +156,11 @@ interface UIState {
     context: { unitLabel: string; tenantName: string; moveOutDate: string | null },
   ) => void;
   closeMoveOut: () => void;
+  /** Add-unit sheet (Phase 26, issue #121), landlord — anchored to the property being viewed. */
+  addUnitOpen: boolean;
+  addUnitPropertyId: string | null;
+  openAddUnit: (propertyId: string) => void;
+  closeAddUnit: () => void;
   /** Move-out inspection sheet (Phase 11, issue #78), landlord + caretaker —
    *  records the MOVE_OUT condition report the deposit settlement requires.
    *  Own context (whose inspection) — set by both entry points. */
@@ -180,14 +188,16 @@ export const useUIStore = create<UIState>((set) => ({
   statementTenancyId: null,
   listingViewId: null,
   applicationViewId: null,
+  propertyViewId: null,
   pushArrears: () => set({ pushedScreen: "arrears" }),
   pushDeposit: (tenancyId) => set({ pushedScreen: "deposit", depositTenancyId: tenancyId ?? null }),
   openStatement: (tenancyId) => set({ pushedScreen: "statement", statementTenancyId: tenancyId }),
   pushShiftLog: () => set({ pushedScreen: "shift" }),
   openListing: (id) => set({ pushedScreen: "listing", listingViewId: id }),
   openApplication: (id) => set({ pushedScreen: "application", applicationViewId: id }),
+  openProperty: (id) => set({ pushedScreen: "property", propertyViewId: id }),
   popScreen: () =>
-    set({ pushedScreen: null, depositTenancyId: null, statementTenancyId: null, listingViewId: null, applicationViewId: null, ticketViewId: null }),
+    set({ pushedScreen: null, depositTenancyId: null, statementTenancyId: null, listingViewId: null, applicationViewId: null, propertyViewId: null, ticketViewId: null }),
   paymentsFilter: "ALL",
   setPaymentsFilter: (paymentsFilter) => set({ paymentsFilter }),
   paymentsPropertyFilter: null,
@@ -257,6 +267,10 @@ export const useUIStore = create<UIState>((set) => ({
   closeInspection: () => set({ inspectionFlow: { open: false }, inspectionContext: null }),
   recordExpenseOpen: false,
   setRecordExpenseOpen: (recordExpenseOpen) => set({ recordExpenseOpen }),
+  addUnitOpen: false,
+  addUnitPropertyId: null,
+  openAddUnit: (propertyId) => set({ addUnitOpen: true, addUnitPropertyId: propertyId }),
+  closeAddUnit: () => set({ addUnitOpen: false, addUnitPropertyId: null }),
   reverseExpenseId: null,
   openReverseExpense: (id) => set({ reverseExpenseId: id }),
   closeReverseExpense: () => set({ reverseExpenseId: null }),
