@@ -52,3 +52,11 @@ end on the recovered DB (see "Pre-change verification" below).
 - `docs/shots/readme/*.png` — the five gallery captures
 
 **QA verdict: 12/12 gates PASS. Release-ready.**
+
+
+## Post-release smoke (main @ 1a85879) — PASS
+
+- Login happy path: 5 role cards (EN) — PASS
+- Agent login → desk + footer "Phase 24 · v0.24.0" — PASS (`smoke-main-agent-home.png`)
+- Empty state on the RELEASED build via interception: title + Retry render — PASS (`smoke-main-empty-state.png`)
+- 0 page/console errors — PASS
