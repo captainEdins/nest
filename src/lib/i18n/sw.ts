@@ -48,6 +48,8 @@ export const sw: Record<TranslationKey, string> = {
   "login.signIn": "Ingia",
   "login.signingIn": "Tunakuingiza…",
   "login.demoNote": "Hii ni demo — chagua akaunti hapa chini kuingia kama yule mtu.",
+  "login.demoUnavailableTitle": "Akaunti za demo hazipatikani kwa sasa",
+  "login.demoUnavailableHint": "Tumeshindwa kupakia akaunti za demo. Bado unaweza kuingia kwa namba yako ya simu hapa chini.",
 
   // ----- Language names (native labels, never translated) -------------------
   "lang.en": "Kiingereza",
