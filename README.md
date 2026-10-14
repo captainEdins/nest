@@ -35,6 +35,7 @@ One plot. Five roles. One record of truth.
 |---|---|
 | Five role-based home screens (landlord / agent / caretaker / tenant / guard) | ✅ shipped |
 | **Agent parity (P23)** — the appointed agent gets the landlord's desk scoped to their plots: money KPIs + MoM, arrears with bulk reminders, payments with match, analytics, security digest, read-only expenses, staff statements. Tax (KRA) + money-out writes stay the owner's | ✅ shipped |
+| **Honest front door + product gallery (P24)** — the demo login degrades visibly (tinted empty state + retry, EN/SW) when identities are unavailable instead of a silent blank; the README carries the product's own screenshots | ✅ shipped |
 | Demo auth with role switching (Supabase phone-OTP adapter boundary) | ✅ shipped |
 | M-Pesa **STK Push** + Daraja-format callbacks (simulated sandbox, live-ready boundary) | ✅ shipped |
 | **Automatic reconciliation engine** — waterfall allocation, idempotent callbacks, unmatched-payment review queue | ✅ shipped |
@@ -57,6 +58,39 @@ One plot. Five roles. One record of truth.
 | **Lease exit arc** — notice to vacate (tenant or landlord) with move-out date + reason on the audit record, withdrawable before execution; move-out inspection sheet (the evidence the deposit settlement reads against); one-transaction move-out (tenancy ENDED, unit VACANT); settle action survives the exit (ENDED + deposit HELD rows stay reachable) | ✅ shipped |
 | English & Kiswahili, light/dark | ✅ shipped |
 | Consent-gated external Rent Score API, financing & insurance partners, load/security hardening | 🗺 next tail (see [roadmap](#-roadmap)) |
+
+### The product, in pictures
+
+Every shot below is the real app, captured from the running release (no mockups — same tool and seed as the per-phase QA evidence in [docs/qa/](docs/qa/)):
+
+<table>
+  <tr>
+    <td width="50%" valign="top" align="center">
+      <a href="docs/shots/readme/landlord-home.png"><img src="docs/shots/readme/landlord-home.png" alt="The landlord's desk: a classic ledger masthead with a serif greeting and estate figures, a KPI quad (collected, expected, arrears, occupancy), a six-month collection chart, arrears and recent-payment previews, and a two-plot vacancy list"></a><br>
+      <sub><b>The landlord's desk</b> — classic ledger language (D-034): masthead, figure-box KPIs, one record of truth.</sub>
+    </td>
+    <td width="50%" valign="top" align="center">
+      <a href="docs/shots/readme/analytics.png"><img src="docs/shots/readme/analytics.png" alt="Analytics view: six-month collection trend bars (billed, collected, money out), arrears aging buckets, and occupancy donut charts with a profit-and-loss hero"></a><br>
+      <sub><b>Analytics</b> — collection trend, aging, occupancy, and the P&L hero; hand-rolled SVG, zero chart deps.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top" align="center">
+      <a href="docs/shots/readme/login.png"><img src="docs/shots/readme/login.png" width="230" alt="Login screen with one card per role: landlord, caretaker, tenant, agent, and guard — plus a manual phone-number sign-in"></a>
+    </td>
+    <td valign="top" align="center">
+      <a href="docs/shots/readme/agent-home.png"><img src="docs/shots/readme/agent-home.png" width="230" alt="The agent's desk on mobile: the same money KPI quad, arrears preview with reminders, recent payments, and a security digest, scoped to the appointed plots"></a>
+    </td>
+    <td valign="top" align="center">
+      <a href="docs/shots/readme/arrears.png"><img src="docs/shots/readme/arrears.png" width="230" alt="The arrears ledger on mobile: aging table with months behind, rent-score chips, balances, and a remind-all action"></a>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="3" align="center">
+      <sub><b>One plot, five roles</b> — sign in as anyone (left) · <b>Agent parity</b> (P23) — the appointed agent runs the landlord's desk, scoped (center) · <b>Arrears</b> — aging, rent scores, bulk reminders (right)</sub>
+    </td>
+  </tr>
+</table>
 
 ### Business-model hooks (Phase 4+, by design)
 
@@ -169,6 +203,9 @@ DECISIONS.md        every assumption, trade-off and rejected alternative
 | 19-wedge | **The rhythm pass — card padding spec alignment + KPI row fill (D-032)**: every FLAT card zeroes the Card base's sectioned rhythm (`py-0 gap-0` — 63 sites; the design-system §5 `p-4 → sm:p-6` becomes the TOTAL, symmetric, killing a measured 2:1 vertical/horizontal padding asymmetry); `KpiCard` gains `h-full` so click-wrapped KPIs fill their grid row exactly (one bottom edge per row — was a 40px dead zone, flagged by three independent audits); KPI icon tiles follow the card's tone (the arrears icon wore green above an amber number); landlord occupancy KPI icon added (anatomy consistency) | ✅ v0.19.0 (this repo) |
 | 20-wedge | **The arrears screen fix (D-033 — the slash-modifier rule)**: a single `text-caption/90` in the rent-score chip was a Tailwind v4 LEADING modifier (`line-height = 90 × 0.25rem = 360px`), inflating every arrears table row to 387px (the ledger's rows: 43px) — fixed with the `opacity-90` utility; aging bucket cards re-anatomied to the D-032 flat-card spec (133px → 89px) and moved from a clipped horizontal scroll strip to a mobile 2×2 grid (nothing urgent hides behind scroll); the page total promoted to `text-h2` (D-031: the primary number may not be the smaller element); mobile rows restructured so months-behind sits under the amount in a right-aligned debt block — never the truncated tail of the caption; `OpenStatementButton` tracks the sibling's `sm:h-9` desktop shrink (44px touch target preserved) | ✅ v0.20.0 (this repo) |
 | 21-wedge | **The classic home (D-034 — the ledger language)**: the five role homes speak in classic documents — a LEDGER MASTHEAD (small-caps eyebrow · SYSTEM-serif greeting (Georgia/Noto Serif stack, zero download — the low-end-Android rule holds) · the print double rule `nest-rule` 2px-primary + 1px-hairline · estate figures · live-figure aside) replaces the warm-canvas hero panels and illustration; KPI quads read as ledger figure boxes (`nest-classic-rule`: 2px top rule, hairline box, 6px corners, NO shadow, inline muted icons, plain-text deltas, paper-tint highlight); sections wear serif heads over full-width hairlines with underlined View-all links; action tiles squared (flat hover); shared primitives gained OPT-IN `variant="classic"` (KpiCard, SectionHeader, SecurityCard, NotificationsList) — defaults untouched, every other screen keeps D-030's warm canvas (arrears verified unchanged: 57px rows, 0 classic classes) | ✅ v0.21.0 (this repo) |
+| 22-wedge | **The agent's mandate (D-035)**: role framing corrected at the contract level — agents are *appointed by landlords to manage the property on their behalf* (EN "Manage the plot on the landlord's behalf" / SW "Simamia mali kwa niaba ya mmiliki"); role descriptions, demo story, agent home masthead and README demo table all speak the appointment framing; schema already carried `Property.agentId` | ✅ v0.22.0 (this repo) |
+| 23-wedge | **Agent parity (D-036 — the "almost")**: the appointed agent receives the landlord's desk scoped to appointed plots — the same `computeMoneyRollup` seam feeds the agent overview's money block (expected/collected/MoM/today, collection rate, arrears, occupancy, open tickets), arrears rows, recent payments, and security digest; nav opens home/arrears/payments/listings + applicants/properties/repairs/analytics/security/expenses; match modal + remind-all + visitors/incidents READ + statements + staff statement view; **the "almost"**: KRA (owner's tax) and expense writes stay 403 | ✅ v0.23.0 (this repo) |
+| 24-wedge | **Show the product (D-037 — honest states, carried evidence)**: the demo login degrades visibly when identities are unavailable (200-but-empty list → tinted-blob empty state + retry, EN/SW — previously a silent blank, found in the post-reset production audit); the README gains a product gallery — five release screenshots (login five-role cards, landlord classic desk, agent parity desk, arrears ledger, analytics/P&L) with described alt text; roadmap rows restored for P22–P24 | ✅ v0.24.0 (this repo) |
 | 6-tail | Consent-gated external Rent Score API, financing & insurance partners, load/security/a11y hardening, pilot readiness | planned |
 
 ## 📚 Documentation
