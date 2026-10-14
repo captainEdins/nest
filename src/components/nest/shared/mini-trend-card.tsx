@@ -6,9 +6,12 @@
  * landlord/home.tsx in Phase 23 (issue #109 — agent parity) so the agent's
  * desk renders the SAME chart from the shared ["analytics"] cache.
  *
- * Accessible by construction: each month group is focusable with a
- * <title> tooltip; the footer carries the latest month's exact numbers so
- * money is never guessed from bar heights.
+ * Issue #117 — the SVG viewBox version scaled its 10px text with container
+ * width (illegible at 375px, inflated at desktop) and the tallest bar sat
+ * exactly on the plot ceiling. Rebuilt as a CSS/flex bar chart: real-text
+ * labels at every width, bars as % heights with built-in headroom, and the
+ * same a11y contract (focusable month groups with full summaries; exact
+ * numbers in the honesty line so money is never guessed from bar heights).
  */
 
 import { useI18n } from "@/lib/i18n";
@@ -17,36 +20,19 @@ import { formatKes } from "@/lib/money";
 import type { AnalyticsMonthDto } from "@/lib/types";
 import { Card, CardContent } from "@/components/ui/card";
 
-const MINI_W = 340;
-const MINI_H = 104;
-const MINI_BASE = 82;
-const MINI_TOP = 8;
-
-/** Bar path with rounded top only — base sits flat on the baseline. */
-function miniBarPath(x: number, top: number, width: number, bottom: number): string {
-  const radius = Math.min(3, bottom - top, width / 2);
-  if (bottom - top <= radius) return `M ${x} ${bottom} L ${x + width} ${bottom} Z`;
-  return [
-    `M ${x} ${bottom}`,
-    `L ${x} ${top + radius}`,
-    `Q ${x} ${top} ${x + radius} ${top}`,
-    `L ${x + width - radius} ${top}`,
-    `Q ${x + width} ${top} ${x + width} ${top + radius}`,
-    `L ${x + width} ${bottom}`,
-    "Z",
-  ].join(" ");
-}
+/** Tallest bar occupies this share of the plot height — visible headroom
+ *  above the data, so rounded tops always render and nothing reads clipped. */
+const MAX_BAR_SHARE = 0.88;
 
 export function MiniTrendCard({ monthly }: { monthly: AnalyticsMonthDto[] }) {
   const { t } = useI18n();
   const setTab = useUIStore((s) => s.setTab);
 
   const maxMinor = monthly.reduce((max, m) => Math.max(max, m.billedMinor, m.collectedMinor), 0);
-  const groupW = MINI_W / monthly.length;
-  const barW = Math.min(14, groupW * 0.3);
-  const pairW = barW * 2 + 4;
-  const barH = (valueMinor: number) =>
-    maxMinor > 0 ? Math.max(2, Math.round((valueMinor / maxMinor) * (MINI_BASE - MINI_TOP))) : 2;
+  const barHeightPct = (valueMinor: number) =>
+    maxMinor > 0
+      ? Math.max(0.8, (valueMinor / maxMinor) * MAX_BAR_SHARE * 100)
+      : 0.8;
   const last = monthly[monthly.length - 1]!;
 
   return (
@@ -66,79 +52,60 @@ export function MiniTrendCard({ monthly }: { monthly: AnalyticsMonthDto[] }) {
           </button>
         </div>
 
-        <svg
-          viewBox={`0 0 ${MINI_W} ${MINI_H}`}
-          className="w-full h-auto"
+        {/* Plot — CSS bars: real text labels, % heights, headroom by design. */}
+        <div
           role="img"
           aria-label={`${t("analytics.collectionTrend")} — ${t("analytics.last6Months")}`}
+          className="relative h-24"
         >
-          {/* Quiet dashed gridlines (reference texture); baseline solid. */}
-          {[0.5, 1].map((frac) => {
-            const y = MINI_BASE - Math.round(frac * (MINI_BASE - MINI_TOP));
-            return (
-              <line
-                key={frac}
-                x1={0}
-                x2={MINI_W}
-                y1={y}
-                y2={y}
-                className="stroke-border"
-                strokeWidth={1}
-                strokeDasharray="3 4"
-              />
-            );
-          })}
-          <line
-            x1={0}
-            x2={MINI_W}
-            y1={MINI_BASE}
-            y2={MINI_BASE}
-            className="stroke-foreground/25"
-            strokeWidth={1}
-          />
+          {/* Quiet gridlines (decorative reference texture; exact values in
+              the honesty line below). Top line = the data maximum. */}
+          <div aria-hidden className="absolute inset-x-0 top-0 h-px bg-border/70" />
+          <div aria-hidden className="absolute inset-x-0 top-1/2 h-px bg-border/40" />
+          {/* Baseline — solid. */}
+          <div aria-hidden className="absolute inset-x-0 bottom-[22px] h-px bg-foreground/25" />
 
-          {monthly.map((month, index) => {
-            const groupX = index * groupW;
-            const pairX = groupX + (groupW - pairW) / 2;
-            const billedH = barH(month.billedMinor);
-            const collectedH = barH(month.collectedMinor);
-            const summary = t("analytics.monthSummary", {
-              month: month.label,
-              billed: formatKes(month.billedMinor),
-              collected: formatKes(month.collectedMinor),
-              expenses: formatKes(month.expensesMinor),
-              net: formatKes(month.netMinor),
-            });
-            return (
-              <g
-                key={month.monthKey}
-                tabIndex={0}
-                role="img"
-                aria-label={summary}
-                className="outline-none focus-visible:[outline:2px_solid_var(--ring)]"
-              >
-                <title>{summary}</title>
-                <path
-                  d={miniBarPath(pairX, MINI_BASE - billedH, barW, MINI_BASE)}
-                  className="fill-muted"
-                />
-                <path
-                  d={miniBarPath(pairX + barW + 4, MINI_BASE - collectedH, barW, MINI_BASE)}
-                  className="fill-primary"
-                />
-                <text
-                  x={groupX + groupW / 2}
-                  y={MINI_H - 4}
-                  textAnchor="middle"
-                  fontSize={10}
-                  className="fill-muted-foreground"
+          {/* Month groups — flex row; each group is focusable with the full
+              summary (same contract as the analytics chart). */}
+          <div className="absolute inset-0 flex items-stretch justify-around gap-1">
+            {monthly.map((month) => {
+              const summary = t("analytics.monthSummary", {
+                month: month.label,
+                billed: formatKes(month.billedMinor),
+                collected: formatKes(month.collectedMinor),
+                expenses: formatKes(month.expensesMinor),
+                net: formatKes(month.netMinor),
+              });
+              return (
+                <div
+                  key={month.monthKey}
+                  tabIndex={0}
+                  role="img"
+                  aria-label={summary}
+                  title={summary}
+                  className="group relative flex-1 min-w-0 flex flex-col justify-end focus-visible:outline-2 focus-visible:outline-ring rounded-sm focus-visible:-outline-offset-2 transition-colors"
                 >
-                  {month.label}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
+                  {/* Bars sit on the baseline; the label strip lives below it. */}
+                  <div className="flex items-end justify-center gap-[3px] h-[calc(100%-22px)]">
+                    <div
+                      aria-hidden
+                      className="w-[min(46%,13px)] rounded-t-[3px] bg-primary/15 dark:bg-primary/25 transition-colors group-hover:bg-primary/25 dark:group-hover:bg-primary/35"
+                      style={{ height: `${barHeightPct(month.billedMinor)}%` }}
+                    />
+                    <div
+                      aria-hidden
+                      className="w-[min(46%,13px)] rounded-t-[3px] bg-primary transition-colors group-hover:bg-primary/90"
+                      style={{ height: `${barHeightPct(month.collectedMinor)}%` }}
+                    />
+                  </div>
+                  <p className="h-[22px] flex items-center justify-center text-[10px] leading-none text-muted-foreground tabular-nums">
+                    <span className="truncate px-0.5">{month.label}</span>
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
         {/* Latest month, exact — the honesty line under the whisper. */}
         <p className="text-caption text-muted-foreground tabular-nums">
