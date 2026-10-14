@@ -41,6 +41,7 @@ import { Progress } from "@/components/ui/progress";
 export function LandlordHome() {
   const { t } = useI18n();
   const setTab = useUIStore((s) => s.setTab);
+  const openProperty = useUIStore((s) => s.openProperty);
   const setPaymentsFilter = useUIStore((s) => s.setPaymentsFilter);
   const { data } = useSession();
   const { data: overview, isPending, error, refetch } = useLandlordOverview();
@@ -283,7 +284,8 @@ export function LandlordHome() {
         )}
       </section>
 
-      {/* Properties — letter tiles (the classic square monogram) */}
+      {/* Properties — letter tiles (the classic square monogram). Phase 26:
+          every card is a TAP → the property detail (units + tenants + add-unit). */}
       <section aria-label={t("landlord.properties")}>
         <SectionHeader
           variant="classic"
@@ -295,7 +297,7 @@ export function LandlordHome() {
         />
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
           {properties.map((property) => (
-            <PropertyCard key={property.id} property={property} />
+            <PropertyCard key={property.id} property={property} onOpen={() => openProperty(property.id)} />
           ))}
         </div>
       </section>
@@ -516,39 +518,46 @@ function VacancyChip({ unit }: { unit: UnitDto }) {
   );
 }
 
-function PropertyCard({ property }: { property: PropertyDto }) {
+function PropertyCard({ property, onOpen }: { property: PropertyDto; onOpen: () => void }) {
   const { t } = useI18n();
   const vacant = property.unitCount - property.occupiedCount;
   return (
-    <Card className="py-0 gap-0 nest-classic">
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex items-center gap-3 min-w-0">
-          {/* Letter tile — the classic square monogram, serif initial. */}
-          <span
-            aria-hidden
-            className="size-10 shrink-0 rounded-[4px] border border-primary/30 bg-primary/5 text-primary grid place-items-center font-serif text-h3 font-semibold"
-          >
-            {property.name.charAt(0)}
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="text-h3 font-semibold truncate">{property.name}</p>
-            <p className="text-caption text-muted-foreground truncate">{property.location}</p>
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-label={t("property.viewUnitsAria", { name: property.name })}
+      className="text-left w-full h-full rounded-[6px] outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background transition-transform duration-200 hover:-translate-y-0.5 active:scale-[0.98]"
+    >
+      <Card className="py-0 gap-0 nest-classic h-full">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Letter tile — the classic square monogram, serif initial. */}
+            <span
+              aria-hidden
+              className="size-10 shrink-0 rounded-[4px] border border-primary/30 bg-primary/5 text-primary grid place-items-center font-serif text-h3 font-semibold"
+            >
+              {property.name.charAt(0)}
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-h3 font-semibold truncate">{property.name}</p>
+              <p className="text-caption text-muted-foreground truncate">{property.location}</p>
+            </div>
+            <ChevronRight className="size-4 text-muted-foreground/60 shrink-0" aria-hidden />
           </div>
-          <Building2 className="size-4 text-muted-foreground/60 shrink-0" aria-hidden />
-        </div>
-        <p className="text-caption text-muted-foreground mt-3 tabular-nums">
-          {t("property.unitsSummary", {
-            units: property.unitCount,
-            occupied: property.occupiedCount,
-            vacant: Math.max(0, vacant),
-          })}
-        </p>
-        <Progress
-          className="h-1.5 mt-3"
-          value={property.unitCount > 0 ? Math.round((property.occupiedCount / property.unitCount) * 100) : 0}
-          aria-hidden
-        />
-      </CardContent>
-    </Card>
+          <p className="text-caption text-muted-foreground mt-3 tabular-nums">
+            {t("property.unitsSummary", {
+              units: property.unitCount,
+              occupied: property.occupiedCount,
+              vacant: Math.max(0, vacant),
+            })}
+          </p>
+          <Progress
+            className="h-1.5 mt-3"
+            value={property.unitCount > 0 ? Math.round((property.occupiedCount / property.unitCount) * 100) : 0}
+            aria-hidden
+          />
+        </CardContent>
+      </Card>
+    </button>
   );
 }

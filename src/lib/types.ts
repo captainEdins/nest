@@ -378,6 +378,22 @@ export interface DepositSettleRequest {
   deductions: DepositSettlementLine[]
 }
 
+/**
+ * Phase 26 (issue #121) — POST /api/units: the landlord adds a unit to an
+ * owned property. Label is unique per property (409 on duplicate); the unit
+ * is born VACANT — tenancies are the move-in flow's business.
+ */
+export interface CreateUnitRequest {
+  propertyId: string
+  /** "A1", "B 2", "Shop 3"… ≤ 12 chars, letters/digits/space/dash. */
+  label: string
+  type: UnitType
+  /** Positive integer minor units. */
+  rentAmountMinor: number
+  /** ≥ 0 minor units — 0 = deposit negotiated at move-in. */
+  depositAmountMinor: number
+}
+
 export interface CreateConditionReportRequest {
   tenancyId: string
   kind: ConditionReportKind
