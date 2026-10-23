@@ -177,6 +177,18 @@ function LegendSwatch({ className }: { className: string }) {
   return <span className={cn("inline-block size-2.5 rounded-[4px] shrink-0", className)} aria-hidden />;
 }
 
+/** #125 AC-1: the honest zero. A month with no bars draws a small dot on
+ *  the baseline — an intentional mark, not a 1px sliver that reads as a
+ *  rendering error. Muted ink, rounded, centered where the group sits. */
+function ZeroBaselineDot() {
+  return (
+    <span
+      aria-hidden
+      className="absolute bottom-[-3px] left-1/2 -translate-x-1/2 size-[5px] rounded-full bg-muted-foreground/50"
+    />
+  );
+}
+
 /** Legend pill chip (D-030) — the reference's bordered pill toggles: 1px
  *  hairline, fully rounded, dot + label. Presentational (colors are the
  *  swatches' job). */
@@ -191,6 +203,11 @@ function LegendChip({ swatch, children }: { swatch: string; children: React.Reac
 
 function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
   const { t } = useI18n();
+
+  // #125 AC-3: the active month (hover or keyboard focus) feeds ONE shared
+  // tooltip chip anchored to the plot's top-center — it can never clip past
+  // the card edges the way a per-group chip would on a 390px screen.
+  const [activeIdx, setActiveIdx] = React.useState<number | null>(null);
 
   const maxMinor = monthly.reduce(
     (max, m) => Math.max(max, m.billedMinor, m.collectedMinor, m.expensesMinor),
@@ -247,6 +264,24 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
 
           {/* Bar zone — gridlines behind, month groups on top. */}
           <div className="relative flex-1 h-40 sm:h-44">
+            {/* #125 AC-3: the shared exact-values chip. Whitespace-normal so a
+                long summary wraps to two lines instead of overflowing; the
+                top gridline zone is design headroom, so the overlay never
+                hides a bar. */}
+            {activeIdx != null && monthly[activeIdx] ? (
+              <span
+                role="status"
+                className="pointer-events-none absolute top-1 left-1/2 -translate-x-1/2 z-10 max-w-[min(22rem,calc(100%-0.5rem))] whitespace-normal text-center rounded-md border border-border bg-card px-2.5 py-1.5 text-caption tabular-nums text-foreground shadow-md nest-float-shadow"
+              >
+                {t("analytics.monthSummary", {
+                  month: monthly[activeIdx]!.label,
+                  billed: formatKes(monthly[activeIdx]!.billedMinor),
+                  collected: formatKes(monthly[activeIdx]!.collectedMinor),
+                  expenses: formatKes(monthly[activeIdx]!.expensesMinor),
+                  net: formatKes(monthly[activeIdx]!.netMinor),
+                })}
+              </span>
+            ) : null}
             {ticks.map((tick) => (
               <div
                 key={tick}
@@ -260,9 +295,11 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
             ))}
 
             {/* Month groups — focusable, with a native title tooltip (same
-                a11y contract as before). Bars sit on the baseline. */}
+                a11y contract as before); hover/focus ALSO feeds the shared
+                exact-values chip (#125 AC-3 — touch users still have the
+                honesty table below). Bars sit on the baseline. */}
             <div className="absolute inset-x-0 top-0 bottom-0 flex items-stretch justify-around gap-1 sm:gap-2">
-              {monthly.map((month) => {
+              {monthly.map((month, i) => {
                 const summary = t("analytics.monthSummary", {
                   month: month.label,
                   billed: formatKes(month.billedMinor),
@@ -270,6 +307,8 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
                   expenses: formatKes(month.expensesMinor),
                   net: formatKes(month.netMinor),
                 });
+                const isEmptyMonth =
+                  month.billedMinor === 0 && month.collectedMinor === 0 && month.expensesMinor === 0;
                 return (
                   <div
                     key={month.monthKey}
@@ -277,26 +316,41 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
                     role="img"
                     aria-label={summary}
                     title={summary}
+                    onMouseEnter={() => setActiveIdx(i)}
+                    onMouseLeave={() => setActiveIdx(null)}
+                    onFocus={() => setActiveIdx(i)}
+                    onBlur={() => setActiveIdx(null)}
                     className="group relative flex-1 min-w-0 max-w-20 flex flex-col focus-visible:outline-2 focus-visible:outline-ring rounded-md focus-visible:-outline-offset-2 transition-colors"
                   >
+                    {/* #125 AC-1: an all-zero month prints the honest zero —
+                        a small baseline dot — instead of three 1px slivers
+                        that read like a rendering error. */}
                     {/* Bars row — fixed height above the label strip so %
                         heights resolve. */}
                     <div className="flex items-end justify-center gap-1 h-[calc(100%-20px)]">
-                      <div
-                        aria-hidden
-                        className="w-3 sm:w-3.5 rounded-t-[4px] bg-primary/15 dark:bg-primary/25 transition-colors group-hover:bg-primary/25 dark:group-hover:bg-primary/35"
-                        style={{ height: `${barHeightPct(month.billedMinor)}%` }}
-                      />
-                      <div
-                        aria-hidden
-                        className="w-3 sm:w-3.5 rounded-t-[4px] bg-primary transition-colors group-hover:bg-primary/90"
-                        style={{ height: `${barHeightPct(month.collectedMinor)}%` }}
-                      />
-                      <div
-                        aria-hidden
-                        className="w-3 sm:w-3.5 rounded-t-[4px] bg-attention/80 transition-colors group-hover:bg-attention"
-                        style={{ height: `${barHeightPct(month.expensesMinor)}%` }}
-                      />
+                      {isEmptyMonth ? (
+                        <div className="relative w-full h-full flex items-end justify-center">
+                          <ZeroBaselineDot />
+                        </div>
+                      ) : (
+                        <>
+                          <div
+                            aria-hidden
+                            className="w-3 sm:w-3.5 rounded-t-[4px] bg-gradient-to-t from-primary/10 to-primary/20 dark:from-primary/20 dark:to-primary/30 transition-colors group-hover:from-primary/20 group-hover:to-primary/30 dark:group-hover:from-primary/30 dark:group-hover:to-primary/40"
+                            style={{ height: `${barHeightPct(month.billedMinor)}%` }}
+                          />
+                          <div
+                            aria-hidden
+                            className="w-3 sm:w-3.5 rounded-t-[4px] bg-gradient-to-t from-primary/85 to-primary transition-colors group-hover:from-primary/95 group-hover:to-primary"
+                            style={{ height: `${barHeightPct(month.collectedMinor)}%` }}
+                          />
+                          <div
+                            aria-hidden
+                            className="w-3 sm:w-3.5 rounded-t-[4px] bg-gradient-to-t from-attention/70 to-attention/85 transition-colors group-hover:from-attention/80 group-hover:to-attention"
+                            style={{ height: `${barHeightPct(month.expensesMinor)}%` }}
+                          />
+                        </>
+                      )}
                     </div>
                     <p className="h-5 flex items-center justify-center text-caption leading-none text-muted-foreground tabular-nums">
                       <span className="truncate px-0.5">{month.label}</span>
@@ -309,55 +363,68 @@ function CollectionTrendChart({ monthly }: { monthly: AnalyticsMonthDto[] }) {
         </div>
 
         {/* Exact values — visible (low-end phones have no hover) and the
-            screen-reader fallback, with an sr-only caption. */}
-        <table className="w-full">
-          <caption className="sr-only">{t("analytics.monthCollected")}</caption>
-          <thead>
-            <tr className="text-caption text-muted-foreground border-b border-border">
-              <th scope="col" className="text-left font-medium py-1.5">
-                {t("analytics.monthHeader")}
-              </th>
-              <th scope="col" className="text-right font-medium py-1.5">
-                {t("analytics.billed")}
-              </th>
-              <th scope="col" className="text-right font-medium py-1.5">
-                {t("analytics.collected")}
-              </th>
-              <th scope="col" className="text-right font-medium py-1.5">
-                {t("analytics.moneyOut")}
-              </th>
-              <th scope="col" className="text-right font-medium py-1.5">
-                {t("analytics.net")}
-              </th>
-            </tr>
-          </thead>
-          <tbody className="text-caption tabular-nums">
-            {monthly.map((month) => (
-              <tr key={month.monthKey} className="border-b border-border last:border-b-0">
-                <th scope="row" className="text-left font-normal text-muted-foreground py-1.5">
-                  {month.label}
-                </th>
-                <td className="text-right text-muted-foreground py-1.5">
-                  {formatKes(month.billedMinor)}
-                </td>
-                <td className="text-right font-medium py-1.5">
-                  {formatKes(month.collectedMinor)}
-                </td>
-                <td className="text-right text-attention py-1.5">
-                  {formatKes(month.expensesMinor)}
-                </td>
-                <td
-                  className={cn(
-                    "text-right font-semibold py-1.5",
-                    month.netMinor >= 0 ? "text-success" : "text-destructive",
-                  )}
-                >
-                  {formatKes(month.netMinor)}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            screen-reader fallback, with an sr-only caption. #125 AC-2: on
+            narrow screens the five columns keep their natural width inside a
+            horizontally scrollable strip (edge fade hints the scroll); no
+            more squeeze at 390px. */}
+        <div className="relative -mx-1 px-1">
+          <div className="overflow-x-auto nest-scrollbar scroll-smooth">
+            <table className="w-full min-w-[420px]">
+              <caption className="sr-only">{t("analytics.monthCollected")}</caption>
+              <thead>
+                <tr className="text-caption text-muted-foreground border-b border-border">
+                  <th scope="col" className="text-left font-medium py-1.5">
+                    {t("analytics.monthHeader")}
+                  </th>
+                  <th scope="col" className="text-right font-medium py-1.5">
+                    {t("analytics.billed")}
+                  </th>
+                  <th scope="col" className="text-right font-medium py-1.5">
+                    {t("analytics.collected")}
+                  </th>
+                  <th scope="col" className="text-right font-medium py-1.5">
+                    {t("analytics.moneyOut")}
+                  </th>
+                  <th scope="col" className="text-right font-medium py-1.5">
+                    {t("analytics.net")}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="text-caption tabular-nums">
+                {monthly.map((month) => (
+                  <tr key={month.monthKey} className="border-b border-border last:border-b-0">
+                    <th scope="row" className="text-left font-normal text-muted-foreground py-1.5">
+                      {month.label}
+                    </th>
+                    <td className="text-right text-muted-foreground py-1.5">
+                      {formatKes(month.billedMinor)}
+                    </td>
+                    <td className="text-right font-medium py-1.5">
+                      {formatKes(month.collectedMinor)}
+                    </td>
+                    <td className="text-right text-attention py-1.5">
+                      {formatKes(month.expensesMinor)}
+                    </td>
+                    <td
+                      className={cn(
+                        "text-right font-semibold py-1.5",
+                        month.netMinor >= 0 ? "text-success" : "text-destructive",
+                      )}
+                    >
+                      {formatKes(month.netMinor)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {/* Edge fades — the scroll affordance without chrome. Only on the
+              very narrow widths that actually scroll (hidden ≥sm). */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 w-6 bg-gradient-to-l from-card to-transparent sm:hidden"
+          />
+        </div>
       </CardContent>
     </Card>
   );
