@@ -12,6 +12,11 @@
  * labels at every width, bars as % heights with built-in headroom, and the
  * same a11y contract (focusable month groups with full summaries; exact
  * numbers in the honesty line so money is never guessed from bar heights).
+ *
+ * Issue #125 (AC-1/AC-5) — an all-zero month now prints the honest zero (a
+ * small baseline dot, not two invisible slivers) and the bars carry the
+ * same subtle top-lighter gradient as the analytics chart, so both
+ * surfaces speak one chart language.
  */
 
 import { useI18n } from "@/lib/i18n";
@@ -76,6 +81,9 @@ export function MiniTrendCard({ monthly }: { monthly: AnalyticsMonthDto[] }) {
                 expenses: formatKes(month.expensesMinor),
                 net: formatKes(month.netMinor),
               });
+              // #125 AC-1: an empty month prints the honest zero — a small
+              // dot on the baseline — instead of two invisible 1px slivers.
+              const isEmptyMonth = month.billedMinor === 0 && month.collectedMinor === 0;
               return (
                 <div
                   key={month.monthKey}
@@ -86,17 +94,26 @@ export function MiniTrendCard({ monthly }: { monthly: AnalyticsMonthDto[] }) {
                   className="group relative flex-1 min-w-0 flex flex-col justify-end focus-visible:outline-2 focus-visible:outline-ring rounded-sm focus-visible:-outline-offset-2 transition-colors"
                 >
                   {/* Bars sit on the baseline; the label strip lives below it. */}
-                  <div className="flex items-end justify-center gap-[3px] h-[calc(100%-22px)]">
-                    <div
-                      aria-hidden
-                      className="w-[min(46%,13px)] rounded-t-[3px] bg-primary/15 dark:bg-primary/25 transition-colors group-hover:bg-primary/25 dark:group-hover:bg-primary/35"
-                      style={{ height: `${barHeightPct(month.billedMinor)}%` }}
-                    />
-                    <div
-                      aria-hidden
-                      className="w-[min(46%,13px)] rounded-t-[3px] bg-primary transition-colors group-hover:bg-primary/90"
-                      style={{ height: `${barHeightPct(month.collectedMinor)}%` }}
-                    />
+                  <div className="relative flex items-end justify-center gap-[3px] h-[calc(100%-22px)]">
+                    {isEmptyMonth ? (
+                      <span
+                        aria-hidden
+                        className="absolute bottom-[-3px] left-1/2 -translate-x-1/2 size-[5px] rounded-full bg-muted-foreground/50"
+                      />
+                    ) : (
+                      <>
+                        <div
+                          aria-hidden
+                          className="w-[min(46%,13px)] rounded-t-[3px] bg-gradient-to-t from-primary/10 to-primary/20 dark:from-primary/20 dark:to-primary/30 transition-colors group-hover:from-primary/20 group-hover:to-primary/30 dark:group-hover:from-primary/30 dark:group-hover:to-primary/40"
+                          style={{ height: `${barHeightPct(month.billedMinor)}%` }}
+                        />
+                        <div
+                          aria-hidden
+                          className="w-[min(46%,13px)] rounded-t-[3px] bg-gradient-to-t from-primary/85 to-primary transition-colors group-hover:from-primary/95 group-hover:to-primary"
+                          style={{ height: `${barHeightPct(month.collectedMinor)}%` }}
+                        />
+                      </>
+                    )}
                   </div>
                   <p className="h-[22px] flex items-center justify-center text-[10px] leading-none text-muted-foreground tabular-nums">
                     <span className="truncate px-0.5">{month.label}</span>

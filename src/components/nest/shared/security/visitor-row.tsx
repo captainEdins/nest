@@ -116,7 +116,7 @@ export function VisitorRow({
   const exitedAt = visitor.exitedAt;
 
   return (
-    <div className="p-3.5 sm:p-4 min-h-16 flex items-center gap-3 animate-in fade-in duration-300 fill-mode-both">
+    <div className="p-3.5 sm:p-4 min-h-16 flex items-center gap-3 animate-in fade-in duration-300 fill-mode-both transition-colors hover:bg-muted/30 active:bg-muted/50">
       <AvatarInitials fullName={visitor.visitorName} size="sm" />
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">

@@ -206,7 +206,7 @@ export function LandlordHome() {
             setPaymentsFilter("UNMATCHED");
             setTab("payments");
           }}
-          className="w-full text-left rounded-[6px] border border-warning/40 bg-warning/15 dark:bg-warning/10 p-4 flex items-center gap-3 focus-visible:ring-2 focus-visible:ring-ring outline-none"
+          className="w-full text-left rounded-[6px] border border-warning/40 bg-warning/15 dark:bg-warning/10 p-4 flex items-center gap-3 focus-visible:ring-2 focus-visible:ring-ring outline-none transition-[background-color,transform] duration-200 hover:bg-warning/20 dark:hover:bg-warning/15 active:scale-[0.99]"
         >
           <HelpCircle className="size-5 text-attention shrink-0" aria-hidden />
           <p className="min-w-0 flex-1 text-attention font-medium">
