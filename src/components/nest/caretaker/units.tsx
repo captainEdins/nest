@@ -162,7 +162,7 @@ function UnitRow({
     tenancy?.moveOutDate != null && calendarDayReached(tenancy.moveOutDate);
 
   return (
-    <div className="p-4 animate-in fade-in duration-300 fill-mode-both">
+    <div className="p-4 animate-in fade-in duration-300 fill-mode-both transition-colors hover:bg-muted/30">
       <div className="flex items-center gap-3">
         <button
           type="button"

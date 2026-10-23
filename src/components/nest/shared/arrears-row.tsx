@@ -84,7 +84,7 @@ export function ArrearsRow({
       : t("arrears.monthsBehind", { count: row.monthsBehind });
 
   return (
-    <div className="p-4 min-h-14 transition-colors hover:bg-muted/40">
+    <div className="p-4 min-h-14 transition-colors hover:bg-muted/40 active:bg-muted/60">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-body font-medium truncate flex items-center gap-2" title={row.tenantName}>
